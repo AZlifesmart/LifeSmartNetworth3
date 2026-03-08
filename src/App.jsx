@@ -2054,46 +2054,43 @@ function GoalSheet({ goal, onClose, onSave }) {
   const [target,  setTarget]  = useState(goal?.targetAmount || 0)
   const [start,   setStart]   = useState(goal?.startAmount  || 0)
   const [monthly, setMonthly] = useState(goal?.monthlyAmount || Math.round(Math.max(0,surplus*0.3)))
-  const [err, setErr] = useState("")
-  const [showAction, setShowAction] = useState(editing && ACTION_GOALS.has(goal?.type) ? true : false)
+  const [err,     setErr]     = useState("")
+  const [goAction,setGoAction]= useState(editing && ACTION_GOALS.has(goal?.type))
 
-  // If user picked an action-style goal type, show the action sheet
-  if(showAction && type && ACTION_GOALS.has(type)) {
+  // Route to action sheet once type confirmed
+  if(goAction && type && ACTION_GOALS.has(type)) {
     return <ActionGoalSheet type={type} goal={goal} onClose={onClose} onSave={onSave}/>
   }
 
   const cfg = GOAL_TYPES.find(g=>g.id===type)
-  const monthsNeeded = (monthly > 0 && target > start) ? Math.ceil((target - start) / monthly) : null
-  const eta = monthsNeeded ? (() => { const d = new Date(); d.setMonth(d.getMonth() + monthsNeeded); return d.toLocaleDateString("en-GB",{month:"short",year:"numeric"}) })() : null
+  const monthsNeeded = (monthly>0 && target>start) ? Math.ceil((target-start)/monthly) : null
+  const eta = monthsNeeded ? (()=>{ const d=new Date(); d.setMonth(d.getMonth()+monthsNeeded); return d.toLocaleDateString("en-GB",{month:"short",year:"numeric"}) })() : null
 
   function save() {
-    if(!type)   { setErr("Please choose a goal type."); return }
-    if(ACTION_GOALS.has(type)) { setShowAction(true); return }
+    if(!type)    { setErr("Please choose a goal type."); return }
     if(target<=0){ setErr("Please enter a target amount."); return }
     setErr("")
-    onSave({
-      id: goal?.id || Date.now().toString(),
-      type, name: name || cfg?.label || "My goal",
-      targetAmount: target, startAmount: start, monthlyAmount: monthly,
-      createdAt: goal?.createdAt || new Date().toISOString(),
-    })
+    onSave({ id:goal?.id||Date.now().toString(), type, name:name||cfg?.label||"My goal", targetAmount:target, startAmount:start, monthlyAmount:monthly, createdAt:goal?.createdAt||new Date().toISOString() })
     onClose()
   }
 
   return (
     <Sheet title={editing ? "Edit goal" : "New goal"} onClose={onClose}>
-      {/* Type picker */}
       <p style={{ fontSize:12,color:T.muted,fontWeight:600,letterSpacing:.5,textTransform:"uppercase",marginBottom:10 }}>What are you saving towards?</p>
       <div style={{ display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:20 }}>
         {GOAL_TYPES.map(g=>{
           const sel = type===g.id
           const isAction = ACTION_GOALS.has(g.id)
           return (
-            <button key={g.id} onClick={()=>{ setType(g.id); if(!name) setName(g.label); if(isAction) setShowAction(true) }}
+            <button key={g.id} onClick={()=>{
+              const newName = (!name||name===cfg?.label) ? g.label : name
+              setType(g.id); setName(newName)
+              if(isAction) setGoAction(true)
+            }}
               style={{ padding:"12px 6px",borderRadius:13,border:`2px solid ${sel?g.color:T.border}`,background:sel?g.dim:T.card,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:8,position:"relative",transition:"all .15s" }}>
               <span style={{ fontSize:22 }}>{g.icon}</span>
               <span style={{ fontSize:11,fontWeight:600,color:sel?g.color:T.muted,textAlign:"center",lineHeight:1.3 }}>{g.label}</span>
-              {isAction && <span style={{ fontSize:9,color:sel?g.color:T.subtle,fontWeight:600 }}>Action plan</span>}
+              {isAction && <span style={{ fontSize:9,color:T.muted,fontWeight:600 }}>Action plan</span>}
               {sel && <div style={{ position:"absolute",top:6,right:6,width:14,height:14,borderRadius:"50%",background:g.color,display:"flex",alignItems:"center",justifyContent:"center" }}><Check size={9} color="#fff"/></div>}
             </button>
           )
@@ -2101,7 +2098,7 @@ function GoalSheet({ goal, onClose, onSave }) {
       </div>
 
       <div style={{ display:"flex",flexDirection:"column",gap:14,marginBottom:20 }}>
-        <Input label="Goal name" value={name} onChange={setName} placeholder={cfg?.label || "e.g. Europe trip"}/>
+        <Input label="Goal name" value={name} onChange={setName} placeholder={cfg?.label||"e.g. Europe trip"}/>
         <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:12 }}>
           <CurrencyInput label="Target amount" value={target} onChange={setTarget}/>
           <CurrencyInput label="Already saved (optional)" value={start} onChange={setStart}/>
@@ -2109,7 +2106,7 @@ function GoalSheet({ goal, onClose, onSave }) {
         <CurrencyInput label="Monthly contribution" value={monthly} onChange={setMonthly} helper={`Your current surplus is ${fmt(Math.max(0,surplus))}/mo`}/>
       </div>
 
-      {eta && target > 0 && (
+      {eta && target>0 && (
         <div style={{ background:T.tealDim,border:`1px solid ${T.tealBorder}`,borderRadius:13,padding:"14px 16px",marginBottom:16 }}>
           <p style={{ color:T.teal,fontWeight:700,fontSize:14 }}>At {fmt(monthly)}/mo you will reach this by <strong>{eta}</strong></p>
           <p style={{ color:T.muted,fontSize:12,marginTop:4 }}>{monthsNeeded} month{monthsNeeded!==1?"s":""} away.</p>
@@ -3004,6 +3001,7 @@ function LessonPlayer({ lesson, onBack }) {
   const [matched,  setMatched]  = useState({})
   const [matchSel, setMatchSel] = useState(null)
   const [matchDone,setMatchDone]= useState(false)
+  const [shuffledDefs,setShuffledDefs] = useState(null)
   const [sliderVal,setSliderVal]= useState(null)
   const [scenPick, setScenPick] = useState(null)
   const [xpShown,  setXpShown]  = useState(false)
@@ -3017,6 +3015,11 @@ function LessonPlayer({ lesson, onBack }) {
     setMatched({}); setMatchSel(null); setMatchDone(false); setScenPick(null)
     setRankOrder(card?.type==="rank" ? card.items.map((_,i)=>i) : null)
     setSliderVal(card?.type==="slider" ? (card.defaultVal ?? Math.round((card.min+card.max)/2)) : null)
+    if(card?.type==="match") {
+      const order = card.pairs.map((_,i)=>i)
+      for(let i=order.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1));[order[i],order[j]]=[order[j],order[i]] }
+      setShuffledDefs(order)
+    } else { setShuffledDefs(null) }
   },[cardIdx]) // card is derived from cardIdx so no separate dep needed
 
   function canAdvance() {
@@ -3162,7 +3165,7 @@ function LessonPlayer({ lesson, onBack }) {
           )}
 
           {/* MATCH card */}
-          {card.type==="match" && (
+          {card.type==="match" && shuffledDefs && (
             <div>
               <div style={{ background:T.amberDim,border:`1px solid ${T.amberBorder}`,borderRadius:10,padding:"6px 12px",display:"inline-flex",alignItems:"center",gap:6,marginBottom:16 }}>
                 <span>🔗</span>
@@ -3172,43 +3175,42 @@ function LessonPlayer({ lesson, onBack }) {
               <p style={{ color:T.muted,fontSize:13,marginBottom:18 }}>Tap a term, then tap its definition to match them.</p>
               {(() => {
                 const pairs = card.pairs
-                const termIds  = pairs.map((_,i)=>i)
-                const defIds   = pairs.map((_,i)=>i)
+                // shuffledDefs[displayPos] = original pair index shown at that position
                 return (
                   <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10 }}>
                     <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
-                      <p style={{ color:T.subtle,fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:1,marginBottom:2 }}>Terms</p>
-                      {termIds.map(i=>{
-                        const isMatched = Object.values(matched).includes(i)
-                        const isSel = matchSel?.side==="term"&&matchSel?.idx===i
+                      <p style={{ color:T.muted,fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:1,marginBottom:2 }}>Terms</p>
+                      {pairs.map((_,termOrigIdx)=>{
+                        const isMatched = Object.values(matched).includes(termOrigIdx)
+                        const isSel = matchSel?.side==="term"&&matchSel?.idx===termOrigIdx
                         return (
-                          <button key={i} disabled={isMatched||matchDone} onClick={()=>{
+                          <button key={termOrigIdx} disabled={isMatched||matchDone} onClick={()=>{
                             if(matchSel?.side==="def") {
-                              const newMatched={...matched,[matchSel.idx]:i}
+                              const newMatched={...matched,[matchSel.displayPos]:termOrigIdx}
                               setMatched(newMatched); setMatchSel(null)
                               if(Object.keys(newMatched).length===pairs.length) setMatchDone(true)
-                            } else setMatchSel({side:"term",idx:i})
+                            } else setMatchSel({side:"term",idx:termOrigIdx})
                           }} style={{ background:isMatched?"rgba(34,197,94,.1)":isSel?T.tealDim:T.card,border:`2px solid ${isMatched?"#22C55E":isSel?T.teal:T.border}`,borderRadius:11,padding:"10px 12px",cursor:isMatched?"default":"pointer",color:isMatched?"#22C55E":T.white,fontSize:12,fontWeight:600,fontFamily:"inherit",textAlign:"left",transition:"all .15s" }}>
-                            {pairs[i].term}
+                            {pairs[termOrigIdx].term}
                           </button>
                         )
                       })}
                     </div>
                     <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
-                      <p style={{ color:T.subtle,fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:1,marginBottom:2 }}>Definitions</p>
-                      {defIds.map(i=>{
-                        const isMatched = matched[i]!==undefined
-                        const isSel = matchSel?.side==="def"&&matchSel?.idx===i
-                        const isCorrect = isMatched && matched[i]===i
+                      <p style={{ color:T.muted,fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:1,marginBottom:2 }}>Definitions</p>
+                      {shuffledDefs.map((origIdx,displayPos)=>{
+                        const isMatched = matched[displayPos]!==undefined
+                        const isSel = matchSel?.side==="def"&&matchSel?.displayPos===displayPos
+                        const isCorrect = isMatched && matched[displayPos]===origIdx
                         return (
-                          <button key={i} disabled={isMatched||matchDone} onClick={()=>{
+                          <button key={displayPos} disabled={isMatched||matchDone} onClick={()=>{
                             if(matchSel?.side==="term") {
-                              const newMatched={...matched,[i]:matchSel.idx}
+                              const newMatched={...matched,[displayPos]:matchSel.idx}
                               setMatched(newMatched); setMatchSel(null)
                               if(Object.keys(newMatched).length===pairs.length) setMatchDone(true)
-                            } else setMatchSel({side:"def",idx:i})
+                            } else setMatchSel({side:"def",displayPos})
                           }} style={{ background:isMatched?(isCorrect?"rgba(34,197,94,.1)":T.redDim):isSel?T.amberDim:T.card,border:`2px solid ${isMatched?(isCorrect?"#22C55E":T.red):isSel?T.amber:T.border}`,borderRadius:11,padding:"10px 12px",cursor:isMatched?"default":"pointer",color:isMatched?(isCorrect?"#22C55E":T.red):T.muted,fontSize:12,fontWeight:500,fontFamily:"inherit",textAlign:"left",lineHeight:1.4,transition:"all .15s" }}>
-                            {pairs[i].def}
+                            {pairs[origIdx].def}
                           </button>
                         )
                       })}
@@ -3219,7 +3221,7 @@ function LessonPlayer({ lesson, onBack }) {
               {matchDone && (
                 <div style={{ background:"rgba(34,197,94,.08)",border:"1px solid rgba(34,197,94,.28)",borderRadius:12,padding:"12px 16px",marginTop:14 }}>
                   <p style={{ color:"#22C55E",fontWeight:700,fontSize:13,marginBottom:4 }}>
-                    {Object.entries(matched).filter(([defIdx,termIdx])=>parseInt(defIdx)===termIdx).length === card.pairs.length ? "Perfect match ✓" : "Good effort — check the correct matches above"}
+                    {Object.entries(matched).filter(([dp,termIdx])=>shuffledDefs[parseInt(dp)]===termIdx).length===card.pairs.length ? "Perfect match ✓" : "Good effort — check the correct pairings above"}
                   </p>
                   <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.65 }}>{card.explanation}</p>
                 </div>
