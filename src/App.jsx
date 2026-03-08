@@ -318,7 +318,13 @@ function AssetSheet({ asset, preCat, onClose, onSave }) {
         )})}
       </div>
 
-      {/* 2. Loan FIRST ── */}
+      {/* 2. Name + Value FIRST */}
+      <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:16 }}>
+        <Input label="Asset name" value={name} onChange={setName} placeholder={cat?ASSET_PH[cat]:"e.g. My home"}/>
+        <CurrencyInput label="Estimated value" value={val} onChange={setVal}/>
+      </div>
+
+      {/* 3. Loan question */}
       <div style={{ marginBottom:16 }}>
         <Toggle label="Does this asset have a loan or mortgage against it?" value={hasLoan} onChange={setHasLoan}/>
       </div>
@@ -335,17 +341,11 @@ function AssetSheet({ asset, preCat, onClose, onSave }) {
                 <input type="number" min="0" max="100" value={loanRate} placeholder="e.g. 3.5" onChange={e=>setLoanRate(e.target.value)} style={{ flex:1,background:"transparent",border:"none",outline:"none",color:T.white,fontSize:14,padding:"12px 14px",fontFamily:"inherit" }}/>
                 <span style={{ padding:"0 14px",color:T.subtle,fontSize:14 }}>%</span>
               </div>
-              <p style={{ fontSize:11,color:T.subtle,marginTop:5 }}>Leave blank — we'll estimate.</p>
+              <p style={{ fontSize:11,color:T.subtle,marginTop:5 }}>Leave blank and we will estimate.</p>
             </div>
           </div>
         </div>
       )}
-
-      {/* 3. Name + Value */}
-      <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:16 }}>
-        <Input label="Asset name" value={name} onChange={setName} placeholder={cat?ASSET_PH[cat]:"e.g. My home"}/>
-        <CurrencyInput label="Estimated value" value={val} onChange={setVal}/>
-      </div>
 
       {/* 4. Income */}
       <div style={{ marginBottom:16 }}>
@@ -356,7 +356,7 @@ function AssetSheet({ asset, preCat, onClose, onSave }) {
       {err && <p style={{ color:T.red,fontSize:13,fontWeight:500,marginBottom:12 }}>{err}</p>}
       <div style={{ display:"flex",gap:10 }}>
         <Btn onClick={()=>go(false)}>Save asset</Btn>
-        <Btn onClick={()=>go(true)} variant="secondary">Save & add another</Btn>
+        <Btn onClick={()=>go(true)} variant="secondary">Save and add another</Btn>
       </div>
     </Sheet>
   )
@@ -431,7 +431,7 @@ function OnboardWrap({ children, back, step, steps, footer }) {
 
 /* ── ONBOARDING SCREENS ─────────────────────────────────────────────────── */
 function WelcomeScreen() {
-  const { setView } = useApp()
+  const { setView, loadDemo } = useApp()
   return (
     <div style={{ minHeight:"100dvh",background:`radial-gradient(ellipse 60% 50% at 20% 35%,rgba(14,165,160,.09) 0%,transparent 70%),radial-gradient(ellipse 50% 50% at 80% 70%,rgba(139,92,246,.07) 0%,transparent 70%),${T.bg}`,display:"flex",alignItems:"center",justifyContent:"center",padding:"40px 32px",position:"relative",overflow:"hidden" }}>
       {[{x:"5%",y:"15%",s:400,c:"rgba(14,165,160,.05)"},{x:"75%",y:"65%",s:350,c:"rgba(139,92,246,.05)"},{x:"55%",y:"5%",s:280,c:"rgba(14,165,160,.04)"}].map((b,i)=>(
@@ -445,6 +445,7 @@ function WelcomeScreen() {
         <p style={{ color:T.muted,fontSize:"clamp(16px,2vw,19px)",lineHeight:1.7,marginBottom:44,maxWidth:480 }}>Track what you own, what you owe, and where you're heading. Estimates are always fine.</p>
         <div style={{ display:"flex",flexDirection:"column",gap:12,maxWidth:360 }}>
           <Btn onClick={()=>setView("why")} style={{ fontSize:17,padding:"16px 28px" }}>Get started →</Btn>
+          <button onClick={loadDemo} style={{ background:"none",border:"none",color:T.subtle,fontSize:14,cursor:"pointer",textAlign:"left",fontFamily:"inherit",padding:"4px 0" }}>See an example dashboard first</button>
         </div>
         <div style={{ display:"flex",gap:40,marginTop:60,flexWrap:"wrap" }}>
           {[["Net worth tracking","No spreadsheets needed"],["Goal tracking","See your progress"],["Smart insights","Plain English only"]].map(([h,s])=>(
@@ -519,14 +520,22 @@ function AssetsScreen() {
   function saveAsset(data,addAnother) {
     let assets=[...state.assets],debts=[...state.debts]
     if(data.existingId) {
-      assets=assets.map(a=>a.id!==data.existingId?a:{ ...a,category:data.cat,name:data.name,value:data.val,monthlyIncome:data.monthlyIncome })
-      if(data.hasLoan&&data.loanBal>0&&data.existingLinkedDebtId) debts=debts.map(d=>d.id!==data.existingLinkedDebtId?d:{ ...d,balance:data.loanBal,interestRate:data.loanRate })
+      let linkedDebtId = data.existingLinkedDebtId || null
+      if(data.hasLoan&&data.loanBal>0&&data.existingLinkedDebtId) {
+        debts=debts.map(d=>d.id!==data.existingLinkedDebtId?d:{ ...d,balance:data.loanBal,interestRate:data.loanRate })
+      } else if(data.hasLoan&&data.loanBal>0&&!data.existingLinkedDebtId) {
+        const did=data.existingId+"_d"+Date.now(); linkedDebtId=did
+        debts.push({ id:did,category:debtCatFrom(data.cat),name:`${data.name} loan`,balance:data.loanBal,interestRate:data.loanRate,linkedAssetId:data.existingId,isAutoCreated:true })
+      } else if(!data.hasLoan&&data.existingLinkedDebtId) {
+        debts=debts.filter(d=>d.id!==data.existingLinkedDebtId); linkedDebtId=null
+      }
+      assets=assets.map(a=>a.id!==data.existingId?a:{ ...a,category:data.cat,name:data.name,value:data.val,monthlyIncome:data.monthlyIncome,linkedDebtId })
     } else {
       const aid=Date.now().toString(); let linkedDebtId=null
       if(data.hasLoan&&data.loanBal>0){ const did=aid+"_d"; linkedDebtId=did; debts.push({ id:did,category:debtCatFrom(data.cat),name:`${data.name} loan`,balance:data.loanBal,interestRate:data.loanRate,linkedAssetId:aid,isAutoCreated:true }) }
       assets.push({ id:aid,category:data.cat,name:data.name,value:data.val,monthlyIncome:data.monthlyIncome,linkedDebtId })
     }
-    save({ ...state,assets,debts }); toast("✓  Asset saved")
+    save({ ...state,assets,debts }); toast("Asset saved")
     if(!addAnother){ setSheetOpen(false);setEditAsset(null);setPreCat(null) }
   }
 
@@ -1278,10 +1287,26 @@ function HomeTab() {
         <div className="fade-up" style={{ display:"flex",alignItems:"flex-start",justifyContent:"space-between" }}>
           <div>
             <h1 style={{ color:T.white,fontSize:"clamp(20px,3vw,30px)",fontWeight:900 }}>Hi {profile.name||"there"} 👋</h1>
-            <p style={{ color:T.muted,fontSize:14,marginTop:4 }}>Here's your picture today.</p>
+            <p style={{ color:T.muted,fontSize:14,marginTop:4 }}>Your financial freedom picture — {new Date().toLocaleDateString("en-GB",{ day:"numeric",month:"long",year:"numeric" })}</p>
           </div>
-          <p style={{ color:T.subtle,fontSize:13 }}>{new Date().toLocaleDateString("en-GB",{ day:"numeric",month:"long",year:"numeric" })}</p>
+          <button onClick={()=>setView("assets")} style={{ background:T.tealDim,border:`1px solid ${T.tealBorder}`,borderRadius:10,padding:"8px 14px",cursor:"pointer",color:T.teal,fontSize:12,fontWeight:700,fontFamily:"inherit",whiteSpace:"nowrap" }}>Update figures →</button>
         </div>
+
+        {/* "Come back and update" prompt — shows after 60 days */}
+        {profile.lastCheckIn && (() => {
+          const daysSince = Math.floor((Date.now() - new Date(profile.lastCheckIn)) / 86400000)
+          if(daysSince < 60) return null
+          return (
+            <div style={{ background:T.amberDim,border:`1px solid ${T.amberBorder}`,borderRadius:14,padding:"14px 20px",display:"flex",alignItems:"center",gap:12 }}>
+              <span style={{ fontSize:18,flexShrink:0 }}>📅</span>
+              <div style={{ flex:1 }}>
+                <p style={{ color:T.amber,fontWeight:700,fontSize:14,marginBottom:2 }}>Time for a refresh</p>
+                <p style={{ color:T.muted,fontSize:13,lineHeight:1.5 }}>It has been {daysSince} days since your last update. Asset values and debt balances change — keeping them current gives you a much more accurate picture of where you are heading.</p>
+              </div>
+              <button onClick={()=>setView("assets")} style={{ background:T.amber,border:"none",borderRadius:9,padding:"8px 14px",cursor:"pointer",color:"#000",fontWeight:700,fontSize:12,fontFamily:"inherit",flexShrink:0 }}>Update now</button>
+            </div>
+          )
+        })()}
 
         {/* Net worth hero — first thing user sees */}
         <NetWorthHero nw={nw} ta={ta} td={td} assetCount={assets.length} debtCount={debts.length} history={history} index={1}/>
@@ -1294,29 +1319,74 @@ function HomeTab() {
             <p style={{ color:T.subtle,fontSize:13,marginTop:8 }}>{surplusVal>=0?"Monthly surplus":"Monthly shortfall"}</p>
             {surplusVal>0&&<p style={{ color:T.muted,fontSize:12,marginTop:4 }}>~{fmt(surplusVal*12)}/yr potential</p>}
           </DCard>
-          <DCard index={3} style={{ display:"flex",gap:14,alignItems:"center",padding:"18px 20px" }}>
-            <div style={{ position:"relative",flexShrink:0 }}>
-              <PieChart width={88} height={88}>
-                <Pie data={(() => { const sl=[{name:"Safety net",value:safetyNet,color:T.teal},{name:"Wealth",value:wealthBuilders,color:T.purple},{name:"Life assets",value:lifeAssets,color:T.amber}].filter(s=>s.value>0); return sl.length>0?sl:[{name:"None",value:1}] })()} cx="50%" cy="50%" innerRadius={27} outerRadius={41} paddingAngle={2} dataKey="value" stroke="none">
-                  {[{name:"Safety net",value:safetyNet,color:T.teal},{name:"Wealth",value:wealthBuilders,color:T.purple},{name:"Life assets",value:lifeAssets,color:T.amber}].filter(s=>s.value>0).map((s,i)=><Cell key={i} fill={s.color}/>)}
-                </Pie>
-              </PieChart>
-              <div style={{ position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",textAlign:"center",pointerEvents:"none" }}>
-                <p style={{ color:T.white,fontSize:10,fontWeight:800 }}>{fmtK(ta)}</p>
+          <DCard index={3} style={{ padding:"18px 20px" }}>
+            <p style={{ color:T.subtle,fontSize:10,fontWeight:800,letterSpacing:2,textTransform:"uppercase",marginBottom:14 }}>Your assets broken down</p>
+            <div style={{ display:"flex",gap:12,alignItems:"center",marginBottom:16 }}>
+              <div style={{ position:"relative",flexShrink:0 }}>
+                <PieChart width={80} height={80}>
+                  <Pie data={(() => { const sl=[{name:"Safety net",value:safetyNet,color:T.teal},{name:"Wealth",value:wealthBuilders,color:T.purple},{name:"Life assets",value:lifeAssets,color:T.amber}].filter(s=>s.value>0); return sl.length>0?sl:[{name:"None",value:1,color:T.border}] })()} cx="50%" cy="50%" innerRadius={24} outerRadius={38} paddingAngle={2} dataKey="value" stroke="none">
+                    {[{value:safetyNet,color:T.teal},{value:wealthBuilders,color:T.purple},{value:lifeAssets,color:T.amber}].filter(s=>s.value>0).map((s,i)=><Cell key={i} fill={s.color}/>)}
+                  </Pie>
+                </PieChart>
               </div>
-            </div>
-            <div style={{ flex:1,display:"flex",flexDirection:"column",gap:7 }}>
-              {[{n:"Safety net",v:safetyNet,c:T.teal},{n:"Wealth",v:wealthBuilders,c:T.purple},{n:"Life",v:lifeAssets,c:T.amber}].map(r=>(
-                <div key={r.n} style={{ display:"flex",alignItems:"center",justifyContent:"space-between" }}>
-                  <div style={{ display:"flex",alignItems:"center",gap:5 }}><div style={{ width:6,height:6,borderRadius:"50%",background:r.c }}/><span style={{ color:T.subtle,fontSize:11 }}>{r.n}</span></div>
-                  <span style={{ color:r.v>0?T.white:T.subtle,fontSize:11,fontWeight:700 }}>{fmtK(r.v)}</span>
-                </div>
-              ))}
+              <div style={{ flex:1,display:"flex",flexDirection:"column",gap:8 }}>
+                {[
+                  { label:"Safety net", sub:"Savings you can access quickly", value:safetyNet, color:T.teal },
+                  { label:"Wealth builders", sub:"Investments growing over time", value:wealthBuilders, color:T.purple },
+                  { label:"Life assets", sub:"Property, vehicles, business", value:lifeAssets, color:T.amber },
+                ].map(r=>(
+                  <div key={r.label} style={{ display:"flex",alignItems:"center",gap:8 }}>
+                    <div style={{ width:8,height:8,borderRadius:"50%",background:r.color,flexShrink:0,marginTop:1 }}/>
+                    <div style={{ flex:1,minWidth:0 }}>
+                      <div style={{ display:"flex",justifyContent:"space-between",alignItems:"baseline" }}>
+                        <span style={{ color:T.white,fontSize:12,fontWeight:700 }}>{r.label}</span>
+                        <span style={{ color:r.value>0?r.color:T.subtle,fontSize:12,fontWeight:800,fontVariantNumeric:"tabular-nums" }}>{fmtK(r.value)}</span>
+                      </div>
+                      <p style={{ color:T.subtle,fontSize:10,marginTop:1 }}>{r.sub}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </DCard>
         </div>
 
-        {/* Confidence boost */}
+        {/* FIRE number */}
+        {spending.monthly > 0 && (() => {
+          const annualSpend = spending.monthly * 12
+          const fireNum = annualSpend * 25
+          const pct = Math.min(100, Math.round((nw / fireNum) * 100))
+          const yearsLeft = surplusVal > 0 ? Math.round((fireNum - nw) / (surplusVal * 12)) : null
+          return (
+            <DCard index={5} style={{ background:`linear-gradient(135deg,${T.card},${T.faint})`,border:`1px solid ${T.tealBorder}` }}>
+              <div style={{ display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:12 }}>
+                <div>
+                  <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:4 }}>
+                    <span style={{ fontSize:16 }}>🔥</span>
+                    <p style={{ color:T.teal,fontSize:11,fontWeight:800,letterSpacing:1.5,textTransform:"uppercase" }}>Financial freedom number</p>
+                  </div>
+                  <p style={{ color:T.white,fontSize:"clamp(22px,3vw,32px)",fontWeight:900,fontVariantNumeric:"tabular-nums" }}>{fmt(fireNum)}</p>
+                  <p style={{ color:T.muted,fontSize:13,marginTop:4 }}>The amount that lets your money work so you don't have to</p>
+                </div>
+                <div style={{ textAlign:"right",flexShrink:0 }}>
+                  <p style={{ color:pct>=100?"#22C55E":T.teal,fontSize:24,fontWeight:900 }}>{pct}%</p>
+                  <p style={{ color:T.subtle,fontSize:11 }}>of the way there</p>
+                </div>
+              </div>
+              <div style={{ background:T.surface,borderRadius:99,height:8,overflow:"hidden",marginBottom:8 }}>
+                <div style={{ width:`${pct}%`,height:"100%",background:pct>=100?"#22C55E":T.teal,borderRadius:99,transition:"width 1s ease-out" }}/>
+              </div>
+              <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
+                <p style={{ color:T.subtle,fontSize:12 }}>Current net worth {fmt(nw)}</p>
+                {yearsLeft !== null && yearsLeft > 0 && <p style={{ color:T.muted,fontSize:12 }}>~{yearsLeft} year{yearsLeft!==1?"s":""} at current pace</p>}
+                {pct >= 100 && <p style={{ color:"#22C55E",fontWeight:700,fontSize:13 }}>You have reached it 🎉</p>}
+              </div>
+              <div style={{ background:T.faint,borderRadius:10,padding:"10px 14px",marginTop:12 }}>
+                <p style={{ color:T.subtle,fontSize:12,lineHeight:1.6 }}>Based on the 4% rule: invest 25x your annual spending and you can live off returns without touching the principal. Your spending: {fmt(annualSpend)}/year.</p>
+              </div>
+            </DCard>
+          )
+        })()}
         <div className="fade-up" style={{ background:T.tealDim,border:`1px solid ${T.tealBorder}`,borderRadius:14,padding:"13px 20px",display:"flex",alignItems:"center",gap:11,animationDelay:"360ms" }}>
           <Sparkles size={15} color={T.teal} style={{ flexShrink:0 }}/><p style={{ color:"#CBD5E1",fontSize:14,fontStyle:"italic" }}>{boost}</p>
         </div>
@@ -1388,14 +1458,28 @@ function AssetsView() {
   function saveAsset(data, addAnother) {
     let assets=[...state.assets], debts=[...state.debts]
     if(data.existingId) {
-      assets=assets.map(a=>a.id!==data.existingId?a:{ ...a,category:data.cat,name:data.name,value:data.val,monthlyIncome:data.monthlyIncome })
-      if(data.hasLoan&&data.loanBal>0&&data.existingLinkedDebtId) debts=debts.map(d=>d.id!==data.existingLinkedDebtId?d:{ ...d,balance:data.loanBal,interestRate:data.loanRate })
+      // Determine new linkedDebtId
+      let linkedDebtId = data.existingLinkedDebtId || null
+      if(data.hasLoan && data.loanBal>0 && data.existingLinkedDebtId) {
+        // Update existing linked debt
+        debts = debts.map(d=>d.id!==data.existingLinkedDebtId?d:{ ...d,balance:data.loanBal,interestRate:data.loanRate })
+      } else if(data.hasLoan && data.loanBal>0 && !data.existingLinkedDebtId) {
+        // Adding a loan to an asset that didn't have one
+        const did = data.existingId+"_d"+Date.now()
+        linkedDebtId = did
+        debts.push({ id:did,category:debtCatFrom(data.cat),name:`${data.name} loan`,balance:data.loanBal,interestRate:data.loanRate,linkedAssetId:data.existingId,isAutoCreated:true })
+      } else if(!data.hasLoan && data.existingLinkedDebtId) {
+        // Removing a loan
+        debts = debts.filter(d=>d.id!==data.existingLinkedDebtId)
+        linkedDebtId = null
+      }
+      assets = assets.map(a=>a.id!==data.existingId?a:{ ...a,category:data.cat,name:data.name,value:data.val,monthlyIncome:data.monthlyIncome,linkedDebtId })
     } else {
       const aid=Date.now().toString(); let linkedDebtId=null
       if(data.hasLoan&&data.loanBal>0){ const did=aid+"_d"; linkedDebtId=did; debts.push({ id:did,category:debtCatFrom(data.cat),name:`${data.name} loan`,balance:data.loanBal,interestRate:data.loanRate,linkedAssetId:aid,isAutoCreated:true }) }
       assets.push({ id:aid,category:data.cat,name:data.name,value:data.val,monthlyIncome:data.monthlyIncome,linkedDebtId })
     }
-    save({ ...state,assets,debts }); toast("✓  Asset saved")
+    save({ ...state,assets,debts }); toast("Asset saved")
     if(!addAnother){ setSheetOpen(false); setEditAsset(null) }
   }
 
@@ -1846,8 +1930,109 @@ const GOAL_TYPES = [
   { id:"custom",          label:"Something else",    icon:"⭐",  color:T.muted,  dim:T.faint,     border:T.border,       hint:"Name your own goal" },
 ]
 
+const ACTION_GOALS = new Set(["invest","retirement"])
+
+const GOAL_ACTIONS = {
+  invest: [
+    { id:"open_isa",     label:"Open a Stocks and Shares ISA",       desc:"The most tax-efficient way to invest in the UK. All growth is tax free.",                         lessonId:"isa_basics"    },
+    { id:"choose_fund",  label:"Choose a low-cost index fund",       desc:"A global index fund (e.g. MSCI All World) gives instant diversification at under 0.2%/year.",     lessonId:"dca_investing" },
+    { id:"set_dd",       label:"Set up a monthly direct debit",      desc:"Automate on payday so you invest before you can spend it. Even £50/month compounds significantly.", lessonId:"compound_interest" },
+    { id:"dca_habit",    label:"Keep investing through market falls", desc:"Do not stop your standing order when markets drop. Falls are buying opportunities for long-term investors.", lessonId:"dca_investing" },
+  ],
+  retirement: [
+    { id:"check_pension", label:"Find and review all existing pensions",    desc:"Many people have lost pensions from old jobs. Check via the government's pension tracing service.",  lessonId:"pension_basics" },
+    { id:"increase_contrib", label:"Increase your pension contribution",    desc:"Even 1% more per month compounds significantly over a 20 to 30 year timeframe.",                    lessonId:"pension_basics" },
+    { id:"employer_match", label:"Make sure you are getting full employer match", desc:"Never leave free employer contributions on the table. This is part of your compensation.", lessonId:"pension_basics" },
+    { id:"fire_number",  label:"Calculate your FIRE number",               desc:"Your financial freedom number is 25x your annual spending. Track it on your LifeSmart dashboard.",   lessonId:null            },
+  ],
+}
+
+function ActionGoalSheet({ type, goal, onClose, onSave }) {
+  const { state, setTab } = useApp()
+  const cfg = GOAL_TYPES.find(g=>g.id===type)
+  const actions = GOAL_ACTIONS[type] || []
+  const editing = !!goal
+  const [checked, setChecked] = useState(() => {
+    const saved = goal?.checkedActions || []
+    return new Set(saved)
+  })
+  const [name, setName] = useState(goal?.name || cfg?.label || "")
+  const [monthly, setMonthly] = useState(goal?.monthlyAmount || 0)
+
+  function toggle(id) { setChecked(s=>{ const n=new Set(s); n.has(id)?n.delete(id):n.add(id); return n }) }
+
+  function save() {
+    onSave({
+      id: goal?.id || Date.now().toString(),
+      type, name,
+      targetAmount: 0, startAmount: 0, monthlyAmount: monthly,
+      checkedActions: [...checked],
+      createdAt: goal?.createdAt || new Date().toISOString(),
+    })
+    onClose()
+  }
+
+  const donePct = actions.length > 0 ? Math.round((checked.size / actions.length) * 100) : 0
+
+  return (
+    <Sheet title={editing ? "Edit goal" : "Set up: " + cfg.label} onClose={onClose}>
+      <div style={{ background:cfg.dim,border:`1px solid ${cfg.border}`,borderRadius:14,padding:"14px 18px",marginBottom:20,display:"flex",gap:12,alignItems:"center" }}>
+        <span style={{ fontSize:28 }}>{cfg.icon}</span>
+        <div>
+          <p style={{ color:cfg.color,fontWeight:800,fontSize:15 }}>{cfg.label}</p>
+          <p style={{ color:T.muted,fontSize:13,marginTop:2 }}>{cfg.hint}</p>
+        </div>
+      </div>
+
+      <p style={{ color:T.white,fontWeight:700,fontSize:14,marginBottom:4 }}>Your action plan</p>
+      <p style={{ color:T.muted,fontSize:13,marginBottom:14 }}>Work through these steps. Tick each one as you complete it.</p>
+
+      {/* Progress */}
+      <div style={{ background:T.surface,borderRadius:99,height:6,overflow:"hidden",marginBottom:16 }}>
+        <div style={{ width:`${donePct}%`,height:"100%",background:cfg.color,borderRadius:99,transition:"width .4s ease-out" }}/>
+      </div>
+
+      <div style={{ display:"flex",flexDirection:"column",gap:10,marginBottom:20 }}>
+        {actions.map(a=>{
+          const done = checked.has(a.id)
+          return (
+            <div key={a.id} onClick={()=>toggle(a.id)} style={{ background:done?cfg.dim:T.card,border:`1.5px solid ${done?cfg.color:T.border}`,borderRadius:14,padding:"14px 16px",cursor:"pointer",transition:"all .15s" }}>
+              <div style={{ display:"flex",alignItems:"flex-start",gap:12 }}>
+                <div style={{ width:22,height:22,borderRadius:"50%",background:done?cfg.color:T.surface,border:`2px solid ${done?cfg.color:T.border}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1,transition:"all .15s" }}>
+                  {done && <Check size={12} color="#fff"/>}
+                </div>
+                <div style={{ flex:1 }}>
+                  <p style={{ color:done?T.white:"#CBD5E1",fontWeight:700,fontSize:14,marginBottom:4 }}>{a.label}</p>
+                  <p style={{ color:T.muted,fontSize:12,lineHeight:1.6 }}>{a.desc}</p>
+                  {a.lessonId && (
+                    <button onClick={e=>{ e.stopPropagation(); setTab(3); onClose() }}
+                      style={{ background:"none",border:"none",color:cfg.color,fontSize:12,fontWeight:700,cursor:"pointer",padding:"4px 0 0 0",fontFamily:"inherit",display:"flex",alignItems:"center",gap:4,marginTop:4 }}>
+                      <BookOpen size={11}/>Learn more in the Learn tab
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      <Input label="Give this goal a name (optional)" value={name} onChange={setName} placeholder={cfg.label}/>
+      <div style={{ marginTop:14,marginBottom:20 }}>
+        <CurrencyInput label="Monthly amount you plan to put towards this" value={monthly} onChange={setMonthly}/>
+      </div>
+
+      {donePct===100 && (
+        <div style={{ background:"rgba(34,197,94,.1)",border:"1px solid rgba(34,197,94,.3)",borderRadius:12,padding:"12px 16px",marginBottom:16 }}>
+          <p style={{ color:"#22C55E",fontWeight:700,fontSize:14 }}>All steps complete. You are on the right track. 🎉</p>
+        </div>
+      )}
+      <Btn onClick={save}>{editing ? "Save changes" : "Save goal"}</Btn>
+    </Sheet>
+  )
+}
+
 function calcGoalProgress(goal, surplus) {
-  const now = new Date()
   const start = goal.createdAt ? new Date(goal.createdAt) : now
   const monthsElapsed = Math.max(0, (now - start) / (1000 * 60 * 60 * 24 * 30.4))
   const monthly = goal.monthlyAmount || Math.max(0, surplus * 0.3)
@@ -1859,7 +2044,7 @@ function calcGoalProgress(goal, surplus) {
   return { current:Math.round(current), pct:Math.round(pct), monthsLeft, eta, monthly }
 }
 
-/* Goal creation sheet */
+/* Goal creation sheet — routes to action sheet for invest/retire */
 function GoalSheet({ goal, onClose, onSave }) {
   const { state } = useApp()
   const surplus = calcSurplus(state.income, state.assets, state.spending)
@@ -1870,6 +2055,12 @@ function GoalSheet({ goal, onClose, onSave }) {
   const [start,   setStart]   = useState(goal?.startAmount  || 0)
   const [monthly, setMonthly] = useState(goal?.monthlyAmount || Math.round(Math.max(0,surplus*0.3)))
   const [err, setErr] = useState("")
+  const [showAction, setShowAction] = useState(editing && ACTION_GOALS.has(goal?.type) ? true : false)
+
+  // If user picked an action-style goal type, show the action sheet
+  if(showAction && type && ACTION_GOALS.has(type)) {
+    return <ActionGoalSheet type={type} goal={goal} onClose={onClose} onSave={onSave}/>
+  }
 
   const cfg = GOAL_TYPES.find(g=>g.id===type)
   const monthsNeeded = (monthly > 0 && target > start) ? Math.ceil((target - start) / monthly) : null
@@ -1877,6 +2068,7 @@ function GoalSheet({ goal, onClose, onSave }) {
 
   function save() {
     if(!type)   { setErr("Please choose a goal type."); return }
+    if(ACTION_GOALS.has(type)) { setShowAction(true); return }
     if(target<=0){ setErr("Please enter a target amount."); return }
     setErr("")
     onSave({
@@ -1895,11 +2087,13 @@ function GoalSheet({ goal, onClose, onSave }) {
       <div style={{ display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:20 }}>
         {GOAL_TYPES.map(g=>{
           const sel = type===g.id
+          const isAction = ACTION_GOALS.has(g.id)
           return (
-            <button key={g.id} onClick={()=>{ setType(g.id); if(!name) setName(g.label) }}
+            <button key={g.id} onClick={()=>{ setType(g.id); if(!name) setName(g.label); if(isAction) setShowAction(true) }}
               style={{ padding:"12px 6px",borderRadius:13,border:`2px solid ${sel?g.color:T.border}`,background:sel?g.dim:T.card,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:8,position:"relative",transition:"all .15s" }}>
               <span style={{ fontSize:22 }}>{g.icon}</span>
               <span style={{ fontSize:11,fontWeight:600,color:sel?g.color:T.muted,textAlign:"center",lineHeight:1.3 }}>{g.label}</span>
+              {isAction && <span style={{ fontSize:9,color:sel?g.color:T.subtle,fontWeight:600 }}>Action plan</span>}
               {sel && <div style={{ position:"absolute",top:6,right:6,width:14,height:14,borderRadius:"50%",background:g.color,display:"flex",alignItems:"center",justifyContent:"center" }}><Check size={9} color="#fff"/></div>}
             </button>
           )
@@ -1915,11 +2109,10 @@ function GoalSheet({ goal, onClose, onSave }) {
         <CurrencyInput label="Monthly contribution" value={monthly} onChange={setMonthly} helper={`Your current surplus is ${fmt(Math.max(0,surplus))}/mo`}/>
       </div>
 
-      {/* ETA preview */}
       {eta && target > 0 && (
         <div style={{ background:T.tealDim,border:`1px solid ${T.tealBorder}`,borderRadius:13,padding:"14px 16px",marginBottom:16 }}>
-          <p style={{ color:T.teal,fontWeight:700,fontSize:14 }}>At {fmt(monthly)}/mo → you'll reach this by <strong>{eta}</strong></p>
-          <p style={{ color:T.muted,fontSize:12,marginTop:4 }}>That's {monthsNeeded} month{monthsNeeded!==1?"s":""} away.</p>
+          <p style={{ color:T.teal,fontWeight:700,fontSize:14 }}>At {fmt(monthly)}/mo you will reach this by <strong>{eta}</strong></p>
+          <p style={{ color:T.muted,fontSize:12,marginTop:4 }}>{monthsNeeded} month{monthsNeeded!==1?"s":""} away.</p>
         </div>
       )}
 
@@ -1931,8 +2124,56 @@ function GoalSheet({ goal, onClose, onSave }) {
 
 /* Goal card */
 function GoalCard({ goal, onEdit, onDelete, surplus }) {
-  const { current, pct, eta, monthly } = calcGoalProgress(goal, surplus)
   const cfg = GOAL_TYPES.find(g=>g.id===goal.type) || GOAL_TYPES[GOAL_TYPES.length-1]
+  const isAction = ACTION_GOALS.has(goal.type)
+
+  if(isAction) {
+    const actions = GOAL_ACTIONS[goal.type] || []
+    const checked = new Set(goal.checkedActions || [])
+    const donePct = actions.length > 0 ? Math.round((checked.size / actions.length) * 100) : 0
+    return (
+      <div style={{ background:T.card,border:`1px solid ${donePct===100?cfg.color:T.border}`,borderRadius:18,padding:"20px 22px",position:"relative",overflow:"hidden" }}>
+        {donePct===100 && <div style={{ position:"absolute",top:0,left:0,right:0,height:3,background:cfg.color,borderRadius:"18px 18px 0 0" }}/>}
+        <div style={{ display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:14 }}>
+          <div style={{ display:"flex",alignItems:"center",gap:12 }}>
+            <div style={{ width:44,height:44,borderRadius:14,background:cfg.dim,border:`1px solid ${cfg.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0 }}>{cfg.icon}</div>
+            <div>
+              <p style={{ color:T.white,fontWeight:800,fontSize:15 }}>{goal.name}</p>
+              <p style={{ color:T.muted,fontSize:12,marginTop:2 }}>{checked.size} of {actions.length} steps complete</p>
+            </div>
+          </div>
+          <div style={{ display:"flex",gap:6 }}>
+            <button onClick={onEdit}   style={{ background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"6px 8px",cursor:"pointer",color:T.muted,display:"flex" }}><Pencil size={13}/></button>
+            <button onClick={onDelete} style={{ background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"6px 8px",cursor:"pointer",color:T.muted,display:"flex" }}><Trash2 size={13}/></button>
+          </div>
+        </div>
+        <div style={{ background:T.surface,borderRadius:99,height:8,overflow:"hidden",marginBottom:12 }}>
+          <div style={{ width:`${donePct}%`,height:"100%",background:donePct===100?"#22C55E":cfg.color,borderRadius:99,transition:"width .6s ease-out" }}/>
+        </div>
+        <div style={{ display:"flex",flexDirection:"column",gap:7 }}>
+          {actions.map(a=>{
+            const done = checked.has(a.id)
+            return (
+              <div key={a.id} style={{ display:"flex",alignItems:"center",gap:10,opacity:done?1:.6 }}>
+                <div style={{ width:18,height:18,borderRadius:"50%",background:done?cfg.color:T.surface,border:`2px solid ${done?cfg.color:T.border}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
+                  {done && <Check size={10} color="#fff"/>}
+                </div>
+                <p style={{ color:done?T.white:T.muted,fontSize:13,fontWeight:done?600:400,textDecoration:done?"line-through":"none" }}>{a.label}</p>
+              </div>
+            )
+          })}
+        </div>
+        {donePct===100 && <p style={{ color:"#22C55E",fontWeight:700,fontSize:13,marginTop:12 }}>All steps done. 🎉</p>}
+        {goal.monthlyAmount > 0 && (
+          <div style={{ marginTop:12,paddingTop:10,borderTop:`1px solid ${T.border}` }}>
+            <p style={{ color:T.muted,fontSize:12 }}>Putting aside {fmt(goal.monthlyAmount)}/mo towards this</p>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  const { current, pct, eta, monthly } = calcGoalProgress(goal, surplus)
   const milestones = [25, 50, 75]
   const done = pct >= 100
 
@@ -1944,7 +2185,7 @@ function GoalCard({ goal, onEdit, onDelete, surplus }) {
           <div style={{ width:44,height:44,borderRadius:14,background:cfg.dim,border:`1px solid ${cfg.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0 }}>{cfg.icon}</div>
           <div>
             <p style={{ color:T.white,fontWeight:800,fontSize:15 }}>{goal.name}</p>
-            <p style={{ color:T.subtle,fontSize:12,marginTop:2 }}>{cfg.label}</p>
+            <p style={{ color:T.muted,fontSize:12,marginTop:2 }}>{cfg.label}</p>
           </div>
         </div>
         <div style={{ display:"flex",gap:6 }}>
@@ -1952,8 +2193,6 @@ function GoalCard({ goal, onEdit, onDelete, surplus }) {
           <button onClick={onDelete} style={{ background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"6px 8px",cursor:"pointer",color:T.muted,display:"flex" }}><Trash2 size={13}/></button>
         </div>
       </div>
-
-      {/* Progress bar with milestones */}
       <div style={{ marginBottom:12 }}>
         <div style={{ display:"flex",justifyContent:"space-between",marginBottom:7 }}>
           <span style={{ color:T.muted,fontSize:13 }}>{fmt(current)} saved</span>
@@ -1967,22 +2206,20 @@ function GoalCard({ goal, onEdit, onDelete, surplus }) {
         </div>
         <div style={{ display:"flex",justifyContent:"space-between",marginTop:5 }}>
           <span style={{ color:done?"#22C55E":cfg.color,fontWeight:800,fontSize:13 }}>{pct}% {done?"🎉 Complete!":"(Projected)"}</span>
-          {!done && eta && <span style={{ color:T.subtle,fontSize:12 }}>Est. {eta}</span>}
+          {!done && eta && <span style={{ color:T.muted,fontSize:12 }}>Est. {eta}</span>}
         </div>
       </div>
-
-      {/* Footer stats */}
       <div style={{ display:"flex",gap:16,paddingTop:10,borderTop:`1px solid ${T.border}` }}>
         <div>
-          <p style={{ color:T.subtle,fontSize:10,fontWeight:600,textTransform:"uppercase",letterSpacing:1 }}>Monthly</p>
+          <p style={{ color:T.muted,fontSize:10,fontWeight:600,textTransform:"uppercase",letterSpacing:1 }}>Monthly</p>
           <p style={{ color:T.white,fontSize:13,fontWeight:700,marginTop:2 }}>{fmt(monthly)}</p>
         </div>
         <div>
-          <p style={{ color:T.subtle,fontSize:10,fontWeight:600,textTransform:"uppercase",letterSpacing:1 }}>Remaining</p>
+          <p style={{ color:T.muted,fontSize:10,fontWeight:600,textTransform:"uppercase",letterSpacing:1 }}>Remaining</p>
           <p style={{ color:T.white,fontSize:13,fontWeight:700,marginTop:2 }}>{fmt(Math.max(0,goal.targetAmount-current))}</p>
         </div>
         {eta && !done && <div>
-          <p style={{ color:T.subtle,fontSize:10,fontWeight:600,textTransform:"uppercase",letterSpacing:1 }}>Target date</p>
+          <p style={{ color:T.muted,fontSize:10,fontWeight:600,textTransform:"uppercase",letterSpacing:1 }}>Target date</p>
           <p style={{ color:T.white,fontSize:13,fontWeight:700,marginTop:2 }}>{eta}</p>
         </div>}
       </div>
@@ -2117,30 +2354,30 @@ const LESSONS = [
   /* ── TRACK 1: Foundations ─────────────────────────────────────────────── */
   {
     id:"nw_basics", track:"Foundations", trackColor:T.teal, trackDim:T.tealDim, trackBorder:T.tealBorder,
-    title:"Net worth: the only number that truly matters",
+    title:"What actually grows your net worth — and what doesn't",
     emoji:"📊", xp:10, type:"mixed",
     cards:[
-      { type:"fact", headline:"Net worth = Assets minus Debts", body:"It is the single number that captures your entire financial position. Not your salary. Not your savings account balance. Everything you own, minus everything you owe. That is net worth.", highlight:null },
-      { type:"fact", headline:"Salary is income. Net worth is wealth.", body:"Someone earning £120,000 a year but spending £125,000 has a negative net worth. Someone earning £35,000 who invests consistently can retire comfortably. Income is the fuel. Net worth is the destination.", highlight:"Income is what you earn. Wealth is what you keep." },
-      { type:"fact", headline:"UK net worth by age — the rough benchmarks", body:"These are median figures. Half of people fall above, half below. Where you sit depends far more on habits and decisions than on luck or starting point.",
+      { type:"fact", headline:"You know your number. Now let's grow it.", body:"Net worth is assets minus debts. You have already tracked yours. The next question is: what actually moves that number over time? Most people do things that feel financially sensible but make very little difference. A few things make an enormous difference.", highlight:"Small habits, compounded over years, create dramatic results." },
+      { type:"fact", headline:"The four levers that grow net worth", body:"There are only four ways to grow your net worth. Every financial decision you make affects one or more of them.",
         facts:[
-          { icon:"🧑", label:"Age 25 to 29", text:"Median net worth around £14,000. Most people at this stage have student debt and little savings." },
-          { icon:"👤", label:"Age 35 to 39", text:"Median around £67,000. Often driven by property equity if a home has been bought." },
-          { icon:"👨", label:"Age 45 to 49", text:"Median around £155,000. Pension and property usually make up most of this." },
-          { icon:"🧔", label:"Age 55 to 59", text:"Median around £250,000. Those who invested consistently are well ahead of this." },
+          { icon:"⬆️", label:"Increase your income", text:"More income means more fuel to allocate. A 10% pay rise is the equivalent of spending 10% less forever — but without the sacrifice. This is the highest-leverage lever for most people under 40." },
+          { icon:"⬇️", label:"Reduce your spending", text:"Every £1 not spent on consumption is a £1 that can build assets. The difference between 'spending everything' and 'spending 80%' across a 30-year career is typically hundreds of thousands of pounds." },
+          { icon:"📈", label:"Grow your assets faster", text:"Assets invested at 7% double roughly every 10 years. Assets in a current account earning nothing barely keep pace with inflation. Where your money sits matters enormously." },
+          { icon:"💳", label:"Eliminate high-interest debt", text:"Paying off a credit card at 22% APR is a guaranteed 22% return. No investment reliably beats that. High-interest debt is the single biggest drag on net worth growth for most UK adults." },
         ]
       },
-      { type:"scenario", prompt:"Which financial situation is actually better?",
-        context:"Person A earns £90,000 and has a sports car, designer wardrobe, and £500 in savings. Person B earns £40,000 and has £28,000 in an ISA, a pension worth £35,000, and no consumer debt.",
+      { type:"fact", headline:"The wealth gap is almost entirely behavioural", body:"UK data consistently shows that income explains only a fraction of the difference in net worth between people of the same age. Two people earning the same salary for 30 years can end up with net worths that differ by a factor of ten. The difference is almost entirely explained by savings rate, investment choices, and debt management. Not luck. Not background.", highlight:"Your net worth in 20 years is mostly determined by habits, not income." },
+      { type:"scenario", prompt:"Two colleagues both earn £45,000. Which one will have the higher net worth at age 50?",
+        context:"Alex puts £400/month into a stocks and shares ISA from age 28. Jamie spends everything but owns a more expensive car and goes on better holidays.",
         choices:[
-          { label:"Person A is better off — higher income", best:false, outcome:"Higher income does not equal higher net worth. Person A is likely spending everything they earn." },
-          { label:"Person B is better off — stronger net worth", best:true, outcome:"Person B has £63,000 in assets and no consumer debt. Person A has almost no accumulated wealth despite a much higher salary." },
+          { label:"Jamie — lifestyle choices signal financial confidence", best:false, outcome:"Lifestyle spending leaves no trail of wealth. Jamie's car depreciates and the holidays produce no financial return." },
+          { label:"Alex — consistent investing wins over time", best:true, outcome:"At 7% average return, Alex's £400/month over 22 years grows to roughly £270,000. Jamie ends the same career with close to zero investable net worth." },
         ],
-        explanation:"Person B has a net worth of roughly £63,000. Person A may have a net worth close to zero or negative. This is why we track net worth, not income."
+        explanation:"This is the core lesson: identical incomes, identical starting points, radically different outcomes. The gap is entirely explained by one person choosing to invest consistently."
       },
-      { type:"quiz", question:"Someone has £12,000 in savings, a car worth £8,000, and owes £14,000 in loans. What is their net worth?",
-        options:["£6,000","£20,000","£34,000","-£6,000"], correct:0,
-        explanation:"Net worth = (£12,000 savings + £8,000 car) minus £14,000 loans = £6,000. All assets minus all debts."
+      { type:"quiz", question:"Which action has the highest impact on net worth over a 20-year period for a typical UK employee?",
+        options:["Buying a new car on finance","Investing a fixed amount monthly into an ISA","Taking more holidays to improve wellbeing","Switching energy suppliers each year"], correct:1,
+        explanation:"Monthly investing into an ISA grows through compounding over 20 years. A £300/month ISA at 7% growth is worth around £195,000 after 20 years. The other choices either cost money, are depreciating assets, or produce very small savings compared to investing consistently."
       },
     ]
   },
@@ -2364,7 +2601,8 @@ const LESSONS = [
     title:"ISAs: the UK's most powerful tax-free wrapper",
     emoji:"🛡️", xp:10, type:"mixed",
     cards:[
-      { type:"fact", headline:"ISA = Individual Savings Account — tax free inside", body:"Any money placed inside an ISA grows completely free from income tax and capital gains tax. You can add up to £20,000 per tax year across all your ISAs combined. Once inside, it can grow for decades with no tax on gains, dividends, or interest.", highlight:"Up to £20,000/year. All growth, dividends and interest: completely tax free." },
+      { type:"fact", headline:"What is an ISA — in plain English?", body:"ISA stands for Individual Savings Account. It is a special type of account offered by UK banks and investment platforms that has one superpower: everything inside it is completely protected from tax. Interest, dividends, and investment gains inside an ISA are yours to keep in full. HMRC gets nothing. You can put up to £20,000 in each tax year.", highlight:"Any money inside an ISA grows 100% tax free. Forever." },
+      { type:"fact", headline:"ISA vs normal account — the tax difference in real numbers", body:"You invest £10,000 and it grows to £40,000 over 20 years. In a regular account, you would pay capital gains tax on the £30,000 gain — potentially £7,200 at the 24% rate. In an ISA, you pay zero. The same investment in an ISA and a normal account starts identically. Over decades, the ISA version pulls significantly ahead because gains are never eroded by tax.", highlight:"£30,000 gain in a regular account: ~£7,200 tax. Same gain in an ISA: £0." },
       { type:"match", prompt:"Match each ISA type to its best use case",
         pairs:[
           { term:"Cash ISA",              def:"Tax-free interest on savings — best for short to medium term goals" },
@@ -2372,12 +2610,18 @@ const LESSONS = [
           { term:"Lifetime ISA (LISA)",   def:"First home purchase or retirement — government adds 25% bonus up to £1,000/year" },
           { term:"Junior ISA",            def:"Saving for a child — locked until age 18" },
         ],
-        explanation:"Each ISA type has a specific purpose. The Stocks and Shares ISA is the most powerful long-term wealth building tool for most people. The LISA bonus is genuinely free money if you are buying your first home under £450,000 or saving for retirement."
+        explanation:"Each ISA type has a specific purpose. The Stocks and Shares ISA is the most powerful long-term wealth building tool for most people. The LISA bonus is genuinely free money if you are buying your first home under £450,000 or saving for retirement under 40."
       },
-      { type:"fact", headline:"Index funds: the default investment for most people", body:"An index fund tracks a market index like the FTSE 100 or the global MSCI All World. Low annual fees of 0.1 to 0.2%. Instant diversification across hundreds of companies. Warren Buffett has repeatedly stated that most investors should simply buy a low-cost S&P 500 or global index fund and hold it.", highlight:null },
+      { type:"fact", headline:"Index funds: the simplest investment inside an ISA", body:"Once you have opened a Stocks and Shares ISA, you need to decide what to invest in. For most people, a global index fund is the clearest answer. An index fund simply buys a small slice of hundreds or thousands of companies in one go — like buying the market as a whole rather than trying to pick individual winners. Annual fees of 0.1 to 0.2%. No expertise required.", highlight:null,
+        facts:[
+          { icon:"🌍", label:"Global index fund (e.g. MSCI All World)", text:"Tracks the performance of approximately 3,000 companies across 23 countries. Instant global diversification. Available on all major UK platforms." },
+          { icon:"🇬🇧", label:"UK index fund (e.g. FTSE All Share)", text:"UK-focused. Simpler and popular but concentrates your investment in one country's economy." },
+          { icon:"🏦", label:"Where to open one", text:"Vanguard, Hargreaves Lansdown, AJ Bell, and Freetrade all offer ISAs with access to index funds. Charges vary — typically 0.15 to 0.45% platform fee plus the fund's ongoing charges." },
+        ]
+      },
       { type:"quiz", question:"You invest £15,000 into a Stocks and Shares ISA. After 25 years it grows to £87,000. How much Capital Gains Tax do you owe?",
         options:["£14,400 at 20%","Depends on your income tax bracket","£0 — ISA gains are completely tax free","£3,600 on the first £18,000 of gain"], correct:2,
-        explanation:"Zero. ISA gains are completely tax free regardless of the amount. No income tax on dividends. No capital gains tax on growth. This is why maximising your ISA allowance every year — especially in your 20s and 30s — is so powerful."
+        explanation:"Zero. ISA gains are completely tax free regardless of the amount. No income tax on dividends either. This is why maximising your ISA allowance every year — especially in your 20s and 30s — is one of the most impactful financial decisions you can make."
       },
     ]
   },
@@ -2495,6 +2739,66 @@ const LESSONS = [
       },
     ]
   },
+
+  /* ── TRACK 8: Islamic Finance ───────────────────────────────────────────── */
+  {
+    id:"islamic_foundations", track:"Islamic Finance", trackColor:"#10B981", trackDim:"rgba(16,185,129,.1)", trackBorder:"rgba(16,185,129,.3)",
+    title:"Islamic finance: the core principles",
+    emoji:"☪️", xp:10, type:"mixed",
+    cards:[
+      { type:"fact", headline:"What makes Islamic finance different", body:"Islamic finance operates under Sharia law, which prohibits riba (interest), excessive uncertainty, and investment in businesses deemed harmful such as alcohol, gambling, tobacco, and weapons. The underlying principle is that money should not generate money simply through the passage of time. Financial returns must be linked to real economic activity and shared risk.", highlight:"Money must be linked to real activity. Profit requires shared risk." },
+      { type:"fact", headline:"Riba — why interest is prohibited", body:"Riba means any guaranteed, predetermined return on money lent or borrowed. This applies to both paying and receiving interest. A conventional savings account, a mortgage, or a credit card all involve riba. Islamic alternatives replace interest with profit-sharing, leasing, or cost-plus structures that tie returns to real assets or trade.", highlight:null,
+        facts:[
+          { icon:"🏦", label:"Murabaha (cost-plus financing)", text:"The bank buys an asset you want and sells it to you at a disclosed markup, payable in instalments. No interest — you pay a fixed agreed profit to the bank instead." },
+          { icon:"🤝", label:"Diminishing Musharakah (partnership)", text:"Bank and customer jointly own an asset. The customer gradually buys out the bank's share while paying rent on the bank's portion. Used widely for home purchases in the UK." },
+          { icon:"🌱", label:"Mudarabah (profit-sharing)", text:"One party provides capital, the other provides expertise and labour. Profits are shared at an agreed ratio. Losses fall only on the capital provider unless negligence is proven." },
+        ]
+      },
+      { type:"match", prompt:"Match each Islamic finance concept to its description",
+        pairs:[
+          { term:"Riba",       def:"Prohibited interest or guaranteed return on money alone" },
+          { term:"Murabaha",   def:"Bank buys asset and sells at disclosed markup with no interest" },
+          { term:"Sukuk",      def:"Islamic bond backed by real assets, not debt obligations" },
+          { term:"Zakat",      def:"Obligatory annual wealth contribution of 2.5% on qualifying assets" },
+        ],
+        explanation:"Riba is the core prohibition. Murabaha is the most common financing alternative. Sukuk replaces conventional bonds for borrowing and investing. Zakat is the financial pillar of Islam that redistributes wealth across the community."
+      },
+      { type:"quiz", question:"A UK Muslim wants to buy a home without a conventional interest-bearing mortgage. What is the most common Sharia-compliant structure?",
+        options:["Rent permanently to avoid the market","Diminishing Musharakah — bank and buyer co-own, buyer gradually buys out the bank","Take a conventional mortgage but donate the interest to charity","A standard ISA-backed purchase plan"], correct:1,
+        explanation:"Diminishing Musharakah is offered by UK Islamic banks including Al Rayan, Gatehouse, and HSBC Amanah. The bank and buyer co-own the property. The buyer pays rent on the bank's share while gradually buying it out over time. No interest is charged — the bank earns rental income instead."
+      },
+    ]
+  },
+  {
+    id:"islamic_investing", track:"Islamic Finance", trackColor:"#10B981", trackDim:"rgba(16,185,129,.1)", trackBorder:"rgba(16,185,129,.3)",
+    title:"Halal investing: ISAs, pensions, and Zakat",
+    emoji:"📿", xp:10, type:"mixed",
+    cards:[
+      { type:"fact", headline:"ISAs and pensions are permissible wrappers — screen what is inside them", body:"An ISA or pension is just a tax-efficient account structure. There is nothing impermissible about the wrapper itself. What matters is what you hold inside it. A Stocks and Shares ISA containing a Sharia-compliant global ETF is entirely permissible. The same ISA holding shares in a conventional bank or tobacco company is not.", highlight:"Use the ISA wrapper — just choose Sharia-compliant funds to hold inside it." },
+      { type:"fact", headline:"Sharia-compliant funds available in the UK",
+        body:"A growing number of funds apply Sharia screening with oversight from Islamic scholar boards. These are available through mainstream ISA platforms.", highlight:null,
+        facts:[
+          { icon:"🌍", label:"HSBC Islamic Global Equity Index", text:"Tracks the MSCI World Islamic Index. Low cost and broadly diversified across global markets with interest-based companies screened out." },
+          { icon:"📊", label:"iShares MSCI World Islamic UCITS ETF", text:"BlackRock's Sharia-compliant global equity ETF. Available on most UK platforms including Hargreaves Lansdown and AJ Bell." },
+          { icon:"🏦", label:"Wahed Invest", text:"A UK-regulated Sharia-compliant investment platform. Offers ready-made halal portfolios and an ISA wrapper. Designed specifically for Muslim investors." },
+        ]
+      },
+      { type:"fact", headline:"Zakat on investments — the 2.5% annual obligation", body:"Zakat is one of the five pillars of Islam: an annual obligation to contribute 2.5% of qualifying wealth above the nisab threshold — approximately the value of 85 grams of gold, currently around £4,500 to £5,000. Investment holdings and cash savings above this threshold are zakatable. Your primary home, vehicles for personal use, and basic household goods are generally exempt.", highlight:"Zakat: 2.5% of qualifying wealth above the nisab threshold, paid each year." },
+      { type:"scenario", prompt:"You receive £400 in dividends from a Sharia-screened ETF. The fund's purification report states 3% of income came from impermissible sources. What do you do?",
+        context:"Your ISA performed well. The ETF is certified Sharia-compliant but like all diversified funds, a small percentage of income came from borderline sources.",
+        choices:[
+          { label:"Exit the investment — it is not fully pure", best:false, outcome:"This is overly cautious. Minor impurities in diversified Sharia funds are normal and addressed through purification, not exit." },
+          { label:"Donate 3% of the £400 (£12) to charity as purification", best:true, outcome:"Correct. Purification removes the impermissible portion. The remaining £388 is permissible to keep. This is standard practice." },
+          { label:"Do nothing — the ETF is Sharia-certified so all income is clean", best:false, outcome:"Sharia certification means the fund is broadly compliant, not that zero purification is ever needed. The certification actually requires purification." },
+        ],
+        explanation:"Purification is standard in Islamic investing. Most Sharia fund providers publish annual purification ratios. You donate that percentage of your income to charity. It is typically a very small amount and takes a few minutes to calculate each year."
+      },
+      { type:"quiz", question:"What is the nisab threshold — the minimum wealth level at which Zakat becomes obligatory?",
+        options:["A fixed £10,000 set annually by UK scholars","The value of approximately 85 grams of gold, around £4,500 to £5,000","£2,500 — one year of minimum savings","There is no fixed amount; it is at personal discretion"], correct:1,
+        explanation:"The nisab is pegged to the value of 85 grams of gold (or 595 grams of silver — scholars use the lower). At current gold prices this is roughly £4,500 to £5,000, but it changes with the gold price. If your total qualifying wealth exceeds this for a full lunar year, Zakat of 2.5% is due."
+      },
+    ]
+  },
 ]
 
 /* ── LEARN: XP & progress helpers ────────────────────────────────────────── */
@@ -2575,14 +2879,14 @@ function GrowthChartCard() {
           { label:"At 10%",    value:fmtK(last.at10),        color:T.purple },
         ].map(r => (
           <div key={r.label} style={{ textAlign:"center", background:T.card, borderRadius:10, padding:"10px 6px" }}>
-            <p style={{ color:T.subtle, fontSize:10, fontWeight:600, textTransform:"uppercase", letterSpacing:.5, marginBottom:5 }}>{r.label}</p>
+            <p style={{ color:T.muted, fontSize:10, fontWeight:600, textTransform:"uppercase", letterSpacing:.5, marginBottom:5 }}>{r.label}</p>
             <p style={{ color:r.color, fontSize:13, fontWeight:900, fontVariantNumeric:"tabular-nums" }}>{r.value}</p>
-            <p style={{ color:T.subtle, fontSize:9, marginTop:2 }}>30 yrs</p>
+            <p style={{ color:T.muted, fontSize:9, marginTop:2 }}>30 yrs</p>
           </div>
         ))}
       </div>
 
-      <p style={{ color:T.subtle, fontSize:11, marginTop:10, lineHeight:1.6 }}>
+      <p style={{ color:T.muted, fontSize:12, marginTop:10, lineHeight:1.6 }}>
         The gap between the dashed line (what you put in) and the coloured lines is entirely interest on interest. That gap widens every single year.
       </p>
     </div>
@@ -2707,18 +3011,13 @@ function LessonPlayer({ lesson, onBack }) {
   const card  = cards[cardIdx]
   const isLast = cardIdx === cards.length - 1
 
-  // Reset per-card state when index changes
+  // Reset AND init all card state in one effect — prevents rank/slider init being wiped by the reset
   useEffect(()=>{
     setSelected(null); setAnswered(false)
-    setRankOrder(null); setMatched({}); setMatchSel(null); setMatchDone(false)
-    setScenPick(null); setSliderVal(null)
-  },[cardIdx])
-
-  // Init rank order when card changes
-  useEffect(()=>{
-    if(card?.type==="rank") setRankOrder(card.items.map((_,i)=>i))
-    if(card?.type==="slider") setSliderVal(card.defaultVal ?? Math.round((card.min+card.max)/2))
-  },[card])
+    setMatched({}); setMatchSel(null); setMatchDone(false); setScenPick(null)
+    setRankOrder(card?.type==="rank" ? card.items.map((_,i)=>i) : null)
+    setSliderVal(card?.type==="slider" ? (card.defaultVal ?? Math.round((card.min+card.max)/2)) : null)
+  },[cardIdx]) // card is derived from cardIdx so no separate dep needed
 
   function canAdvance() {
     if(card.type==="quiz")     return answered
@@ -2838,7 +3137,7 @@ function LessonPlayer({ lesson, onBack }) {
                 <span style={{ color:T.purple,fontSize:10,fontWeight:800,textTransform:"uppercase",letterSpacing:.8 }}>Rank it</span>
               </div>
               <h2 style={{ color:T.white,fontSize:"clamp(15px,2vw,20px)",fontWeight:800,lineHeight:1.4,marginBottom:6 }}>{card.prompt}</h2>
-              <p style={{ color:T.subtle,fontSize:13,marginBottom:18 }}>Tap to move items up or down.</p>
+              <p style={{ color:T.muted,fontSize:13,marginBottom:18 }}>Tap to move items up or down.</p>
               <div style={{ display:"flex",flexDirection:"column",gap:8,marginBottom:16 }}>
                 {rankOrder.map((origIdx,pos)=>(
                   <div key={origIdx} style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"12px 14px",display:"flex",alignItems:"center",gap:12 }}>
@@ -2870,7 +3169,7 @@ function LessonPlayer({ lesson, onBack }) {
                 <span style={{ color:T.amber,fontSize:10,fontWeight:800,textTransform:"uppercase",letterSpacing:.8 }}>Match it</span>
               </div>
               <h2 style={{ color:T.white,fontSize:"clamp(15px,2vw,19px)",fontWeight:800,lineHeight:1.4,marginBottom:6 }}>{card.prompt}</h2>
-              <p style={{ color:T.subtle,fontSize:13,marginBottom:18 }}>Tap a term, then tap its definition to match them.</p>
+              <p style={{ color:T.muted,fontSize:13,marginBottom:18 }}>Tap a term, then tap its definition to match them.</p>
               {(() => {
                 const pairs = card.pairs
                 const termIds  = pairs.map((_,i)=>i)
@@ -2951,7 +3250,7 @@ function LessonPlayer({ lesson, onBack }) {
                     </div>
                   ))}
                 </div>
-                <p style={{ color:T.subtle,fontSize:12,marginTop:10,lineHeight:1.6 }}>{card.insight(sliderVal)}</p>
+                <p style={{ color:T.muted,fontSize:12,marginTop:10,lineHeight:1.6 }}>{card.insight(sliderVal)}</p>
               </div>
             </div>
           )}
@@ -2964,7 +3263,7 @@ function LessonPlayer({ lesson, onBack }) {
                 <span style={{ color:T.amber,fontSize:10,fontWeight:800,textTransform:"uppercase",letterSpacing:.8 }}>Your call</span>
               </div>
               <h2 style={{ color:T.white,fontSize:"clamp(15px,2vw,20px)",fontWeight:800,lineHeight:1.4,marginBottom:6 }}>{card.prompt}</h2>
-              <p style={{ color:T.subtle,fontSize:14,lineHeight:1.65,marginBottom:20 }}>{card.context}</p>
+              <p style={{ color:"#CBD5E1",fontSize:14,lineHeight:1.65,marginBottom:20 }}>{card.context}</p>
               <div style={{ display:"flex",flexDirection:"column",gap:10,marginBottom:16 }}>
                 {card.choices.map((c,i)=>{
                   const isSel=scenPick===i
@@ -3291,7 +3590,7 @@ function PlaceholderTab({ name, build, desc }) {
 
 /* ── APP SHELL ──────────────────────────────────────────────────────────── */
 function AppShell() {
-  const { tab, state, reset } = useApp()
+  const { tab, state, reset, loadDemo } = useApp()
   const [settingsOpen,setSettingsOpen] = useState(false)
   const name = state.profile.name
   const xp = state.profile.points || 0
@@ -3368,6 +3667,10 @@ function AppShell() {
             </div>
             {/* Actions */}
             <div style={{ padding:"16px 22px",display:"flex",flexDirection:"column",gap:10 }}>
+              <button onClick={()=>{ loadDemo(); setSettingsOpen(false) }}
+                style={{ background:T.tealDim,border:`1px solid ${T.tealBorder}`,borderRadius:12,padding:"12px 16px",color:T.teal,fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit",textAlign:"left",display:"flex",alignItems:"center",gap:10 }}>
+                <Sparkles size={15}/>Load example data (Alex, 34)
+              </button>
               <button onClick={()=>{ if(window.confirm("Reset all data? This cannot be undone.")) { reset();setSettingsOpen(false) } }}
                 style={{ background:T.redDim,border:`1px solid ${T.redBorder}`,borderRadius:12,padding:"12px 16px",color:T.red,fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit",textAlign:"left",display:"flex",alignItems:"center",gap:10 }}>
                 <Trash2 size={15}/>Reset all data
