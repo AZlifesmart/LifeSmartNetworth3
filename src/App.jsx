@@ -2033,6 +2033,7 @@ function ActionGoalSheet({ type, goal, onClose, onSave }) {
 }
 
 function calcGoalProgress(goal, surplus) {
+  const now = new Date()
   const start = goal.createdAt ? new Date(goal.createdAt) : now
   const monthsElapsed = Math.max(0, (now - start) / (1000 * 60 * 60 * 24 * 30.4))
   const monthly = goal.monthlyAmount || Math.max(0, surplus * 0.3)
@@ -2265,8 +2266,8 @@ function GoalsTab() {
     toast("Goal deleted")
   }
 
-  const activeGoals    = goals.filter(g=>calcGoalProgress(g,surplus).pct<100)
-  const completedGoals = goals.filter(g=>calcGoalProgress(g,surplus).pct>=100)
+  const activeGoals    = goals.filter(g=> ACTION_GOALS.has(g.type) ? true  : calcGoalProgress(g,surplus).pct<100)
+  const completedGoals = goals.filter(g=>!ACTION_GOALS.has(g.type) && calcGoalProgress(g,surplus).pct>=100)
 
   return (
     <div style={{ flex:1,overflowY:"auto",padding:"24px 32px 120px" }}>
