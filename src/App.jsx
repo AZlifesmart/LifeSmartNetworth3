@@ -135,7 +135,8 @@ const DEFAULTS = {
   income: { primary:0, primarySource:"Salary", additional:[] },
   spending: { monthly:0, breakdown:{} },
   goals:[], history:[], completedLessons:[], badges:[],
-  priorityGoals: []
+  priorityGoals: [],
+  dashboardTiles: []
 }
 
 const load = () => { try { const s=localStorage.getItem("ls_v1"); return s?{...DEFAULTS,...JSON.parse(s)}:DEFAULTS } catch { return DEFAULTS } }
@@ -453,8 +454,8 @@ const WELCOME_SLIDES = [
   },
   {
     emoji:"🚀", color:T.amber,
-    headline:"Track it and watch what happens",
-    sub:"People who measure their net worth consistently build significantly more of it.",
+    headline:"People who track build 4× more wealth",
+    sub:"Same income. Same opportunities. The only difference is knowing your numbers.",
     stat:{ label:"Same income. Different habits.", sub2:"Life-changing results." },
   },
   {
@@ -724,10 +725,12 @@ function DebtChecklistScreen({ values, setValues, assets, age, onNext, onBack })
   return (
     <div style={{ minHeight:"100vh",background:T.bg,display:"flex",flexDirection:"column" }}>
       <StarField count={15}/>
-      <div className="ls-fadein" style={{ position:"relative",flex:1,overflowY:"auto",padding:"44px 22px 20px",maxWidth:540,margin:"0 auto",width:"100%" }}>
-        <button onClick={onBack} style={{ background:"none",border:"none",color:T.muted,cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontSize:14,fontWeight:600,marginBottom:28,padding:0 }}>
+      <div style={{ position:"relative",padding:"14px 22px 0",maxWidth:540,margin:"0 auto",width:"100%",flexShrink:0 }}>
+        <button onClick={onBack} style={{ background:"none",border:"none",color:T.muted,cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontSize:14,fontWeight:600,padding:0 }}>
           <ChevronLeft size={16}/> Back
         </button>
+      </div>
+      <div className="ls-fadein" style={{ position:"relative",flex:1,overflowY:"auto",padding:"16px 22px 20px",maxWidth:540,margin:"0 auto",width:"100%" }}>
 
         {/* Step indicator */}
         <div style={{ display:"flex",gap:6,marginBottom:24 }}>
@@ -845,13 +848,13 @@ function IncomeOnboardScreen({ income, setIncome, onNext, onBack }) {
 
         {/* Helpful context */}
         <div style={{ display:"flex",flexDirection:"column",gap:8,marginBottom:28 }}>
-          <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"12px 14px",display:"flex",gap:10 }}>
-            <span style={{ fontSize:14 }}>💡</span>
-            <p style={{ color:T.muted,fontSize:12,lineHeight:1.5 }}>Not sure? Divide your annual salary by 12, then subtract around 25–30% for tax and NI.</p>
+          <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px 16px",display:"flex",gap:10,alignItems:"center" }}>
+            <span style={{ fontSize:18 }}>📱</span>
+            <p style={{ color:T.white,fontSize:14,lineHeight:1.4,fontWeight:600 }}>Check your banking app or last payslip — it's the amount that lands in your account each month.</p>
           </div>
-          <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"12px 14px",display:"flex",gap:10 }}>
-            <span style={{ fontSize:14 }}>📊</span>
-            <p style={{ color:T.muted,fontSize:12,lineHeight:1.5 }}>This unlocks your monthly surplus — the gap between income and spending that builds your wealth.</p>
+          <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px 16px",display:"flex",gap:10,alignItems:"center" }}>
+            <span style={{ fontSize:18 }}>📊</span>
+            <p style={{ color:T.muted,fontSize:14,lineHeight:1.4 }}>This unlocks your monthly surplus — the gap that builds your wealth.</p>
           </div>
         </div>
 
@@ -903,13 +906,13 @@ function SpendingOnboardScreen({ spending, setSpending, income, onNext, onBack }
         <h2 style={{ color:T.white,fontSize:"clamp(20px,4vw,26px)",fontWeight:900,marginBottom:8,lineHeight:1.2,textAlign:"center" }}>Monthly spending — total</h2>
         <p style={{ color:T.muted,fontSize:13,marginBottom:20,lineHeight:1.6,textAlign:"center" }}>Everything that goes out. Rent, food, bills, fun — the lot.</p>
 
-        {/* Category hints */}
-        <div style={{ display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:20 }}>
+        <p style={{ color:T.muted,fontSize:12,marginBottom:10,fontWeight:600 }}>What to include:</p>
+        {/* Category hints — reference only */}
+        <div style={{ display:"flex",flexWrap:"wrap",gap:8,marginBottom:20 }}>
           {SPENDING_HINTS.map((h,i)=>(
-            <div key={i} style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"10px 8px",textAlign:"center" }}>
-              <p style={{ fontSize:20,marginBottom:4 }}>{h.icon}</p>
-              <p style={{ color:T.white,fontWeight:700,fontSize:11,marginBottom:2 }}>{h.label}</p>
-              <p style={{ color:T.subtle,fontSize:10,lineHeight:1.3 }}>{h.ex}</p>
+            <div key={i} style={{ background:T.faint,border:`1px solid ${T.border}`,borderRadius:99,padding:"6px 12px",display:"flex",alignItems:"center",gap:6 }}>
+              <span style={{ fontSize:14 }}>{h.icon}</span>
+              <p style={{ color:T.muted,fontWeight:600,fontSize:12 }}>{h.label}</p>
             </div>
           ))}
         </div>
@@ -1115,13 +1118,16 @@ function HomeTab() {
           <GoalPickerSection state={state} save={save} toast={toast}/>
         )}
 
-        {/* ── Mini goals ─────────────────────────────────────────── */}
+        {/* ── Mini goals + recommended lessons ───────────────────── */}
         {hasPriorities && (
-          <HomeGoalsSection goals={goals} surplus={surplus} setTab={setTab} save={save} state={state} toast={toast} priorityGoals={priorityGoals}/>
+          <>
+            <HomeGoalsSection goals={goals} surplus={surplus} setTab={setTab} save={save} state={state} toast={toast} priorityGoals={priorityGoals}/>
+            <GoalLinkedLessons priorityGoals={priorityGoals} completedLessons={state.completedLessons||[]} setTab={setTab}/>
+          </>
         )}
 
         {/* ── Insights label ─────────────────────────────────────── */}
-        <p style={{ color:T.muted,fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:14,marginTop:4 }}>Your insights</p>
+        <p style={{ color:T.muted,fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:14,marginTop:4 }}>Your top insights</p>
 
         <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(290px,1fr))",gap:14,marginBottom:24 }}>
 
@@ -1129,13 +1135,22 @@ function HomeTab() {
           {bk.safetyNet > 0 && (
             <InsightCard icon="🛡️" title="Safety net" sub="Liquid savings" iconBg={T.tealDim} iconBorder={T.tealBorder}
               infoText="Your easy-access savings — cash, current accounts, ISA savings. The rule of thumb is 3–6 months of expenses.">
-              <p style={{ color:T.teal,fontWeight:900,fontSize:28,marginBottom:4 }}>{fmt(bk.safetyNet)}</p>
+              <p style={{ color:T.teal,fontWeight:900,fontSize:28,marginBottom:8 }}>{fmt(bk.safetyNet)}</p>
               {safetyMonths!=null ? (
-                <p style={{ color:T.muted,fontSize:13,lineHeight:1.5 }}>
-                  <strong style={{ color:safetyMonths>=3?T.green:T.amber }}>{safetyMonths} month{safetyMonths!==1?"s":""}</strong> of expenses covered.
-                  {safetyMonths<3 && " Aim for 3–6 months first."}
-                  {safetyMonths>=6 && " Well covered — consider investing the excess."}
-                </p>
+                <>
+                  <div style={{ background:T.surface,borderRadius:99,height:8,overflow:"hidden",marginBottom:8 }}>
+                    <div style={{ width:`${Math.min(100,(safetyMonths/6)*100)}%`,height:"100%",background:`linear-gradient(90deg,${safetyMonths>=3?T.green:T.amber},${safetyMonths>=6?"#86EFAC":T.amber})`,borderRadius:99,transition:"width .8s ease" }}/>
+                  </div>
+                  <div style={{ display:"flex",justifyContent:"space-between",marginBottom:6 }}>
+                    <p style={{ color:T.muted,fontSize:11 }}>0 months</p>
+                    <p style={{ color:T.muted,fontSize:11 }}>6 months</p>
+                  </div>
+                  <p style={{ color:T.muted,fontSize:13,lineHeight:1.5 }}>
+                    <strong style={{ color:safetyMonths>=3?T.green:T.amber }}>{safetyMonths} month{safetyMonths!==1?"s":""}</strong> of expenses covered.
+                    {safetyMonths<3 && " Aim for 3–6 months as your first target."}
+                    {safetyMonths>=6 && " Well covered — consider investing the excess."}
+                  </p>
+                </>
               ) : (
                 <p style={{ color:T.muted,fontSize:13 }}>Add monthly spending to see months covered.</p>
               )}
@@ -1185,6 +1200,9 @@ function HomeTab() {
           )}
         </div>
 
+        {/* ── Build your dashboard ─────────────────────────────── */}
+        <DashboardBuilder state={state} save={save} setTab={setTab} toast={toast}/>
+
         {/* ── Lesson recommendation ─────────────────────────────── */}
         {recLesson && (
           <div style={{ marginBottom:28 }}>
@@ -1204,6 +1222,70 @@ function HomeTab() {
             </button>
           </div>
         )}
+      </div>
+    </div>
+  )
+}
+
+/* ── Dashboard builder ───────────────────────────────────────────── */
+const DASHBOARD_TILES = [
+  { id:"budget", icon:"🗂️", label:"Budget breakdown", color:T.teal, colorDim:T.tealDim, colorBorder:T.tealBorder,
+    desc:"See where your money goes — a visual split of your spending categories.",
+    requires:"spending breakdown", unlock:"You'll answer a few questions about your spending categories." },
+  { id:"debt_plan", icon:"🎯", label:"Debt payoff plan", color:T.red, colorDim:T.redDim, colorBorder:T.redBorder,
+    desc:"See exactly when each debt clears and how much interest you'll save.",
+    requires:"debts", unlock:"We'll use your debt balances to build a payoff timeline." },
+  { id:"investment", icon:"📈", label:"Investment tracker", color:T.purple, colorDim:T.purpleDim, colorBorder:T.purpleBorder,
+    desc:"Track your portfolio performance and compare against benchmarks.",
+    requires:"investments", unlock:"Add your investment accounts to get started." },
+  { id:"pension", icon:"🏛️", label:"Pension projector", color:T.amber, colorDim:T.amberDim, colorBorder:T.amberBorder,
+    desc:"Forecast your pension pot at retirement based on current contributions.",
+    requires:"pension", unlock:"We'll need your pension value and monthly contributions." },
+]
+
+function DashboardBuilder({ state, save, setTab, toast }) {
+  const added = state.dashboardTiles || []
+  const [expanded, setExpanded] = useState(null)
+
+  const available = DASHBOARD_TILES.filter(t=>!added.includes(t.id))
+  if(available.length===0) return null
+
+  function addTile(id) {
+    save({ ...state, dashboardTiles:[...(state.dashboardTiles||[]),id] })
+    toast("✓ Added to your dashboard")
+    setExpanded(null)
+  }
+
+  return (
+    <div style={{ marginBottom:24 }}>
+      <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:6 }}>
+        <p style={{ color:T.muted,fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase" }}>Build your dashboard</p>
+      </div>
+      <p style={{ color:T.subtle,fontSize:13,lineHeight:1.5,marginBottom:14 }}>
+        Add charts and analysis to get deeper insights — each one helps you reach your goals faster.
+      </p>
+      <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
+        {available.map(t=>(
+          <div key={t.id} style={{ background:T.card,border:`1px solid ${expanded===t.id?t.colorBorder:T.border}`,borderRadius:16,overflow:"hidden",transition:"all .2s" }}>
+            <button onClick={()=>setExpanded(expanded===t.id?null:t.id)}
+              style={{ width:"100%",background:"none",border:"none",padding:"14px 16px",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:14,textAlign:"left" }}>
+              <div style={{ width:40,height:40,borderRadius:12,background:t.colorDim,border:`1px solid ${t.colorBorder}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0 }}>{t.icon}</div>
+              <div style={{ flex:1 }}>
+                <p style={{ color:T.white,fontWeight:700,fontSize:14 }}>{t.label}</p>
+                <p style={{ color:T.muted,fontSize:12,marginTop:2 }}>{t.desc}</p>
+              </div>
+              <Plus size={16} color={T.subtle} style={{ flexShrink:0,transform:expanded===t.id?"rotate(45deg)":"none",transition:"transform .2s" }}/>
+            </button>
+            {expanded===t.id && (
+              <div style={{ padding:"0 16px 16px",borderTop:`1px solid ${T.border}` }}>
+                <p style={{ color:T.muted,fontSize:13,lineHeight:1.5,marginTop:12,marginBottom:12 }}>
+                  💡 {t.unlock}
+                </p>
+                <Btn onClick={()=>addTile(t.id)}>Add to dashboard →</Btn>
+              </div>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   )
@@ -1391,6 +1473,29 @@ function GoalPickerSection({ state, save, toast }) {
       <Btn onClick={confirm} disabled={selected.length===0}>
         {selected.length===0 ? "Pick at least one →" : `Set ${selected.length} priorit${selected.length===1?"y":"ies"} →`}
       </Btn>
+    </div>
+  )
+}
+
+function GoalLinkedLessons({ priorityGoals, completedLessons, setTab }) {
+  const doneSet = new Set(completedLessons)
+  const linked = LESSONS.filter(l=>l.goalLinks?.some(g=>priorityGoals.includes(g)) && !doneSet.has(l.id)).slice(0,2)
+  if(linked.length===0) return null
+  return (
+    <div style={{ marginBottom:22 }}>
+      <p style={{ color:T.muted,fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:12 }}>Lessons for your goals</p>
+      <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
+        {linked.map(l=>(
+          <button key={l.id} onClick={()=>setTab(1)} style={{ background:T.card,border:`1.5px solid ${l.trackColor||T.teal}30`,borderRadius:16,padding:"14px 16px",cursor:"pointer",textAlign:"left",fontFamily:"inherit",display:"flex",alignItems:"center",gap:14 }}>
+            <div style={{ width:44,height:44,borderRadius:12,background:`${l.trackColor||T.teal}20`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0 }}>{l.emoji}</div>
+            <div style={{ flex:1 }}>
+              <p style={{ color:l.trackColor||T.teal,fontWeight:700,fontSize:10,letterSpacing:.5,textTransform:"uppercase",marginBottom:3 }}>{l.track} · {l.xp} XP</p>
+              <p style={{ color:T.white,fontWeight:700,fontSize:13,lineHeight:1.3 }}>{l.title}</p>
+            </div>
+            <ChevronRight size={16} color={T.subtle}/>
+          </button>
+        ))}
+      </div>
     </div>
   )
 }
@@ -2308,7 +2413,7 @@ function LessonPlayer({ lesson, onComplete, onBack }) {
   }
 
   return (
-    <div style={{ minHeight:"100vh",background:T.bg,display:"flex",flexDirection:"column",position:"relative",overflow:"hidden" }}>
+    <div style={{ height:"100%",background:T.bg,display:"flex",flexDirection:"column",position:"relative",overflow:"hidden" }}>
       <StarField count={20}/>
       <div style={{ position:"absolute",top:0,left:0,right:0,height:180,background:`linear-gradient(180deg,${color}15 0%,transparent 100%)`,pointerEvents:"none" }}/>
 
