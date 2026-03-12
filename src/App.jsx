@@ -1805,9 +1805,9 @@ function TrackTab() {
     else           newAssets.push(assetObj)
 
     if(hasLoan && loanBal>0) {
-      const t = DEBT_TYPES.find(x=>[\"mortgage\",\"car_loan\"].includes(x.cat) && x.cat===cat) || DEBT_TYPES[0]
+      const t = DEBT_TYPES.find(x=>["mortgage","car_loan"].includes(x.cat) && x.cat===cat) || DEBT_TYPES[0]
       const debtId = existingLinkedDebtId || `d_linked_${Date.now()}`
-      const debtObj = { id:debtId, category:cat===\"primary_residence\"?\"mortgage\":cat, name:`${name} loan`, balance:loanBal, interestRate:t?.assumedRate||4.5, linkedAssetId:assetId, isAutoCreated:true }
+      const debtObj = { id:debtId, category:cat==="primary_residence"?"mortgage":cat, name:`${name} loan`, balance:loanBal, interestRate:t?.assumedRate||4.5, linkedAssetId:assetId, isAutoCreated:true }
       newAssets = newAssets.map(a=>a.id===assetId?{...a,linkedDebtId:debtId}:a)
       if(existingLinkedDebtId) newDebts = newDebts.map(d=>d.id===existingLinkedDebtId?debtObj:d)
       else newDebts.push(debtObj)
