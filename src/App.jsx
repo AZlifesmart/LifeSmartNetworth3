@@ -170,29 +170,28 @@ const calcProjection = (nw, surplus, currentAge) => {
   const age = currentAge || 35
   const years = Math.max(70 - age, 5)
   const data = []
-  // Seeded deterministic noise
   let seed = (Math.abs(Math.round(nw)) % 9973) + 1
   const rand = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return (seed / 0xffffffff) - 0.5 }
 
-  // Generate smooth baselines first
-  const balBase = [nw], conBase = [nw]
-  let b = nw, c = nw
+  // Baselines: optimistic 8%, conservative 5%
+  const optBase = [nw], conBase = [nw]
+  let o = nw, c = nw
   for (let y = 1; y <= years; y++) {
     const s = Math.max(0, surplus) * 12
-    b = (b + s) * 1.07
-    c = (c + s) * 1.04
-    balBase.push(b)
+    o = (o + s) * 1.08
+    c = (c + s) * 1.05
+    optBase.push(o)
     conBase.push(c)
   }
 
-  // Apply mean-reverting random walk noise
-  let bNoise = 0, cNoise = 0
+  // More jagged noise — mean-reverting random walk with higher amplitude
+  let oNoise = 0, cNoise = 0
   for (let y = 0; y <= years; y++) {
-    bNoise = bNoise * 0.6 + rand() * 0.12  // ±6% noise with persistence
-    cNoise = cNoise * 0.6 + rand() * 0.08
-    const jBal = Math.round(balBase[y] * (1 + bNoise))
+    oNoise = oNoise * 0.55 + rand() * 0.18  // ±9% noise with persistence
+    cNoise = cNoise * 0.55 + rand() * 0.13  // ±6.5%
+    const jOpt = Math.round(optBase[y] * (1 + oNoise))
     const jCon = Math.round(conBase[y] * (1 + cNoise))
-    data.push({ age: age + y, balanced: Math.max(-500000, jBal), conservative: Math.max(-500000, jCon) })
+    data.push({ age: age + y, optimistic: Math.max(-500000, jOpt), conservative: Math.max(-500000, jCon) })
   }
   return data
 }
@@ -441,28 +440,28 @@ function Onboarding() {
 /* ── Welcome — 4 story slides ─────────────────────────────────────── */
 const WELCOME_SLIDES = [
   {
-    emoji:"🤔", color:T.teal,
-    headline:"Do you actually know what you're worth?",
-    sub:"Most people have no idea. And that's the problem.",
+    emoji:"💷", color:T.teal,
+    headline:"Most people have no idea what they're actually worth",
+    sub:"Not income. Not savings. Your true financial position — assets minus everything you owe. It's the one number that changes how you see money.",
     stat:null,
   },
   {
     emoji:"📊", color:T.purple,
-    headline:"Net worth = what you own minus what you owe",
-    sub:"It's the one number that tells the real story of your finances.",
+    headline:"Your net worth is your financial scoreboard",
+    sub:"Everything you own, minus everything you owe. One number. Total clarity.",
     stat:{ label:"Assets", minus:"Debts", eq:"= Net Worth" },
   },
   {
     emoji:"🚀", color:T.amber,
-    headline:"People who track build 4× more wealth",
-    sub:"Same income. Same opportunities. The only difference is knowing your numbers.",
-    stat:{ label:"Same income. Different habits.", sub2:"Life-changing results." },
+    headline:"Track it and your wealth will grow",
+    sub:"People who measure their net worth consistently make better decisions, save more, and build significantly more wealth. Same income — completely different outcome.",
+    stat:{ label:"Measure it. Grow it.", sub2:"People who track build 4× more wealth." },
   },
   {
     emoji:"🎯", color:T.green,
     headline:"LifeSmart builds your full picture",
     sub:"Takes 3 minutes. Stays private. Completely free.",
-    bullets:["📊 Your net worth today", "🔮 Where you could be at 70", "🎯 A plan to get there"],
+    bullets:["📊 Your net worth today", "🔮 Where you could be at 70", "🎯 A personalised plan to get there"],
   },
 ]
 
@@ -485,10 +484,10 @@ function WelcomeScreen({ onNext }) {
       {/* Gradient blob */}
       <div style={{ position:"absolute",top:-80,left:"50%",transform:"translateX(-50%)",width:400,height:400,borderRadius:"50%",background:`radial-gradient(circle,${slide.color}14 0%,transparent 70%)`,pointerEvents:"none",transition:"background .5s" }}/>
 
-      {/* Progress dots */}
-      <div style={{ position:"relative",display:"flex",gap:8,justifyContent:"center",padding:"40px 20px 0" }}>
+      {/* Progress bar — segmented */}
+      <div style={{ position:"relative",display:"flex",gap:6,padding:"44px 28px 0" }}>
         {WELCOME_SLIDES.map((_,i)=>(
-          <div key={i} onClick={()=>setIdx(i)} style={{ height:4,borderRadius:2,background:i===idx?slide.color:T.border,transition:"all .4s",cursor:"pointer",flex:i===idx?2:1 }}/>
+          <div key={i} onClick={()=>setIdx(i)} style={{ height:4,borderRadius:2,background:i<=idx?slide.color:T.border,transition:"background .3s, flex .3s",cursor:"pointer",flex:i===idx?2:1 }}/>
         ))}
       </div>
 
@@ -498,22 +497,22 @@ function WelcomeScreen({ onNext }) {
         <div className="ls-float" style={{ fontSize:80,marginBottom:28,filter:`drop-shadow(0 0 24px ${slide.color}50)` }}>{slide.emoji}</div>
 
         <h1 style={{ fontSize:"clamp(22px,5vw,28px)",fontWeight:900,color:T.white,lineHeight:1.25,marginBottom:14,maxWidth:340 }}>{slide.headline}</h1>
-        <p style={{ color:T.muted,fontSize:15,lineHeight:1.7,marginBottom:28,maxWidth:300 }}>{slide.sub}</p>
+        <p style={{ color:"#CBD5E1",fontSize:16,lineHeight:1.7,marginBottom:28,maxWidth:320 }}>{slide.sub}</p>
 
         {/* Slide 2: equation visual */}
         {slide.stat?.minus && (
-          <div style={{ display:"flex",alignItems:"center",gap:12,marginBottom:24,flexWrap:"wrap",justifyContent:"center" }}>
+          <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:24,flexWrap:"wrap",justifyContent:"center" }}>
             {[
               { label:"🏠 Assets", color:T.green },
-              { label:"−", color:T.muted, plain:true },
+              { label:"−", color:"#CBD5E1", plain:true },
               { label:"💳 Debts", color:T.red },
-              { label:"=", color:T.muted, plain:true },
+              { label:"=", color:"#CBD5E1", plain:true },
               { label:"💰 Net Worth", color:T.teal },
             ].map((item,i)=>(
               item.plain
-              ? <span key={i} style={{ color:item.color,fontSize:22,fontWeight:900 }}>{item.label}</span>
-              : <div key={i} style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"10px 16px" }}>
-                  <p style={{ color:item.color,fontWeight:800,fontSize:14 }}>{item.label}</p>
+              ? <span key={i} style={{ color:item.color,fontSize:26,fontWeight:900 }}>{item.label}</span>
+              : <div key={i} style={{ background:T.card,border:`2px solid ${item.color}40`,borderRadius:14,padding:"12px 18px" }}>
+                  <p style={{ color:item.color,fontWeight:800,fontSize:15 }}>{item.label}</p>
                 </div>
             ))}
           </div>
@@ -521,18 +520,18 @@ function WelcomeScreen({ onNext }) {
 
         {/* Slide 3: stat */}
         {slide.stat?.sub2 && (
-          <div style={{ background:T.card,border:`1px solid ${T.amberBorder}`,borderRadius:16,padding:"16px 20px",marginBottom:24,width:"100%" }}>
-            <p style={{ color:T.amber,fontWeight:800,fontSize:15,marginBottom:4 }}>{slide.stat.label}</p>
-            <p style={{ color:T.muted,fontSize:13 }}>{slide.stat.sub2}</p>
+          <div style={{ background:T.card,border:`2px solid ${T.amberBorder}`,borderRadius:16,padding:"18px 22px",marginBottom:24,width:"100%" }}>
+            <p style={{ color:T.amber,fontWeight:900,fontSize:18,marginBottom:6 }}>{slide.stat.label}</p>
+            <p style={{ color:"#CBD5E1",fontSize:15,fontWeight:600 }}>{slide.stat.sub2}</p>
           </div>
         )}
 
         {/* Slide 4: bullets */}
         {slide.bullets && (
-          <div style={{ display:"flex",flexDirection:"column",gap:10,marginBottom:24,width:"100%",maxWidth:280 }}>
+          <div style={{ display:"flex",flexDirection:"column",gap:10,marginBottom:24,width:"100%",maxWidth:300 }}>
             {slide.bullets.map((b,i)=>(
-              <div key={i} className="ls-fadein" style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"12px 16px",textAlign:"left",animationDelay:`${i*0.1}s`,opacity:0,animationFillMode:"forwards" }}>
-                <p style={{ color:T.white,fontWeight:600,fontSize:14 }}>{b}</p>
+              <div key={i} className="ls-fadein" style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px 18px",textAlign:"left",animationDelay:`${i*0.1}s`,opacity:0,animationFillMode:"forwards" }}>
+                <p style={{ color:T.white,fontWeight:700,fontSize:15 }}>{b}</p>
               </div>
             ))}
           </div>
@@ -615,7 +614,7 @@ function GreetingScreen({ name, onNext, onBack }) {
         {/* Net worth explainer */}
         <div style={{ background:T.tealDim,border:`1px solid ${T.tealBorder}`,borderRadius:14,padding:"14px 16px",marginBottom:28 }}>
           <p style={{ color:T.teal,fontWeight:700,fontSize:13,marginBottom:4 }}>💡 What is net worth?</p>
-          <p style={{ color:T.muted,fontSize:13,lineHeight:1.6 }}>
+          <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.6 }}>
             Everything you <strong style={{ color:T.green }}>own</strong> (home, savings, pension, investments) <strong style={{ color:T.muted }}>minus</strong> everything you <strong style={{ color:T.red }}>owe</strong> (mortgage, loans, credit cards). <strong style={{ color:T.white }}>That's it.</strong>
           </p>
         </div>
@@ -657,7 +656,7 @@ function AssetChecklistScreen({ values, setValues, onNext, onBack }) {
           <h2 style={{ color:T.white,fontSize:"clamp(20px,4vw,26px)",fontWeight:900,lineHeight:1.2 }}>What do you own?</h2>
           {total>0 && <p style={{ color:T.teal,fontWeight:800,fontSize:16 }}>{fmtK(total)}</p>}
         </div>
-        <p style={{ color:T.muted,fontSize:13,marginBottom:6,lineHeight:1.5 }}>Tap each one. Rough estimates are totally fine.</p>
+        <p style={{ color:"#CBD5E1",fontSize:14,marginBottom:6,lineHeight:1.5 }}>Tap each one. Rough estimates are totally fine.</p>
 
         {/* Helpful hint */}
         <div style={{ background:T.tealDim,border:`1px solid ${T.tealBorder}`,borderRadius:10,padding:"9px 14px",marginBottom:22,display:"flex",gap:8,alignItems:"flex-start" }}>
@@ -746,11 +745,11 @@ function DebtChecklistScreen({ values, setValues, assets, age, onNext, onBack })
           <h2 style={{ color:T.white,fontSize:"clamp(20px,4vw,26px)",fontWeight:900,lineHeight:1.2 }}>What do you owe?</h2>
           {totalDebts>0 && <p style={{ color:T.red,fontWeight:800,fontSize:16 }}>{fmtK(totalDebts)}</p>}
         </div>
-        <p style={{ color:T.muted,fontSize:13,marginBottom:6,lineHeight:1.5 }}>Tap what applies. No debt? Great — just hit Continue.</p>
+        <p style={{ color:"#CBD5E1",fontSize:14,marginBottom:6,lineHeight:1.5 }}>Tap what applies. No debt? Great — just hit Continue.</p>
 
         <div style={{ background:T.faint,border:`1px solid ${T.border}`,borderRadius:10,padding:"9px 14px",marginBottom:22,display:"flex",gap:8,alignItems:"flex-start" }}>
           <span style={{ fontSize:14,flexShrink:0 }}>💡</span>
-          <p style={{ color:T.muted,fontSize:12,lineHeight:1.5 }}>Knowing your debts is the first step to clearing them. We use assumed interest rates — you can update them in Track later.</p>
+          <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.5 }}>Knowing your debts is the first step to clearing them. We use assumed interest rates — you can update them in Track later.</p>
         </div>
 
         <div style={{ display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10,marginBottom:16 }}>
@@ -840,7 +839,7 @@ function IncomeOnboardScreen({ income, setIncome, onNext, onBack }) {
 
         <div style={{ fontSize:42,textAlign:"center",marginBottom:16 }}>💼</div>
         <h2 style={{ color:T.white,fontSize:"clamp(20px,4vw,26px)",fontWeight:900,marginBottom:8,lineHeight:1.2,textAlign:"center" }}>What's your monthly take-home?</h2>
-        <p style={{ color:T.muted,fontSize:13,marginBottom:24,lineHeight:1.6,textAlign:"center" }}>After tax. This powers your surplus and projection calculations.</p>
+        <p style={{ color:"#CBD5E1",fontSize:15,marginBottom:24,lineHeight:1.6,textAlign:"center" }}>After tax. This powers your surplus and projection calculations.</p>
 
         <div style={{ marginBottom:20 }}>
           <CurrencyInput label="Monthly take-home pay (after tax)" value={income} onChange={setIncome} placeholder="e.g. 2,800"/>
@@ -852,16 +851,12 @@ function IncomeOnboardScreen({ income, setIncome, onNext, onBack }) {
             <span style={{ fontSize:18 }}>📱</span>
             <p style={{ color:T.white,fontSize:14,lineHeight:1.4,fontWeight:600 }}>Check your banking app or last payslip — it's the amount that lands in your account each month.</p>
           </div>
-          <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px 16px",display:"flex",gap:10,alignItems:"center" }}>
-            <span style={{ fontSize:18 }}>📊</span>
-            <p style={{ color:T.muted,fontSize:14,lineHeight:1.4 }}>This unlocks your monthly surplus — the gap that builds your wealth.</p>
-          </div>
         </div>
 
         {income > 0 && (
           <div style={{ background:T.tealDim,border:`1px solid ${T.tealBorder}`,borderRadius:12,padding:"12px 16px",marginBottom:20,textAlign:"center" }}>
             <p style={{ color:T.teal,fontWeight:700,fontSize:15 }}>{fmt(income)}/month</p>
-            <p style={{ color:T.muted,fontSize:12,marginTop:2 }}>{fmt(income*12)}/year take-home</p>
+            <p style={{ color:"#CBD5E1",fontSize:13,marginTop:2 }}>{fmt(income*12)}/year take-home</p>
           </div>
         )}
 
@@ -906,7 +901,7 @@ function SpendingOnboardScreen({ spending, setSpending, income, onNext, onBack }
         <h2 style={{ color:T.white,fontSize:"clamp(20px,4vw,26px)",fontWeight:900,marginBottom:8,lineHeight:1.2,textAlign:"center" }}>Monthly spending — total</h2>
         <p style={{ color:T.muted,fontSize:13,marginBottom:20,lineHeight:1.6,textAlign:"center" }}>Everything that goes out. Rent, food, bills, fun — the lot.</p>
 
-        <p style={{ color:T.muted,fontSize:12,marginBottom:10,fontWeight:600 }}>What to include:</p>
+        <p style={{ color:"#CBD5E1",fontSize:14,marginBottom:10,fontWeight:600 }}>What to include:</p>
         {/* Category hints — reference only */}
         <div style={{ display:"flex",flexWrap:"wrap",gap:8,marginBottom:20 }}>
           {SPENDING_HINTS.map((h,i)=>(
@@ -918,8 +913,7 @@ function SpendingOnboardScreen({ spending, setSpending, income, onNext, onBack }
         </div>
 
         <div style={{ marginBottom:16 }}>
-          <CurrencyInput label="Total monthly spending" value={spending} onChange={setSpending} placeholder="e.g. 1,800"
-            helper="Add up rent/mortgage, food, transport, bills, subscriptions, and fun spending."/>
+          <CurrencyInput label="Total monthly spending" value={spending} onChange={setSpending} placeholder="e.g. 1,800"/>
         </div>
 
         {/* Live surplus preview */}
@@ -938,7 +932,7 @@ function SpendingOnboardScreen({ spending, setSpending, income, onNext, onBack }
         {income > 0 && spending > 0 && surplus > 0 && (
           <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"12px 14px",marginBottom:20,display:"flex",gap:10 }}>
             <span style={{ fontSize:14 }}>💡</span>
-            <p style={{ color:T.muted,fontSize:12,lineHeight:1.5 }}>
+            <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.5 }}>
               That surplus of <strong style={{ color:T.teal }}>{fmt(surplus)}/month</strong> is what builds your net worth. Invested at 7%/yr over 20 years, it could grow to <strong style={{ color:T.teal }}>{fmtK(surplus*12*52.7)}</strong>.
             </p>
           </div>
@@ -973,7 +967,7 @@ function WowScreen({ assets, debts, income, spending, name, onFinish }) {
       <div style={{ position:"absolute",top:0,left:0,right:0,height:300,background:`radial-gradient(ellipse at 50% 0%,${nwPos?T.teal:T.red}18 0%,transparent 70%)`,pointerEvents:"none" }}/>
 
       <div className="ls-fadein" style={{ position:"relative",textAlign:"center",maxWidth:440,width:"100%" }}>
-        <div className="ls-float" style={{ fontSize:64,marginBottom:20 }}>{nwPos?"🎯":"📊"}</div>
+        <div className="ls-float" style={{ fontSize:64,marginBottom:20 }}>{nwPos?"🚀":"📊"}</div>
 
         <p style={{ fontSize:12,fontWeight:700,color:T.teal,letterSpacing:2,textTransform:"uppercase",marginBottom:12 }}>
           {name ? `${name}'s financial picture` : "Your financial picture"}
@@ -985,10 +979,10 @@ function WowScreen({ assets, debts, income, spending, name, onFinish }) {
             textShadow:nwPos?`0 0 60px ${T.teal}60`:`0 0 60px ${T.red}40` }}>
             {fmt(netWorth)}
           </div>
-          <p style={{ color:T.muted,fontSize:14,marginTop:6,fontWeight:600 }}>Net worth</p>
+          <p style={{ color:"#CBD5E1",fontSize:15,marginTop:6,fontWeight:700 }}>Net worth</p>
         </div>
 
-        <p style={{ color:"#CBD5E1",fontSize:15,lineHeight:1.7,marginBottom:28,maxWidth:340,margin:"0 auto 28px" }}>
+        <p style={{ color:"#CBD5E1",fontSize:16,lineHeight:1.7,marginBottom:28,maxWidth:340,margin:"0 auto 28px",fontWeight:500 }}>
           {getMessage()}
         </p>
 
@@ -1012,7 +1006,7 @@ function WowScreen({ assets, debts, income, spending, name, onFinish }) {
         <Btn onClick={onFinish} style={{ fontSize:16,padding:"16px 28px" }}>
           Explore my picture →
         </Btn>
-        <p style={{ color:T.subtle,fontSize:11,marginTop:14 }}>You'll be able to set goals and explore insights on your dashboard</p>
+        <p style={{ color:"#CBD5E1",fontSize:13,marginTop:14 }}>You'll be able to set goals and explore insights on your dashboard</p>
       </div>
     </div>
   )
@@ -1084,11 +1078,11 @@ function HomeTab() {
 
           {showEdit && (
             <div className="ls-fadein" style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px 16px",marginTop:14 }}>
-              <p style={{ color:T.muted,fontSize:13,lineHeight:1.5,marginBottom:10 }}>
+              <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.5,marginBottom:10 }}>
                 Update your numbers in <strong style={{ color:T.white }}>Track</strong>. Use <strong style={{ color:T.white }}>Goals</strong> to set targets.
               </p>
               <div style={{ display:"flex",gap:10 }}>
-                <button onClick={()=>{setTab(3);setShowEdit(false)}} style={{ flex:1,background:T.tealDim,border:`1px solid ${T.tealBorder}`,borderRadius:8,padding:"8px 12px",color:T.teal,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>Go to Track →</button>
+                <button onClick={()=>{setTab(2);setShowEdit(false)}} style={{ flex:1,background:T.tealDim,border:`1px solid ${T.tealBorder}`,borderRadius:8,padding:"8px 12px",color:T.teal,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>Go to Track →</button>
                 <button onClick={()=>{ if(window.confirm("Restart from scratch? All data will be cleared.")) reset() }}
                   style={{ background:"none",border:`1px solid ${T.border}`,borderRadius:8,padding:"8px 12px",color:T.muted,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>🔄 Restart</button>
               </div>
@@ -1109,7 +1103,7 @@ function HomeTab() {
           <div style={{ marginTop:8,marginBottom:20 }}>
             <LockedCard icon="🔮" title="Your wealth at 70 — projection locked"
               description="Add your assets and income to unlock your personalised wealth projection."
-              unlock="Complete setup in Track →" onUnlock={()=>setTab(3)}/>
+              unlock="Complete setup in Track →" onUnlock={()=>setTab(2)}/>
           </div>
         )}
 
@@ -1121,8 +1115,8 @@ function HomeTab() {
         {/* ── Mini goals + recommended lessons ───────────────────── */}
         {hasPriorities && (
           <>
-            <HomeGoalsSection goals={goals} surplus={surplus} setTab={setTab} save={save} state={state} toast={toast} priorityGoals={priorityGoals}/>
             <GoalLinkedLessons priorityGoals={priorityGoals} completedLessons={state.completedLessons||[]} setTab={setTab}/>
+            <HomeGoalsSection goals={goals} surplus={surplus} setTab={setTab} save={save} state={state} toast={toast} priorityGoals={priorityGoals}/>
           </>
         )}
 
@@ -1145,7 +1139,7 @@ function HomeTab() {
                     <p style={{ color:T.muted,fontSize:11 }}>0 months</p>
                     <p style={{ color:T.muted,fontSize:11 }}>6 months</p>
                   </div>
-                  <p style={{ color:T.muted,fontSize:13,lineHeight:1.5 }}>
+                  <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.5 }}>
                     <strong style={{ color:safetyMonths>=3?T.green:T.amber }}>{safetyMonths} month{safetyMonths!==1?"s":""}</strong> of expenses covered.
                     {safetyMonths<3 && " Aim for 3–6 months as your first target."}
                     {safetyMonths>=6 && " Well covered — consider investing the excess."}
@@ -1169,7 +1163,7 @@ function HomeTab() {
               <p style={{ color:T.red,fontWeight:900,fontSize:28,marginBottom:4 }}>
                 {fmt(Math.round(drag/12))}<span style={{ fontSize:16,fontWeight:600 }}>/mo</span>
               </p>
-              <p style={{ color:T.muted,fontSize:13,lineHeight:1.5 }}>
+              <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.5 }}>
                 {fmt(Math.round(drag))}/yr quietly leaving your net worth.{" "}
                 <span style={{ color:T.white,fontWeight:600 }}>Paying off high-rate debt first is a guaranteed return.</span>
               </p>
@@ -1196,7 +1190,7 @@ function HomeTab() {
           ) : (
             <LockedCard icon="🔥" title="Financial freedom number"
               description="Add monthly spending to unlock — the exact amount you need to achieve financial freedom."
-              unlock="Add spending →" onUnlock={()=>setTab(3)}/>
+              unlock="Add spending →" onUnlock={()=>setTab(2)}/>
           )}
         </div>
 
@@ -1227,64 +1221,59 @@ function HomeTab() {
   )
 }
 
-/* ── Dashboard builder ───────────────────────────────────────────── */
-const DASHBOARD_TILES = [
-  { id:"budget", icon:"🗂️", label:"Budget breakdown", color:T.teal, colorDim:T.tealDim, colorBorder:T.tealBorder,
-    desc:"See where your money goes — a visual split of your spending categories.",
-    requires:"spending breakdown", unlock:"You'll answer a few questions about your spending categories." },
-  { id:"debt_plan", icon:"🎯", label:"Debt payoff plan", color:T.red, colorDim:T.redDim, colorBorder:T.redBorder,
-    desc:"See exactly when each debt clears and how much interest you'll save.",
-    requires:"debts", unlock:"We'll use your debt balances to build a payoff timeline." },
-  { id:"investment", icon:"📈", label:"Investment tracker", color:T.purple, colorDim:T.purpleDim, colorBorder:T.purpleBorder,
-    desc:"Track your portfolio performance and compare against benchmarks.",
-    requires:"investments", unlock:"Add your investment accounts to get started." },
-  { id:"pension", icon:"🏛️", label:"Pension projector", color:T.amber, colorDim:T.amberDim, colorBorder:T.amberBorder,
-    desc:"Forecast your pension pot at retirement based on current contributions.",
-    requires:"pension", unlock:"We'll need your pension value and monthly contributions." },
-]
+/* ── Dashboard guidance + locked insights ────────────────────────── */
+function DashboardBuilder({ state, setTab }) {
+  const assets = state.assets || []
+  const hasDetailed = assets.some(a=>a.interestRate!==undefined||a.annualReturn!==undefined)
 
-function DashboardBuilder({ state, save, setTab, toast }) {
-  const added = state.dashboardTiles || []
-  const [expanded, setExpanded] = useState(null)
-
-  const available = DASHBOARD_TILES.filter(t=>!added.includes(t.id))
-  if(available.length===0) return null
-
-  function addTile(id) {
-    save({ ...state, dashboardTiles:[...(state.dashboardTiles||[]),id] })
-    toast("✓ Added to your dashboard")
-    setExpanded(null)
-  }
+  const LOCKED = [
+    { icon:"📊", label:"Budget breakdown", color:T.teal, colorDim:T.tealDim, colorBorder:T.tealBorder,
+      desc:"How your money is actually split — housing, food, fun and more.",
+      req:"Add spending categories in Track →", tab:3 },
+    { icon:"🎯", label:"Debt payoff timeline", color:T.red, colorDim:T.redDim, colorBorder:T.redBorder,
+      desc:"See exactly when each debt clears and how much interest you'll save.",
+      req:"Add your debts with exact rates in Track →", tab:3 },
+    { icon:"📈", label:"Investment growth tracker", color:T.purple, colorDim:T.purpleDim, colorBorder:T.purpleBorder,
+      desc:"Portfolio performance vs benchmarks, with compound projections.",
+      req:"Add investment assets with values in Track →", tab:3 },
+    { icon:"🏛️", label:"Pension projector", color:T.amber, colorDim:T.amberDim, colorBorder:T.amberBorder,
+      desc:"Your pension pot at retirement based on current contributions.",
+      req:"Add your pension in Track →", tab:3 },
+  ]
 
   return (
-    <div style={{ marginBottom:24 }}>
-      <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:6 }}>
-        <p style={{ color:T.muted,fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase" }}>Build your dashboard</p>
+    <div style={{ marginBottom:28 }}>
+      {/* Guidance card */}
+      <div style={{ background:`linear-gradient(135deg,${T.tealDim},${T.purpleDim})`,border:`1px solid ${T.tealBorder}`,borderRadius:18,padding:"18px 20px",marginBottom:20 }}>
+        <p style={{ color:T.teal,fontWeight:800,fontSize:15,marginBottom:8 }}>💡 Get more from LifeSmart</p>
+        <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
+          {[
+            { icon:"📝", text:"Enter your accurate asset and debt figures to get reliable projections — approximate numbers give approximate results." },
+            { icon:"📚", text:"Complete the lessons linked to your goals — each one gives you a practical edge." },
+            { icon:"📅", text:"Update your figures every month to watch your net worth chart update in real time." },
+            { icon:"🏆", text:"See how you compare to others your age — people who track consistently pull ahead." },
+          ].map((g,i)=>(
+            <div key={i} style={{ display:"flex",gap:10,alignItems:"flex-start" }}>
+              <span style={{ fontSize:16,flexShrink:0,marginTop:1 }}>{g.icon}</span>
+              <p style={{ color:"#CBD5E1",fontSize:14,lineHeight:1.5,fontWeight:500 }}>{g.text}</p>
+            </div>
+          ))}
+        </div>
+        <button onClick={()=>setTab(2)} style={{ background:T.teal,border:"none",borderRadius:10,padding:"10px 20px",color:T.bg,fontWeight:800,fontSize:14,cursor:"pointer",fontFamily:"inherit",marginTop:14,width:"100%" }}>
+          Update my figures in Track →
+        </button>
       </div>
-      <p style={{ color:T.subtle,fontSize:13,lineHeight:1.5,marginBottom:14 }}>
-        Add charts and analysis to get deeper insights — each one helps you reach your goals faster.
-      </p>
-      <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
-        {available.map(t=>(
-          <div key={t.id} style={{ background:T.card,border:`1px solid ${expanded===t.id?t.colorBorder:T.border}`,borderRadius:16,overflow:"hidden",transition:"all .2s" }}>
-            <button onClick={()=>setExpanded(expanded===t.id?null:t.id)}
-              style={{ width:"100%",background:"none",border:"none",padding:"14px 16px",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:14,textAlign:"left" }}>
-              <div style={{ width:40,height:40,borderRadius:12,background:t.colorDim,border:`1px solid ${t.colorBorder}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0 }}>{t.icon}</div>
-              <div style={{ flex:1 }}>
-                <p style={{ color:T.white,fontWeight:700,fontSize:14 }}>{t.label}</p>
-                <p style={{ color:T.muted,fontSize:12,marginTop:2 }}>{t.desc}</p>
-              </div>
-              <Plus size={16} color={T.subtle} style={{ flexShrink:0,transform:expanded===t.id?"rotate(45deg)":"none",transition:"transform .2s" }}/>
-            </button>
-            {expanded===t.id && (
-              <div style={{ padding:"0 16px 16px",borderTop:`1px solid ${T.border}` }}>
-                <p style={{ color:T.muted,fontSize:13,lineHeight:1.5,marginTop:12,marginBottom:12 }}>
-                  💡 {t.unlock}
-                </p>
-                <Btn onClick={()=>addTile(t.id)}>Add to dashboard →</Btn>
-              </div>
-            )}
-          </div>
+
+      <p style={{ color:"#CBD5E1",fontWeight:700,fontSize:14,marginBottom:12 }}>🔒 Unlock more insights</p>
+      <div style={{ display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10 }}>
+        {LOCKED.map(t=>(
+          <button key={t.label} onClick={()=>setTab(t.tab)}
+            style={{ background:T.faint,border:`1px solid ${T.border}`,borderRadius:16,padding:"14px 14px",textAlign:"left",fontFamily:"inherit",cursor:"pointer",opacity:.75,position:"relative",overflow:"hidden" }}>
+            <div style={{ position:"absolute",top:8,right:10 }}><Lock size={12} color={T.subtle}/></div>
+            <div style={{ width:36,height:36,borderRadius:10,background:t.colorDim,border:`1px solid ${t.colorBorder}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,marginBottom:8 }}>{t.icon}</div>
+            <p style={{ color:"#CBD5E1",fontWeight:700,fontSize:13,marginBottom:4,lineHeight:1.3 }}>{t.label}</p>
+            <p style={{ color:T.subtle,fontSize:11,lineHeight:1.4 }}>{t.req}</p>
+          </button>
         ))}
       </div>
     </div>
@@ -1317,59 +1306,54 @@ function ProjectionHeroCard({ nw, surplus, age }) {
 
   return (
     <div style={{ background:T.card,border:`1.5px solid ${T.tealBorder}`,borderRadius:20,padding:"20px 22px" }} className="ls-glow">
-      {/* Header */}
-      <div style={{ display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:6 }}>
-        <div>
-          <p style={{ color:T.muted,fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:4 }}>🔮 Your wealth at 70</p>
-          {atTarget && (
-            <p style={{ fontSize:"clamp(28px,6vw,40px)",fontWeight:900,lineHeight:1,color:T.teal,textShadow:`0 0 30px ${T.teal}50` }}>
-              {fmtK(atTarget.balanced)}
+      <p style={{ color:T.teal,fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:10 }}>🔮 Wealth projection to age 70</p>
+
+      {atTarget && (
+        <div style={{ marginBottom:16 }}>
+          <p style={{ fontSize:"clamp(28px,6vw,40px)",fontWeight:900,lineHeight:1,color:T.teal,textShadow:`0 0 30px ${T.teal}50`,marginBottom:6 }}>
+            {fmtK(atTarget.conservative)}
+          </p>
+          <p style={{ color:"#CBD5E1",fontSize:14,fontWeight:600,marginBottom:6 }}>
+            Your net worth is projected to reach <strong style={{ color:T.teal }}>{fmtK(atTarget.conservative)}</strong> — the realistic scenario at 5%/yr.
+          </p>
+          {atTarget.optimistic > atTarget.conservative && (
+            <p style={{ color:T.amber,fontSize:13,fontWeight:600 }}>
+              ✨ Could reach <strong>{fmtK(atTarget.optimistic)}</strong> if you make the right financial moves — 8%/yr gets you there.
             </p>
           )}
-          <p style={{ color:T.muted,fontSize:12,marginTop:4 }}>Likely scenario · assumes 7%/yr avg return</p>
         </div>
-        {atTarget?.conservative && (
-          <div style={{ textAlign:"right",flexShrink:0,marginLeft:12 }}>
-            <p style={{ color:T.purple,fontWeight:800,fontSize:18 }}>{fmtK(atTarget.conservative)}</p>
-            <p style={{ color:T.muted,fontSize:11 }}>Conservative</p>
-          </div>
-        )}
-      </div>
+      )}
 
       {/* Chart */}
       <div style={{ height:160,margin:"16px 0 10px" }}>
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={{ top:5,right:4,bottom:0,left:0 }}>
             <defs>
-              <linearGradient id="gBal10" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%"  stopColor={T.teal}   stopOpacity={.25}/>
-                <stop offset="95%" stopColor={T.teal}   stopOpacity={0}/>
+              <linearGradient id="gCon12" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%"  stopColor={T.teal}  stopOpacity={.3}/>
+                <stop offset="95%" stopColor={T.teal}  stopOpacity={0}/>
               </linearGradient>
-              <linearGradient id="gCon10" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%"  stopColor={T.purple} stopOpacity={.12}/>
-                <stop offset="95%" stopColor={T.purple} stopOpacity={0}/>
+              <linearGradient id="gOpt12" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%"  stopColor={T.amber} stopOpacity={.08}/>
+                <stop offset="95%" stopColor={T.amber} stopOpacity={0}/>
               </linearGradient>
             </defs>
-            <XAxis dataKey="age" tick={{ fontSize:10,fill:T.muted }} axisLine={false} tickLine={false} interval={5}/>
-            <YAxis tick={{ fontSize:9,fill:T.subtle }} axisLine={false} tickLine={false} tickFormatter={fmtAx} width={42}/>
+            <XAxis dataKey="age" tick={{ fontSize:10,fill:"#7A8FA8" }} axisLine={false} tickLine={false} interval={5}/>
+            <YAxis tick={{ fontSize:9,fill:"#344D68" }} axisLine={false} tickLine={false} tickFormatter={fmtAx} width={42}/>
             <Tooltip
-              formatter={(v,name)=>[fmt(v), name==="balanced"?"Likely (7%/yr)":"Conservative (4%/yr)"]}
+              formatter={(v,name)=>[fmt(v), name==="conservative"?"Realistic (5%/yr)":"Optimistic (8%/yr)"]}
               labelFormatter={v=>`Age ${Math.round(v)}`}
               contentStyle={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:10,fontSize:12,color:T.white }}/>
-            <Area type="monotone" dataKey="conservative" stroke={T.purple} strokeWidth={1.5} strokeDasharray="4 3" fill="url(#gCon10)" dot={false}/>
-            <Area type="monotone" dataKey="balanced"     stroke={T.teal}   strokeWidth={2.5} fill="url(#gBal10)"  dot={false}/>
+            <Area type="monotone" dataKey="optimistic"   stroke={T.amber} strokeWidth={1.5} strokeDasharray="5 4" fill="url(#gOpt12)" dot={false} strokeOpacity={0.5}/>
+            <Area type="monotone" dataKey="conservative" stroke={T.teal}  strokeWidth={2.5} fill="url(#gCon12)"  dot={false}/>
           </AreaChart>
         </ResponsiveContainer>
       </div>
 
-      {/* Legend + context */}
-      <div style={{ display:"flex",gap:16,marginBottom:10,flexWrap:"wrap" }}>
-        <div style={{ display:"flex",alignItems:"center",gap:6 }}><div style={{ width:20,height:3,background:T.teal,borderRadius:2 }}/><span style={{ color:T.muted,fontSize:11 }}>Likely (7%/yr)</span></div>
-        <div style={{ display:"flex",alignItems:"center",gap:6 }}><div style={{ width:18,height:2,background:T.purple,borderRadius:1,borderBottom:"2px dashed "+T.purple }}/><span style={{ color:T.muted,fontSize:11 }}>Conservative (4%/yr)</span></div>
+      <div style={{ display:"flex",gap:16,flexWrap:"wrap" }}>
+        <div style={{ display:"flex",alignItems:"center",gap:6 }}><div style={{ width:20,height:3,background:T.teal,borderRadius:2 }}/><span style={{ color:"#CBD5E1",fontSize:12,fontWeight:600 }}>Realistic (5%/yr)</span></div>
+        <div style={{ display:"flex",alignItems:"center",gap:6 }}><div style={{ width:18,height:0,borderTop:`2px dashed ${T.amber}`,opacity:.7 }}/><span style={{ color:"#CBD5E1",fontSize:12 }}>Optimistic (8%/yr)</span></div>
       </div>
-      <p style={{ color:T.subtle,fontSize:11,lineHeight:1.5 }}>
-        Jagged lines reflect real market volatility — growth isn't smooth, but the direction matters. <strong style={{ color:T.muted }}>Not financial advice.</strong>
-      </p>
     </div>
   )
 }
@@ -1453,7 +1437,7 @@ function GoalPickerSection({ state, save, toast }) {
     <div style={{ marginBottom:24,paddingTop:4 }}>
       <div style={{ marginBottom:14 }}>
         <p style={{ color:T.white,fontWeight:800,fontSize:18,marginBottom:4 }}>What matters most to you?</p>
-        <p style={{ color:T.muted,fontSize:13,lineHeight:1.5 }}>Pick your priorities — we'll tailor your lessons and goals around them.</p>
+        <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.5 }}>Pick your priorities — we'll tailor your lessons and goals around them.</p>
       </div>
 
       <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(155px,1fr))",gap:10,marginBottom:16 }}>
@@ -1519,7 +1503,7 @@ function HomeGoalsSection({ goals, surplus, setTab, save, state, toast, priority
       <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12 }}>
         <p style={{ color:T.muted,fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase" }}>Your goals</p>
         <div style={{ display:"flex",gap:10 }}>
-          {goals.length>0 && <button onClick={()=>setTab(2)} style={{ background:"none",border:"none",color:T.teal,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>See all →</button>}
+          {goals.length>0 && <button onClick={()=>setTab(0)} style={{ background:"none",border:"none",color:T.teal,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>See all →</button>}
           <button onClick={()=>setShowSheet(true)} style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:8,padding:"5px 12px",color:T.muted,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:4 }}>
             <Plus size={12}/>Add
           </button>
@@ -1588,6 +1572,7 @@ function GoalSheet({ goal, onClose, onSave }) {
   const [type,   setType]   = useState(goal?.type||null)
   const [name,   setName]   = useState(goal?.name||"")
   const [target, setTarget] = useState(goal?.targetAmount||0)
+  const [saved,  setSaved]  = useState(goal?.startAmount||0)
   const [monthly,setMonthly]= useState(goal?.monthlyAmount||0)
   const [err,    setErr]    = useState("")
 
@@ -1602,7 +1587,7 @@ function GoalSheet({ goal, onClose, onSave }) {
       id: goal?.id || `goal_${Date.now()}`,
       type, name: name||(cfg?.label||"Goal"),
       targetAmount: isAction ? 0 : target,
-      startAmount: goal?.startAmount||0,
+      startAmount: saved||0,
       monthlyAmount: monthly,
       createdAt: goal?.createdAt||new Date().toISOString(),
       checkedActions: goal?.checkedActions||[],
@@ -1616,7 +1601,7 @@ function GoalSheet({ goal, onClose, onSave }) {
           <button key={t.id} onClick={()=>{ setType(t.id); setName(t.label) }}
             style={{ padding:"12px 6px",borderRadius:13,border:`2px solid ${sel?t.color:T.border}`,background:sel?t.dim:T.card,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:7,transition:"all .15s" }}>
             <span style={{ fontSize:22 }}>{t.icon}</span>
-            <span style={{ fontSize:10,fontWeight:700,color:sel?t.color:T.muted,textAlign:"center",lineHeight:1.3 }}>{t.label}</span>
+            <span style={{ fontSize:10,fontWeight:700,color:sel?t.color:"#CBD5E1",textAlign:"center",lineHeight:1.3 }}>{t.label}</span>
           </button>
         )})}
       </div>
@@ -1626,7 +1611,8 @@ function GoalSheet({ goal, onClose, onSave }) {
         {!isAction && (
           <>
             <CurrencyInput label="Target amount" value={target} onChange={setTarget}/>
-            <CurrencyInput label="Monthly contribution (optional)" value={monthly} onChange={setMonthly} helper="How much you plan to put towards this each month"/>
+            <CurrencyInput label="Already saved towards this" value={saved} onChange={setSaved} helper="How much you've already put aside for this goal"/>
+            <CurrencyInput label="Monthly contribution (optional)" value={monthly} onChange={setMonthly} helper="How much you plan to add each month"/>
           </>
         )}
       </div>
@@ -1652,7 +1638,7 @@ function ActionGoalSheet({ goal, onClose, onSave, setLearnTab }) {
 
   return (
     <Sheet title={goal.name} onClose={onClose}>
-      <p style={{ color:T.muted,fontSize:13,lineHeight:1.6,marginBottom:20 }}>Tick each step off as you complete it. Each one moves you closer to your goal.</p>
+      <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.6,marginBottom:20 }}>Tick each step off as you complete it. Each one moves you closer to your goal.</p>
       <div style={{ display:"flex",flexDirection:"column",gap:10,marginBottom:20 }}>
         {actions.map(a=>{
           const done = checked.has(a.id)
@@ -1663,7 +1649,7 @@ function ActionGoalSheet({ goal, onClose, onSave, setLearnTab }) {
               </button>
               <div style={{ flex:1 }}>
                 <p style={{ color:done?T.teal:T.white,fontWeight:700,fontSize:14,marginBottom:3,textDecoration:done?"line-through":undefined }}>{a.label}</p>
-                <p style={{ color:T.muted,fontSize:12,lineHeight:1.5 }}>{a.desc}</p>
+                <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.5 }}>{a.desc}</p>
               </div>
             </div>
           )
@@ -1746,30 +1732,23 @@ function GoalsTab() {
   const completed = goals.filter(g=>!ACTION_GOALS.has(g.type)&&calcGoalProgress(g,surplus).pct>=100)
 
   return (
-    <div style={{ flex:1,overflowY:"auto",paddingBottom:100 }}>
-      <div style={{ padding:"24px 18px",maxWidth:900,margin:"0 auto",width:"100%" }}>
-        <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:20 }}>
-          <div>
-            <h2 style={{ color:T.white,fontWeight:900,fontSize:22 }}>Your goals</h2>
-            <p style={{ color:T.muted,fontSize:13,marginTop:2 }}>{active.length} active · {completed.length} completed</p>
-          </div>
+    <div style={{ flex:1,overflowY:"auto",paddingBottom:20 }}>
+      <div style={{ padding:"0 18px 24px",maxWidth:900,margin:"0 auto",width:"100%" }}>
+        <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16 }}>
+          <p style={{ color:"#CBD5E1",fontWeight:700,fontSize:16 }}>Goals</p>
           <button onClick={()=>{ setEditGoal(null); setSheet("new") }}
-            style={{ background:T.tealDim,border:`1.5px solid ${T.tealBorder}`,borderRadius:11,padding:"10px 16px",color:T.teal,fontWeight:700,fontSize:13,cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontFamily:"inherit" }}>
-            <Plus size={14}/>New goal
+            style={{ background:T.tealDim,border:`1.5px solid ${T.tealBorder}`,borderRadius:10,padding:"8px 14px",color:T.teal,fontWeight:700,fontSize:13,cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontFamily:"inherit" }}>
+            <Plus size={13}/>Add goal
           </button>
         </div>
 
         {active.length===0 && completed.length===0 ? (
-          <div style={{ textAlign:"center",padding:"56px 24px",background:T.card,border:`1.5px dashed ${T.border}`,borderRadius:20 }}>
-            <div style={{ fontSize:48,marginBottom:16 }}>🎯</div>
-            <p style={{ color:T.white,fontWeight:700,fontSize:17,marginBottom:8 }}>No goals yet</p>
-            <p style={{ color:T.muted,fontSize:13,lineHeight:1.7,marginBottom:24,maxWidth:280,margin:"0 auto 24px" }}>
-              People with written goals save and invest significantly more. Set your first one — it only takes 30 seconds.
-            </p>
-            <Btn onClick={()=>setSheet("new")} style={{ maxWidth:240,margin:"0 auto" }}>Set my first goal</Btn>
-          </div>
+          <button onClick={()=>setSheet("new")} style={{ width:"100%",background:T.tealDim,border:`1.5px dashed ${T.tealBorder}`,borderRadius:16,padding:"20px",cursor:"pointer",textAlign:"center",fontFamily:"inherit" }}>
+            <p style={{ color:T.teal,fontWeight:700,fontSize:15,marginBottom:4 }}>Set your first goal</p>
+            <p style={{ color:"#CBD5E1",fontSize:13 }}>Holiday, house deposit, clear debt — people with written goals build 2x more wealth.</p>
+          </button>
         ) : (
-          <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:14,marginBottom:24 }}>
+          <div style={{ display:"flex",flexDirection:"column",gap:12,marginBottom:goals.length>0?16:0 }}>
             {active.map(g=>(
               <GoalCard key={g.id} goal={g} surplus={surplus}
                 onEdit={()=>{ setEditGoal(g); setSheet(ACTION_GOALS.has(g.type)?"action":"edit") }}
@@ -1780,16 +1759,16 @@ function GoalsTab() {
 
         {completed.length>0 && (
           <>
-            <p style={{ color:T.muted,fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:12 }}>Completed 🎉</p>
-            <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:12 }}>
+            <p style={{ color:"#CBD5E1",fontSize:12,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:10,marginTop:16 }}>Completed</p>
+            <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
               {completed.map(g=>(
-                <div key={g.id} style={{ background:T.faint,border:`1px solid ${T.border}`,borderRadius:16,padding:"14px 16px",opacity:.7,display:"flex",alignItems:"center",gap:12 }}>
-                  <span style={{ fontSize:20 }}>✅</span>
+                <div key={g.id} style={{ background:T.faint,border:`1px solid ${T.border}`,borderRadius:14,padding:"12px 16px",display:"flex",alignItems:"center",gap:12 }}>
+                  <span style={{ fontSize:18 }}>✅</span>
                   <div style={{ flex:1 }}>
-                    <p style={{ color:T.subtle,fontWeight:700,fontSize:13 }}>{g.name}</p>
-                    <p style={{ color:T.subtle,fontSize:11 }}>{fmt(g.targetAmount)} reached</p>
+                    <p style={{ color:"#CBD5E1",fontWeight:700,fontSize:14 }}>{g.name}</p>
+                    <p style={{ color:"#7A8FA8",fontSize:12 }}>{fmt(g.targetAmount)} reached</p>
                   </div>
-                  <button onClick={()=>deleteGoal(g)} style={{ background:"none",border:"none",color:T.subtle,cursor:"pointer",padding:4 }}><Trash2 size={13}/></button>
+                  <button onClick={()=>deleteGoal(g)} style={{ background:"none",border:"none",color:"#7A8FA8",cursor:"pointer",padding:4 }}><Trash2 size={13}/></button>
                 </div>
               ))}
             </div>
@@ -1804,31 +1783,31 @@ function GoalsTab() {
   )
 }
 
-/* ════════════════════════════════════════════════════════════════════
-   TRACK TAB
-   ════════════════════════════════════════════════════════════════════ */
+
 function TrackTab() {
   const { state, save, toast } = useApp()
-  const [section, setSection] = useState("assets")
+  const [section, setSection] = useState("net_worth")
   const [sheet, setSheet]     = useState(null)
   const [editItem, setEditItem]= useState(null)
 
   const { totalAssets, totalDebts } = calcTotals(state.assets, state.debts)
+  const netWorth = totalAssets - totalDebts
   const drag = totalInterestDrag(state.debts)
+  const surplus = calcSurplus(state.income, state.assets, state.spending)
 
-  function saveAsset({ cat, name, val, monthlyIncome, hasLoan, loanBal, existingId, existingLinkedDebtId }) {
+  function saveAsset({ cat, name, val, monthlyIncome, hasLoan, loanBal, annualReturn, existingId, existingLinkedDebtId }) {
     let newAssets = [...state.assets]
     let newDebts  = [...state.debts]
     const assetId = existingId || `a_${Date.now()}`
-    const assetObj = { id:assetId, category:cat, name, value:val, monthlyIncome:monthlyIncome||0, linkedDebtId:existingLinkedDebtId||null }
+    const assetObj = { id:assetId, category:cat, name, value:val, monthlyIncome:monthlyIncome||0, linkedDebtId:existingLinkedDebtId||null, annualReturn:annualReturn||null }
 
     if(existingId) newAssets = newAssets.map(a=>a.id===existingId?assetObj:a)
     else           newAssets.push(assetObj)
 
     if(hasLoan && loanBal>0) {
-      const t = DEBT_TYPES.find(x=>["mortgage","car_loan"].includes(x.cat) && x.cat===cat) || DEBT_TYPES[0]
+      const t = DEBT_TYPES.find(x=>[\"mortgage\",\"car_loan\"].includes(x.cat) && x.cat===cat) || DEBT_TYPES[0]
       const debtId = existingLinkedDebtId || `d_linked_${Date.now()}`
-      const debtObj = { id:debtId, category:cat==="primary_residence"?"mortgage":cat, name:`${name} loan`, balance:loanBal, interestRate:t?.assumedRate||4.5, linkedAssetId:assetId, isAutoCreated:true }
+      const debtObj = { id:debtId, category:cat===\"primary_residence\"?\"mortgage\":cat, name:`${name} loan`, balance:loanBal, interestRate:t?.assumedRate||4.5, linkedAssetId:assetId, isAutoCreated:true }
       newAssets = newAssets.map(a=>a.id===assetId?{...a,linkedDebtId:debtId}:a)
       if(existingLinkedDebtId) newDebts = newDebts.map(d=>d.id===existingLinkedDebtId?debtObj:d)
       else newDebts.push(debtObj)
@@ -1847,10 +1826,10 @@ function TrackTab() {
     toast("Asset removed")
   }
 
-  function saveDebt({ cat, name, bal, rate, existingId }) {
+  function saveDebt({ cat, name, bal, rate, minPayment, existingId }) {
     const debtId = existingId || `d_${Date.now()}`
     const t = DEBT_TYPES.find(x=>x.cat===cat)
-    const debtObj = { id:debtId, category:cat, name, balance:bal, interestRate:rate||t?.assumedRate||10, linkedAssetId:null, isAutoCreated:false }
+    const debtObj = { id:debtId, category:cat, name, balance:bal, interestRate:rate||t?.assumedRate||10, minPayment:minPayment||0, linkedAssetId:null, isAutoCreated:false }
     const newDebts = existingId ? state.debts.map(d=>d.id===existingId?debtObj:d) : [...state.debts, debtObj]
     save({ ...state, debts:newDebts })
     toast(existingId?"✓ Debt updated":"✓ Debt added")
@@ -1868,284 +1847,463 @@ function TrackTab() {
   function saveSpending(sp){ save({ ...state, spending:sp }); toast("✓ Spending updated") }
 
   const SECTIONS = [
-    { id:"assets",   label:"Assets",  color:T.teal  },
-    { id:"debts",    label:"Debts",   color:T.red   },
-    { id:"income",   label:"Income",  color:T.amber },
-    { id:"spending", label:"Spending",color:T.purple},
+    { id:"net_worth", label:"Net Worth", icon:"📊" },
+    { id:"assets",    label:"Assets",    icon:"💰" },
+    { id:"debts",     label:"Debts",     icon:"💳" },
+    { id:"income",    label:"Income",    icon:"💼" },
   ]
 
   return (
     <div style={{ flex:1,overflowY:"auto",paddingBottom:100 }}>
-      {/* Section tabs */}
-      <div style={{ background:T.surface,borderBottom:`1px solid ${T.border}`,padding:"0 18px",display:"flex",gap:0,flexShrink:0,overflowX:"auto" }}>
-        {SECTIONS.map(s=>{
-          const active = section===s.id
-          return (
-            <button key={s.id} onClick={()=>setSection(s.id)}
-              style={{ background:"none",border:"none",padding:"14px 16px",color:active?s.color:T.muted,fontWeight:active?700:500,fontSize:13,cursor:"pointer",fontFamily:"inherit",position:"relative",flexShrink:0 }}>
-              {s.label}
-              {active && <div style={{ position:"absolute",bottom:0,left:"50%",transform:"translateX(-50%)",width:20,height:3,borderRadius:"3px 3px 0 0",background:s.color }}/>}
-            </button>
-          )
-        })}
+      {/* Header */}
+      <div style={{ background:T.surface,padding:"20px 18px 0",borderBottom:`1px solid ${T.border}` }}>
+        <div style={{ maxWidth:900,margin:"0 auto" }}>
+          <p style={{ color:T.teal,fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:4 }}>Financial MOT</p>
+          <h2 style={{ color:T.white,fontWeight:900,fontSize:20,marginBottom:2 }}>Your complete financial picture</h2>
+          <p style={{ color:"#CBD5E1",fontSize:13,marginBottom:14 }}>Keep this updated monthly to watch your net worth grow in real time.</p>
+
+          {/* Net worth summary bar */}
+          <div style={{ display:"flex",gap:12,marginBottom:16,overflowX:"auto",paddingBottom:4 }}>
+            {[
+              { label:"Net Worth", value:fmt(netWorth), color:netWorth>=0?T.teal:T.red },
+              { label:"Total Assets", value:fmt(totalAssets), color:T.green },
+              { label:"Total Debts", value:fmt(totalDebts), color:totalDebts>0?T.red:T.muted },
+              ...(surplus!==null?[{ label:"Monthly Surplus", value:`${fmt(surplus)}/mo`, color:surplus>=0?T.teal:T.red }]:[]),
+            ].map((s,i)=>(
+              <div key={i} style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"10px 16px",flexShrink:0 }}>
+                <p style={{ color:s.color,fontWeight:900,fontSize:16,whiteSpace:"nowrap" }}>{s.value}</p>
+                <p style={{ color:"#7A8FA8",fontSize:11,fontWeight:600 }}>{s.label}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Section tabs */}
+          <div style={{ display:"flex",gap:0,overflowX:"auto" }}>
+            {SECTIONS.map(s=>{
+              const active = section===s.id
+              return (
+                <button key={s.id} onClick={()=>setSection(s.id)}
+                  style={{ background:"none",border:"none",padding:"12px 16px",color:active?T.teal:"#CBD5E1",fontWeight:active?700:500,fontSize:14,cursor:"pointer",fontFamily:"inherit",position:"relative",flexShrink:0,display:"flex",alignItems:"center",gap:6 }}>
+                  {s.icon} {s.label}
+                  {active && <div style={{ position:"absolute",bottom:0,left:"50%",transform:"translateX(-50%)",width:"80%",height:3,borderRadius:"3px 3px 0 0",background:T.teal }}/>}
+                </button>
+              )
+            })}
+          </div>
+        </div>
       </div>
 
-      <div style={{ padding:"22px 18px",maxWidth:900,margin:"0 auto",width:"100%" }}>
+      <div style={{ padding:"20px 18px",maxWidth:900,margin:"0 auto",width:"100%" }}>
 
-        {/* ASSETS */}
+        {/* ── NET WORTH OVERVIEW ── */}
+        {section==="net_worth" && (
+          <NetWorthOverviewSection state={state} setSection={setSection} setSheet={setSheet} setEditItem={setEditItem}/>
+        )}
+
+        {/* ── ASSETS ── */}
         {section==="assets" && (
-          <>
-            <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12 }}>
-              <div>
-                <p style={{ color:T.green,fontWeight:900,fontSize:22 }}>{fmt(totalAssets)}</p>
-                <p style={{ color:T.muted,fontSize:12 }}>Total assets</p>
-              </div>
-              <button onClick={()=>{ setEditItem(null); setSheet("asset") }}
-                style={{ background:T.tealDim,border:`1.5px solid ${T.tealBorder}`,borderRadius:11,padding:"9px 16px",color:T.teal,fontWeight:700,fontSize:13,cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontFamily:"inherit" }}>
-                <Plus size={14}/>Add asset
-              </button>
-            </div>
-            {state.assets.length===0 ? (
-              <EmptyState icon="💰" title="No assets tracked" body="Add your savings, pension, investments, property — anything of value." cta="Add an asset" onClick={()=>setSheet("asset")}/>
-            ) : (
-              <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
-                {state.assets.map(a=>{
-                  const t = ASSET_TYPES.find(x=>x.cat===a.category)||ASSET_TYPES[ASSET_TYPES.length-1]
-                  return (
-                    <div key={a.id} style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px 18px",display:"flex",alignItems:"center",gap:12 }}>
-                      <div style={{ width:44,height:44,borderRadius:13,background:T.tealDim,border:`1px solid ${T.tealBorder}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0 }}>{t?.icon||"📦"}</div>
-                      <div style={{ flex:1,minWidth:0 }}>
-                        <p style={{ color:T.white,fontWeight:700,fontSize:14 }}>{a.name}</p>
-                        <p style={{ color:T.muted,fontSize:12 }}>
-                          {t?.label}
-                          {a.monthlyIncome>0 && ` · generates ${fmt(a.monthlyIncome)}/mo`}
-                        </p>
-                      </div>
-                      <p style={{ color:T.green,fontWeight:800,fontSize:15,marginRight:4 }}>{fmt(a.value)}</p>
-                      <button onClick={()=>{ setEditItem(a); setSheet("asset") }} style={{ background:"none",border:"none",color:T.muted,cursor:"pointer",padding:6 }}><Pencil size={14}/></button>
-                      <button onClick={()=>deleteAsset(a)} style={{ background:"none",border:"none",color:T.muted,cursor:"pointer",padding:6 }}><Trash2 size={14}/></button>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </>
+          <AssetsSection assets={state.assets} totalAssets={totalAssets}
+            onAdd={()=>{ setEditItem(null); setSheet("asset") }}
+            onEdit={a=>{ setEditItem(a); setSheet("asset") }}
+            onDelete={deleteAsset}/>
         )}
 
-        {/* DEBTS */}
+        {/* ── DEBTS ── */}
         {section==="debts" && (
-          <>
-            <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:drag>0?8:12 }}>
-              <div>
-                <p style={{ color:totalDebts>0?T.red:T.muted,fontWeight:900,fontSize:22 }}>{fmt(totalDebts)}</p>
-                <p style={{ color:T.muted,fontSize:12 }}>Total debts{drag>0?` · ${fmt(Math.round(drag))}/yr in interest`:""}</p>
-              </div>
-              <button onClick={()=>{ setEditItem(null); setSheet("debt") }}
-                style={{ background:T.redDim,border:`1.5px solid ${T.redBorder}`,borderRadius:11,padding:"9px 16px",color:T.red,fontWeight:700,fontSize:13,cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontFamily:"inherit" }}>
-                <Plus size={14}/>Add debt
-              </button>
-            </div>
-            {drag > 0 && (
-              <div style={{ background:T.redDim,border:`1px solid ${T.redBorder}`,borderRadius:12,padding:"10px 14px",marginBottom:14 }}>
-                <p style={{ color:T.red,fontSize:13,fontWeight:600 }}>💸 Costing {fmt(Math.round(drag/12))}/month in interest. Paying off high-rate debt first is your best guaranteed return.</p>
-              </div>
-            )}
-            {state.debts.length===0 ? (
-              <EmptyState icon="💳" title="No debts" body="No debt? Great. Or add what you owe to track interest and see your real net worth." cta="Add a debt" onClick={()=>setSheet("debt")}/>
-            ) : (
-              <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
-                {state.debts.map(d=>{
-                  const t = DEBT_TYPES.find(x=>x.cat===d.category)||DEBT_TYPES[DEBT_TYPES.length-1]
-                  const interest = annualInterest(d)
-                  return (
-                    <div key={d.id} style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px 18px",display:"flex",alignItems:"center",gap:12 }}>
-                      <div style={{ width:44,height:44,borderRadius:13,background:T.redDim,border:`1px solid ${T.redBorder}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0 }}>{t?.icon||"💳"}</div>
-                      <div style={{ flex:1,minWidth:0 }}>
-                        <p style={{ color:T.white,fontWeight:700,fontSize:14 }}>{d.name}</p>
-                        <p style={{ color:T.muted,fontSize:12 }}>{d.interestRate||t?.assumedRate||10}% APR · {fmt(Math.round(interest/12))}/mo in interest</p>
-                      </div>
-                      <p style={{ color:T.red,fontWeight:800,fontSize:15,marginRight:4 }}>{fmt(d.balance)}</p>
-                      <button onClick={()=>{ setEditItem(d); setSheet("debt") }} style={{ background:"none",border:"none",color:T.muted,cursor:"pointer",padding:6 }}><Pencil size={14}/></button>
-                      {!d.isAutoCreated && <button onClick={()=>deleteDebt(d)} style={{ background:"none",border:"none",color:T.muted,cursor:"pointer",padding:6 }}><Trash2 size={14}/></button>}
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </>
+          <DebtsSection debts={state.debts} totalDebts={totalDebts} drag={drag}
+            onAdd={()=>{ setEditItem(null); setSheet("debt") }}
+            onEdit={d=>{ setEditItem(d); setSheet("debt") }}
+            onDelete={deleteDebt}/>
         )}
 
-        {/* INCOME */}
+        {/* ── INCOME ── */}
         {section==="income" && <IncomeSection income={state.income} assets={state.assets} onSave={saveIncome}/>}
 
-        {/* SPENDING */}
-        {section==="spending" && <SpendingSection spending={state.spending} income={state.income} assets={state.assets} onSave={saveSpending}/>}
       </div>
 
-      {sheet==="asset" && <TrackAssetSheet asset={editItem} onClose={()=>{ setSheet(null); setEditItem(null) }} onSave={saveAsset}/>}
-      {sheet==="debt"  && <TrackDebtSheet  debt={editItem}  onClose={()=>{ setSheet(null); setEditItem(null) }} onSave={saveDebt}/>}
+      {sheet==="asset" && <AssetSheet item={editItem} onClose={()=>{ setSheet(null); setEditItem(null) }} onSave={saveAsset}/>}
+      {sheet==="debt"  && <DebtSheet  item={editItem} onClose={()=>{ setSheet(null); setEditItem(null) }} onSave={saveDebt}/>}
     </div>
   )
 }
 
-function EmptyState({ icon, title, body, cta, onClick }) {
-  return (
-    <div style={{ textAlign:"center",padding:"44px 24px",background:T.card,border:`1.5px dashed ${T.border}`,borderRadius:18 }}>
-      <div style={{ fontSize:38,marginBottom:12 }}>{icon}</div>
-      <p style={{ color:T.white,fontWeight:700,fontSize:15,marginBottom:6 }}>{title}</p>
-      <p style={{ color:T.muted,fontSize:13,lineHeight:1.6,marginBottom:20,maxWidth:260,margin:"0 auto 20px" }}>{body}</p>
-      <button onClick={onClick} style={{ background:T.tealDim,border:`1.5px solid ${T.tealBorder}`,borderRadius:11,padding:"10px 20px",color:T.teal,fontWeight:700,fontSize:13,cursor:"pointer",fontFamily:"inherit" }}>{cta}</button>
-    </div>
-  )
-}
+function NetWorthOverviewSection({ state, setSection, setSheet, setEditItem }) {
+  const { totalAssets, totalDebts } = calcTotals(state.assets, state.debts)
+  const netWorth = totalAssets - totalDebts
+  const surplus  = calcSurplus(state.income, state.assets, state.spending)
+  const drag     = totalInterestDrag(state.debts)
 
-function IncomeSection({ income, assets, onSave }) {
-  const [primary, setPrimary] = useState(income.primary||0)
-  const [source, setSource]   = useState(income.primarySource||"Salary")
-  const totalInc = calcIncome({ primary, primarySource:source, additional:income.additional||[] }, assets)
-  return (
-    <div>
-      <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:"20px",marginBottom:14 }}>
-        <p style={{ color:T.white,fontWeight:700,fontSize:15,marginBottom:16 }}>Primary income</p>
-        <div style={{ display:"flex",flexDirection:"column",gap:14,marginBottom:16 }}>
-          <CurrencyInput label="Monthly take-home pay (after tax)" value={primary} onChange={setPrimary} helper="After all tax and NI"/>
-          <Input label="Income type" value={source} onChange={setSource} placeholder="e.g. Salary, Freelance"/>
-        </div>
-        <div style={{ background:T.tealDim,border:`1px solid ${T.tealBorder}`,borderRadius:11,padding:"10px 14px",display:"flex",justifyContent:"space-between",marginBottom:14 }}>
-          <span style={{ color:T.muted,fontSize:13 }}>Monthly total</span>
-          <span style={{ color:T.teal,fontWeight:800,fontSize:15 }}>{fmt(totalInc)}/mo</span>
-        </div>
-        <Btn onClick={()=>onSave({ ...income,primary,primarySource:source })}>Save income</Btn>
-      </div>
-    </div>
-  )
-}
+  // Asset breakdown
+  const assetGroups = [
+    { label:"Savings & Cash", icon:"💰", color:T.teal,   value: state.assets.filter(a=>a.category==="savings").reduce((s,a)=>s+(a.value||0),0) },
+    { label:"Investments & ISA", icon:"📈", color:T.purple, value: state.assets.filter(a=>a.category==="investments").reduce((s,a)=>s+(a.value||0),0) },
+    { label:"Pension", icon:"🏛️", color:T.amber,  value: state.assets.filter(a=>a.category==="pension").reduce((s,a)=>s+(a.value||0),0) },
+    { label:"Property", icon:"🏠", color:T.green,  value: state.assets.filter(a=>["primary_residence","investment_property"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0) },
+    { label:"Other Assets", icon:"📦", color:T.blue,   value: state.assets.filter(a=>!["savings","investments","pension","primary_residence","investment_property"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0) },
+  ].filter(g=>g.value>0)
 
-function SpendingSection({ spending, income, assets, onSave }) {
-  const [monthly, setMonthly] = useState(spending.monthly||0)
-  const totalInc = calcIncome(income, assets)
-  const surplus = monthly > 0 && totalInc > 0 ? totalInc - monthly : null
   return (
     <div>
-      <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:"20px",marginBottom:14 }}>
-        <p style={{ color:T.white,fontWeight:700,fontSize:15,marginBottom:6 }}>Monthly spending</p>
-        <p style={{ color:T.muted,fontSize:13,lineHeight:1.6,marginBottom:14 }}>Total monthly outgoings — rent, food, transport, bills, subscriptions, everything.</p>
-        <CurrencyInput label="Monthly total spending" value={monthly} onChange={setMonthly}/>
-        {surplus !== null && (
-          <div style={{ background:surplus>0?T.tealDim:T.redDim,border:`1px solid ${surplus>0?T.tealBorder:T.redBorder}`,borderRadius:11,padding:"10px 14px",display:"flex",justifyContent:"space-between",marginTop:12 }}>
-            <span style={{ color:T.muted,fontSize:13 }}>{surplus>0?"Monthly surplus":"Monthly shortfall"}</span>
-            <span style={{ color:surplus>0?T.teal:T.red,fontWeight:800,fontSize:15 }}>{fmt(Math.abs(surplus))}/mo</span>
+      {/* Big net worth number */}
+      <div style={{ background:T.card,border:`1.5px solid ${netWorth>=0?T.tealBorder:T.redBorder}`,borderRadius:20,padding:"22px 22px",marginBottom:16,textAlign:"center" }}>
+        <p style={{ color:"#CBD5E1",fontSize:14,fontWeight:600,marginBottom:4 }}>Your net worth right now</p>
+        <p style={{ fontSize:"clamp(36px,8vw,56px)",fontWeight:900,color:netWorth>=0?T.teal:T.red,lineHeight:1,textShadow:`0 0 40px ${netWorth>=0?T.teal:T.red}40` }}>{fmt(netWorth)}</p>
+        <p style={{ color:"#7A8FA8",fontSize:12,marginTop:6 }}>Last updated: {new Date().toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}</p>
+        <div style={{ display:"flex",gap:12,justifyContent:"center",marginTop:14 }}>
+          <div style={{ textAlign:"center" }}>
+            <p style={{ color:T.green,fontWeight:800,fontSize:17 }}>{fmt(totalAssets)}</p>
+            <p style={{ color:"#7A8FA8",fontSize:11 }}>Assets</p>
           </div>
-        )}
-        <div style={{ marginTop:14 }}>
-          <Btn onClick={()=>onSave({ ...spending,monthly })}>Save spending</Btn>
+          <div style={{ width:1,background:T.border }}/>
+          <div style={{ textAlign:"center" }}>
+            <p style={{ color:totalDebts>0?T.red:T.muted,fontWeight:800,fontSize:17 }}>{fmt(totalDebts)}</p>
+            <p style={{ color:"#7A8FA8",fontSize:11 }}>Debts</p>
+          </div>
+          {surplus!==null && <><div style={{ width:1,background:T.border }}/><div style={{ textAlign:"center" }}>
+            <p style={{ color:surplus>=0?T.teal:T.red,fontWeight:800,fontSize:17 }}>{fmt(surplus)}/mo</p>
+            <p style={{ color:"#7A8FA8",fontSize:11 }}>Surplus</p>
+          </div></>}
         </div>
+      </div>
+
+      {/* Accuracy prompt */}
+      <div style={{ background:T.amberDim,border:`1px solid ${T.amberBorder}`,borderRadius:14,padding:"14px 16px",marginBottom:16,display:"flex",gap:12,alignItems:"flex-start" }}>
+        <span style={{ fontSize:20,flexShrink:0 }}>🎯</span>
+        <div>
+          <p style={{ color:T.amber,fontWeight:700,fontSize:14,marginBottom:4 }}>Keep your figures accurate</p>
+          <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.5 }}>Update your asset values and debt balances monthly — even a rough update takes 2 minutes and keeps your projections meaningful.</p>
+        </div>
+      </div>
+
+      {/* Asset breakdown */}
+      {assetGroups.length>0 && (
+        <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:18,padding:"18px 20px",marginBottom:14 }}>
+          <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14 }}>
+            <p style={{ color:T.white,fontWeight:700,fontSize:15 }}>Assets breakdown</p>
+            <button onClick={()=>setSection("assets")} style={{ background:"none",border:"none",color:T.teal,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>Edit →</button>
+          </div>
+          {assetGroups.map((g,i)=>(
+            <div key={i} style={{ display:"flex",alignItems:"center",gap:12,marginBottom:12 }}>
+              <span style={{ fontSize:18,width:26,textAlign:"center" }}>{g.icon}</span>
+              <div style={{ flex:1 }}>
+                <div style={{ display:"flex",justifyContent:"space-between",marginBottom:4 }}>
+                  <p style={{ color:"#CBD5E1",fontSize:13,fontWeight:600 }}>{g.label}</p>
+                  <p style={{ color:g.color,fontWeight:800,fontSize:13 }}>{fmt(g.value)}</p>
+                </div>
+                <div style={{ background:T.surface,borderRadius:99,height:6,overflow:"hidden" }}>
+                  <div style={{ width:`${totalAssets>0?Math.min(100,(g.value/totalAssets)*100):0}%`,height:"100%",background:g.color,borderRadius:99,transition:"width .6s ease" }}/>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Debt summary */}
+      {state.debts.length>0 && (
+        <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:18,padding:"18px 20px",marginBottom:14 }}>
+          <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14 }}>
+            <p style={{ color:T.white,fontWeight:700,fontSize:15 }}>Debts overview</p>
+            <button onClick={()=>setSection("debts")} style={{ background:"none",border:"none",color:T.red,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>Edit →</button>
+          </div>
+          {state.debts.map((d,i)=>{
+            const t = DEBT_TYPES.find(x=>x.cat===d.category)||DEBT_TYPES[DEBT_TYPES.length-1]
+            const interest = annualInterest(d)
+            return (
+              <div key={d.id} style={{ display:"flex",alignItems:"center",gap:12,marginBottom:i<state.debts.length-1?12:0,paddingBottom:i<state.debts.length-1?12:0,borderBottom:i<state.debts.length-1?`1px solid ${T.border}`:"none" }}>
+                <span style={{ fontSize:18 }}>{t?.icon||"💳"}</span>
+                <div style={{ flex:1 }}>
+                  <p style={{ color:"#CBD5E1",fontSize:13,fontWeight:600 }}>{d.name}</p>
+                  <p style={{ color:"#7A8FA8",fontSize:12 }}>{d.interestRate||t?.assumedRate}% APR · {fmt(Math.round(interest/12))}/mo interest</p>
+                </div>
+                <p style={{ color:T.red,fontWeight:800,fontSize:14 }}>{fmt(d.balance)}</p>
+              </div>
+            )
+          })}
+          {drag>0 && <p style={{ color:T.red,fontSize:13,fontWeight:700,marginTop:12,paddingTop:12,borderTop:`1px solid ${T.border}` }}>💸 {fmt(Math.round(drag))}/yr leaving your net worth in interest</p>}
+        </div>
+      )}
+
+      {/* Quick add buttons */}
+      <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10 }}>
+        <button onClick={()=>{ setEditItem(null); setSection("assets"); setSheet("asset") }}
+          style={{ background:T.tealDim,border:`1.5px solid ${T.tealBorder}`,borderRadius:14,padding:"14px",cursor:"pointer",fontFamily:"inherit",textAlign:"center" }}>
+          <p style={{ fontSize:22,marginBottom:4 }}>💰</p>
+          <p style={{ color:T.teal,fontWeight:700,fontSize:13 }}>Add asset</p>
+        </button>
+        <button onClick={()=>{ setEditItem(null); setSection("debts"); setSheet("debt") }}
+          style={{ background:T.redDim,border:`1.5px solid ${T.redBorder}`,borderRadius:14,padding:"14px",cursor:"pointer",fontFamily:"inherit",textAlign:"center" }}>
+          <p style={{ fontSize:22,marginBottom:4 }}>💳</p>
+          <p style={{ color:T.red,fontWeight:700,fontSize:13 }}>Add debt</p>
+        </button>
       </div>
     </div>
   )
 }
 
-function TrackAssetSheet({ asset, onClose, onSave }) {
-  const editing = !!asset
-  const existingLoanCats = new Set(["primary_residence","other_property","vehicle","business"])
-  const [cat,setCat]     = useState(asset?.category||null)
-  const [name,setName]   = useState(asset?.name||"")
-  const [val,setVal]     = useState(asset?.value||0)
-  const [hasLoan,setHasLoan] = useState(!!asset?.linkedDebtId)
-  const [loanBal,setLoanBal] = useState(0)
-  const [hasInc,setHasInc]   = useState((asset?.monthlyIncome||0)>0)
-  const [inc,setInc]         = useState(asset?.monthlyIncome||0)
-  const [err,setErr]         = useState("")
+function AssetsSection({ assets, totalAssets, onAdd, onEdit, onDelete }) {
+  const BUCKETS = [
+    { id:"savings",   label:"Cash & Savings",  icon:"💰", color:T.teal   },
+    { id:"invest",    label:"Investments",      icon:"📈", color:T.purple },
+    { id:"pension",   label:"Pension",          icon:"🏛️", color:T.amber  },
+    { id:"property",  label:"Property",         icon:"🏠", color:T.green  },
+    { id:"other",     label:"Other Assets",     icon:"📦", color:T.blue   },
+  ]
 
-  function go() {
-    if(!cat)  { setErr("Choose a category."); return }
-    if(val<=0){ setErr("Enter a value."); return }
-    setErr("")
-    onSave({ cat, name:name||(ASSET_TYPES.find(t=>t.cat===cat)?.label||"Asset"), val, monthlyIncome:hasInc?inc:0, hasLoan, loanBal:hasLoan?loanBal:0, existingId:asset?.id, existingLinkedDebtId:asset?.linkedDebtId })
+  const getBucket = a => {
+    if(a.category==="savings") return "savings"
+    if(a.category==="investments") return "invest"
+    if(a.category==="pension") return "pension"
+    if(["primary_residence","investment_property"].includes(a.category)) return "property"
+    return "other"
   }
 
   return (
-    <Sheet title={editing?"Edit asset":"Add asset"} onClose={onClose}>
-      <p style={{ fontSize:12,color:T.muted,fontWeight:700,textTransform:"uppercase",letterSpacing:.5,marginBottom:10 }}>Category</p>
-      <div style={{ display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:20 }}>
-        {ASSET_TYPES.map(t=>{ const sel=cat===t.cat; return (
-          <button key={t.id} onClick={()=>{ setCat(t.cat); if(existingLoanCats.has(t.cat)&&!editing) setHasLoan(true) }}
-            style={{ padding:"12px 6px",borderRadius:13,border:`2px solid ${sel?T.teal:T.border}`,background:sel?T.tealDim:T.card,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:8,transition:"all .15s" }}>
-            <span style={{ fontSize:22 }}>{t.icon}</span>
-            <span style={{ fontSize:10,fontWeight:700,color:sel?T.teal:T.muted,textAlign:"center",lineHeight:1.2 }}>{t.label}</span>
+    <div>
+      <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16 }}>
+        <div>
+          <p style={{ color:T.green,fontWeight:900,fontSize:22 }}>{fmt(totalAssets)}</p>
+          <p style={{ color:"#CBD5E1",fontSize:13,fontWeight:600 }}>Total assets</p>
+        </div>
+        <button onClick={onAdd} style={{ background:T.tealDim,border:`1.5px solid ${T.tealBorder}`,borderRadius:11,padding:"10px 18px",color:T.teal,fontWeight:700,fontSize:14,cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontFamily:"inherit" }}>
+          <Plus size={15}/>Add asset
+        </button>
+      </div>
+
+      {assets.length===0 ? (
+        <EmptyState icon="💰" title="No assets tracked" body="Add your savings, pension, investments, property — everything of value." cta="Add an asset" onClick={onAdd}/>
+      ) : (
+        <>
+          {/* Table header */}
+          <div style={{ display:"grid",gridTemplateColumns:"1fr auto auto auto",gap:8,padding:"8px 14px",marginBottom:4 }}>
+            <p style={{ color:"#7A8FA8",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8 }}>Asset</p>
+            <p style={{ color:"#7A8FA8",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8,textAlign:"right",minWidth:70 }}>Rate/Rtn</p>
+            <p style={{ color:"#7A8FA8",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8,textAlign:"right",minWidth:80 }}>Value</p>
+            <p style={{ color:"transparent",fontSize:11,minWidth:54 }}>...</p>
+          </div>
+
+          {BUCKETS.map(b=>{
+            const bAssets = assets.filter(a=>getBucket(a)===b.id)
+            if(bAssets.length===0) return null
+            const bTotal = bAssets.reduce((s,a)=>s+(a.value||0),0)
+            return (
+              <div key={b.id} style={{ marginBottom:16 }}>
+                <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:8,padding:"6px 14px",background:T.faint,borderRadius:10 }}>
+                  <span style={{ fontSize:16 }}>{b.icon}</span>
+                  <p style={{ color:b.color,fontWeight:700,fontSize:13,flex:1 }}>{b.label}</p>
+                  <p style={{ color:b.color,fontWeight:800,fontSize:13 }}>{fmt(bTotal)}</p>
+                </div>
+                {bAssets.map(a=>{
+                  const t = ASSET_TYPES.find(x=>x.cat===a.category)||ASSET_TYPES[ASSET_TYPES.length-1]
+                  return (
+                    <div key={a.id} style={{ display:"grid",gridTemplateColumns:"1fr auto auto auto",gap:8,alignItems:"center",padding:"12px 14px",background:T.card,border:`1px solid ${T.border}`,borderRadius:12,marginBottom:6 }}>
+                      <div style={{ minWidth:0 }}>
+                        <p style={{ color:T.white,fontWeight:700,fontSize:14,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{a.name}</p>
+                        <p style={{ color:"#7A8FA8",fontSize:12 }}>{t?.label}{a.monthlyIncome>0?` · ${fmt(a.monthlyIncome)}/mo income`:""}</p>
+                      </div>
+                      <p style={{ color:a.annualReturn?T.purple:"#7A8FA8",fontWeight:700,fontSize:13,textAlign:"right",minWidth:70 }}>
+                        {a.annualReturn?`${a.annualReturn}%/yr`:"—"}
+                      </p>
+                      <p style={{ color:T.green,fontWeight:800,fontSize:14,textAlign:"right",minWidth:80 }}>{fmt(a.value)}</p>
+                      <div style={{ display:"flex",gap:4,minWidth:54,justifyContent:"flex-end" }}>
+                        <button onClick={()=>onEdit(a)} style={{ background:"none",border:"none",color:T.teal,cursor:"pointer",padding:6,borderRadius:8 }}><Pencil size={14}/></button>
+                        <button onClick={()=>onDelete(a)} style={{ background:"none",border:"none",color:"#7A8FA8",cursor:"pointer",padding:6,borderRadius:8 }}><Trash2 size={14}/></button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )
+          })}
+        </>
+      )}
+    </div>
+  )
+}
+
+function DebtsSection({ debts, totalDebts, drag, onAdd, onEdit, onDelete }) {
+  return (
+    <div>
+      <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:drag>0?8:16 }}>
+        <div>
+          <p style={{ color:totalDebts>0?T.red:T.muted,fontWeight:900,fontSize:22 }}>{fmt(totalDebts)}</p>
+          <p style={{ color:"#CBD5E1",fontSize:13,fontWeight:600 }}>Total debts</p>
+        </div>
+        <button onClick={onAdd} style={{ background:T.redDim,border:`1.5px solid ${T.redBorder}`,borderRadius:11,padding:"10px 18px",color:T.red,fontWeight:700,fontSize:14,cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontFamily:"inherit" }}>
+          <Plus size={15}/>Add debt
+        </button>
+      </div>
+
+      {drag>0 && (
+        <div style={{ background:T.redDim,border:`1px solid ${T.redBorder}`,borderRadius:12,padding:"12px 16px",marginBottom:16 }}>
+          <p style={{ color:T.red,fontSize:14,fontWeight:700 }}>💸 {fmt(Math.round(drag/12))}/month ({fmt(Math.round(drag))}/yr) lost to interest</p>
+          <p style={{ color:"#CBD5E1",fontSize:13,marginTop:4 }}>Paying off highest-rate debt first (avalanche method) is a guaranteed return equal to the rate you eliminate.</p>
+        </div>
+      )}
+
+      {debts.length===0 ? (
+        <EmptyState icon="💳" title="No debts" body="Add what you owe to track interest costs and see your true net worth." cta="Add a debt" onClick={onAdd}/>
+      ) : (
+        <>
+          {/* Table header */}
+          <div style={{ display:"grid",gridTemplateColumns:"1fr auto auto auto auto",gap:8,padding:"8px 14px",marginBottom:4 }}>
+            <p style={{ color:"#7A8FA8",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8 }}>Debt</p>
+            <p style={{ color:"#7A8FA8",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8,textAlign:"right",minWidth:55 }}>APR</p>
+            <p style={{ color:"#7A8FA8",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8,textAlign:"right",minWidth:70 }}>Interest/mo</p>
+            <p style={{ color:"#7A8FA8",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8,textAlign:"right",minWidth:80 }}>Balance</p>
+            <p style={{ color:"transparent",fontSize:11,minWidth:54 }}>...</p>
+          </div>
+
+          {debts.map(d=>{
+            const t = DEBT_TYPES.find(x=>x.cat===d.category)||DEBT_TYPES[DEBT_TYPES.length-1]
+            const interest = annualInterest(d)
+            const rate = d.interestRate||t?.assumedRate||10
+            const rateColor = rate>15?T.red:rate>8?T.amber:T.green
+            return (
+              <div key={d.id} style={{ display:"grid",gridTemplateColumns:"1fr auto auto auto auto",gap:8,alignItems:"center",padding:"12px 14px",background:T.card,border:`1px solid ${T.border}`,borderRadius:12,marginBottom:8 }}>
+                <div style={{ minWidth:0 }}>
+                  <p style={{ color:T.white,fontWeight:700,fontSize:14,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{d.name}</p>
+                  <p style={{ color:"#7A8FA8",fontSize:12 }}>{t?.label}{d.minPayment>0?` · min ${fmt(d.minPayment)}/mo`:""}</p>
+                </div>
+                <div style={{ background:`${rateColor}20`,border:`1px solid ${rateColor}40`,borderRadius:8,padding:"3px 8px",minWidth:55,textAlign:"center" }}>
+                  <p style={{ color:rateColor,fontWeight:800,fontSize:12 }}>{rate}%</p>
+                </div>
+                <p style={{ color:T.red,fontWeight:700,fontSize:13,textAlign:"right",minWidth:70 }}>{fmt(Math.round(interest/12))}</p>
+                <p style={{ color:T.red,fontWeight:800,fontSize:14,textAlign:"right",minWidth:80 }}>{fmt(d.balance)}</p>
+                <div style={{ display:"flex",gap:4,minWidth:54,justifyContent:"flex-end" }}>
+                  <button onClick={()=>onEdit(d)} style={{ background:"none",border:"none",color:T.teal,cursor:"pointer",padding:6,borderRadius:8 }}><Pencil size={14}/></button>
+                  {!d.isAutoCreated && <button onClick={()=>onDelete(d)} style={{ background:"none",border:"none",color:"#7A8FA8",cursor:"pointer",padding:6,borderRadius:8 }}><Trash2 size={14}/></button>}
+                </div>
+              </div>
+            )
+          })}
+        </>
+      )}
+    </div>
+  )
+}
+
+/* ── Asset Sheet — detailed ───────────────────────────────────── */
+function AssetSheet({ item, onClose, onSave }) {
+  const editing = !!item
+  const [cat,     setCat]     = useState(item?.category||null)
+  const [name,    setName]    = useState(item?.name||"")
+  const [val,     setVal]     = useState(item?.value||0)
+  const [income,  setIncome]  = useState(item?.monthlyIncome||0)
+  const [ret,     setRet]     = useState(item?.annualReturn||"")
+  const [hasLoan, setHasLoan] = useState(false)
+  const [loanBal, setLoanBal] = useState(0)
+  const [err,     setErr]     = useState("")
+
+  const t = ASSET_TYPES.find(x=>x.cat===cat)
+  const canHaveLoan = ["primary_residence","investment_property","vehicle"].includes(cat)
+
+  function go() {
+    if(!cat)   { setErr("Select an asset type."); return }
+    if(val<=0) { setErr("Enter a value greater than zero."); return }
+    setErr("")
+    onSave({ cat, name:name||(t?.label||"Asset"), val, monthlyIncome:income, annualReturn:ret?parseFloat(ret):null, hasLoan, loanBal, existingId:item?.id, existingLinkedDebtId:item?.linkedDebtId })
+  }
+
+  return (
+    <Sheet title={editing?"Edit asset":"Add an asset"} onClose={onClose}>
+      {/* Asset type grid */}
+      <div style={{ display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8,marginBottom:18 }}>
+        {ASSET_TYPES.map(x=>{ const sel=cat===x.cat; return (
+          <button key={x.cat} onClick={()=>{ setCat(x.cat); setName(x.label) }}
+            style={{ padding:"12px 10px",borderRadius:13,border:`2px solid ${sel?T.teal:T.border}`,background:sel?T.tealDim:T.card,cursor:"pointer",display:"flex",alignItems:"center",gap:10,textAlign:"left",transition:"all .15s" }}>
+            <span style={{ fontSize:22,flexShrink:0 }}>{x.icon}</span>
+            <div>
+              <p style={{ color:sel?T.teal:T.white,fontWeight:700,fontSize:13 }}>{x.label}</p>
+              <p style={{ color:"#7A8FA8",fontSize:11 }}>{x.hint}</p>
+            </div>
           </button>
         )})}
       </div>
-      <div style={{ display:"flex",flexDirection:"column",gap:14,marginBottom:14 }}>
-        <Input label="Asset name" value={name} onChange={setName} placeholder={ASSET_TYPES.find(t=>t.cat===cat)?.desc||"e.g. My home"}/>
-        <CurrencyInput label="Estimated value" value={val} onChange={setVal}/>
-      </div>
-      {cat&&existingLoanCats.has(cat)&&(
-        <div style={{ marginBottom:14 }}>
-          <p style={{ color:T.muted,fontSize:13,fontWeight:600,marginBottom:8 }}>Loan or mortgage against this?</p>
-          <div style={{ display:"flex",gap:8,marginBottom:hasLoan?12:0 }}>
-            {[true,false].map(o=>(
-              <button key={String(o)} onClick={()=>setHasLoan(o)} style={{ flex:1,padding:"10px",borderRadius:10,border:`1.5px solid ${hasLoan===o?T.teal:T.border}`,background:hasLoan===o?T.tealDim:T.card,color:hasLoan===o?T.teal:T.muted,fontWeight:700,fontSize:14,cursor:"pointer",fontFamily:"inherit" }}>{o?"Yes":"No"}</button>
-            ))}
+
+      <div style={{ display:"flex",flexDirection:"column",gap:12,marginBottom:14 }}>
+        <Input label="Name / label" value={name} onChange={setName} placeholder={t?.label||"e.g. Vanguard ISA"}/>
+        <CurrencyInput label="Current value" value={val} onChange={setVal}/>
+        <div>
+          <p style={{ color:"#CBD5E1",fontSize:13,fontWeight:600,marginBottom:6 }}>Annual return / interest rate (optional)</p>
+          <div style={{ display:"flex",alignItems:"center",background:T.card,border:`1px solid ${T.border}`,borderRadius:12,overflow:"hidden" }}>
+            <input type="number" min="0" max="30" step="0.1" value={ret} onChange={e=>setRet(e.target.value)}
+              placeholder="e.g. 7"
+              style={{ flex:1,background:"transparent",border:"none",outline:"none",color:T.white,fontSize:15,fontWeight:600,padding:"14px 16px",fontFamily:"inherit" }}/>
+            <span style={{ padding:"0 16px",color:"#7A8FA8",fontWeight:700 }}>%/yr</span>
           </div>
-          {hasLoan&&<CurrencyInput label="Outstanding loan balance" value={loanBal} onChange={setLoanBal}/>}
+          <p style={{ color:"#7A8FA8",fontSize:12,marginTop:4 }}>Helps unlock better growth projections</p>
         </div>
-      )}
-      <div style={{ marginBottom:14 }}>
-        <p style={{ color:T.muted,fontSize:13,fontWeight:600,marginBottom:8 }}>Generates monthly income?</p>
-        <div style={{ display:"flex",gap:8,marginBottom:hasInc?12:0 }}>
-          {[true,false].map(o=>(
-            <button key={String(o)} onClick={()=>setHasInc(o)} style={{ flex:1,padding:"10px",borderRadius:10,border:`1.5px solid ${hasInc===o?T.teal:T.border}`,background:hasInc===o?T.tealDim:T.card,color:hasInc===o?T.teal:T.muted,fontWeight:700,fontSize:14,cursor:"pointer",fontFamily:"inherit" }}>{o?"Yes":"No"}</button>
-          ))}
-        </div>
-        {hasInc&&<CurrencyInput label="Monthly income" value={inc} onChange={setInc}/>}
+        {["investment_property","rental"].includes(cat) && (
+          <CurrencyInput label="Monthly rental income" value={income} onChange={setIncome}/>
+        )}
+        {canHaveLoan && (
+          <div>
+            <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:hasLoan?10:0 }}>
+              <Toggle value={hasLoan} onChange={setHasLoan}/>
+              <p style={{ color:"#CBD5E1",fontSize:14,fontWeight:600 }}>Has a mortgage / loan</p>
+            </div>
+            {hasLoan && <CurrencyInput label="Outstanding loan balance" value={loanBal} onChange={setLoanBal}/>}
+          </div>
+        )}
       </div>
-      {err&&<p style={{ color:T.red,fontSize:13,marginBottom:12 }}>{err}</p>}
-      <Btn onClick={go}>Save asset</Btn>
+      {err&&<p style={{ color:T.red,fontSize:13,marginBottom:10 }}>{err}</p>}
+      <Btn onClick={go}>{editing?"Save changes":"Add asset"}</Btn>
     </Sheet>
   )
 }
 
-function TrackDebtSheet({ debt, onClose, onSave }) {
-  const editing = !!debt
-  const [cat,setCat]  = useState(debt?.category||null)
-  const [name,setName]= useState(debt?.name||"")
-  const [bal,setBal]  = useState(debt?.balance||0)
-  const [rate,setRate]= useState(debt?.interestRate||"")
-  const [err,setErr]  = useState("")
+/* ── Debt Sheet — detailed ────────────────────────────────────── */
+function DebtSheet({ item, onClose, onSave }) {
+  const editing = !!item
+  const [cat,   setCat]   = useState(item?.category||null)
+  const [name,  setName]  = useState(item?.name||"")
+  const [bal,   setBal]   = useState(item?.balance||0)
+  const [rate,  setRate]  = useState(item?.interestRate||"")
+  const [min,   setMin]   = useState(item?.minPayment||0)
+  const [err,   setErr]   = useState("")
+
+  const t = DEBT_TYPES.find(x=>x.cat===cat)
+
   function go() {
-    if(!cat)  { setErr("Choose a category."); return }
-    if(bal<=0){ setErr("Enter a balance."); return }
+    if(!cat)  { setErr("Select a debt type."); return }
+    if(bal<=0){ setErr("Enter a balance greater than zero."); return }
     setErr("")
-    onSave({ cat, name:name||(DEBT_TYPES.find(t=>t.cat===cat)?.label||"Debt"), bal, rate:rate?Number(rate):null, existingId:debt?.id })
+    onSave({ cat, name:name||(t?.label||"Debt"), bal, rate:rate?parseFloat(rate):(t?.assumedRate||10), minPayment:min, existingId:item?.id })
   }
+
   return (
-    <Sheet title={editing?"Edit debt":"Add debt"} onClose={onClose}>
-      <p style={{ fontSize:12,color:T.muted,fontWeight:700,textTransform:"uppercase",letterSpacing:.5,marginBottom:10 }}>Category</p>
-      <div style={{ display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:20 }}>
-        {DEBT_TYPES.map(t=>{ const sel=cat===t.cat; return (
-          <button key={t.id} onClick={()=>setCat(t.cat)}
-            style={{ padding:"12px 6px",borderRadius:13,border:`2px solid ${sel?T.red:T.border}`,background:sel?T.redDim:T.card,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:7,transition:"all .15s" }}>
-            <span style={{ fontSize:22 }}>{t.icon}</span>
-            <span style={{ fontSize:10,fontWeight:700,color:sel?T.red:T.muted,textAlign:"center" }}>{t.label}</span>
-            <span style={{ fontSize:9,color:T.subtle }}>{t.assumedRate}% APR</span>
+    <Sheet title={editing?"Edit debt":"Add a debt"} onClose={onClose}>
+      <div style={{ display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8,marginBottom:18 }}>
+        {DEBT_TYPES.map(x=>{ const sel=cat===x.cat; return (
+          <button key={x.cat} onClick={()=>{ setCat(x.cat); if(!rate) setRate(String(x.assumedRate)); setName(x.label) }}
+            style={{ padding:"12px 10px",borderRadius:13,border:`2px solid ${sel?T.red:T.border}`,background:sel?T.redDim:T.card,cursor:"pointer",display:"flex",alignItems:"center",gap:10,textAlign:"left",transition:"all .15s" }}>
+            <span style={{ fontSize:22,flexShrink:0 }}>{x.icon}</span>
+            <div>
+              <p style={{ color:sel?T.red:T.white,fontWeight:700,fontSize:13 }}>{x.label}</p>
+              <p style={{ color:"#7A8FA8",fontSize:11 }}>~{x.assumedRate}% typical</p>
+            </div>
           </button>
         )})}
       </div>
-      <div style={{ display:"flex",flexDirection:"column",gap:14,marginBottom:14 }}>
-        <Input label="Debt name" value={name} onChange={setName} placeholder={DEBT_TYPES.find(t=>t.cat===cat)?.desc||"e.g. HSBC credit card"}/>
-        <CurrencyInput label="Outstanding balance" value={bal} onChange={setBal}/>
+
+      <div style={{ display:"flex",flexDirection:"column",gap:12,marginBottom:14 }}>
+        <Input label="Name / label" value={name} onChange={setName} placeholder={t?.label||"e.g. HSBC credit card"}/>
+        <CurrencyInput label="Current balance owed" value={bal} onChange={setBal}/>
         <div>
-          <p style={{ fontSize:12,color:T.muted,fontWeight:700,textTransform:"uppercase",letterSpacing:.5,marginBottom:6 }}>Interest rate (optional)</p>
-          <div style={{ display:"flex",alignItems:"center",background:T.card,border:`1.5px solid ${T.border}`,borderRadius:12,overflow:"hidden" }}>
-            <input type="number" min="0" max="100" value={rate} placeholder={cat?String(DEBT_TYPES.find(t=>t.cat===cat)?.assumedRate||10):"e.g. 21.9"} onChange={e=>setRate(e.target.value)}
-              style={{ flex:1,background:"transparent",border:"none",outline:"none",color:T.white,fontSize:14,padding:"12px 14px",fontFamily:"inherit" }}/>
-            <span style={{ padding:"0 14px",color:T.muted,fontSize:14,fontWeight:700 }}>%</span>
+          <p style={{ color:"#CBD5E1",fontSize:13,fontWeight:600,marginBottom:6 }}>Interest rate (APR)</p>
+          <div style={{ display:"flex",alignItems:"center",background:T.card,border:`1px solid ${T.border}`,borderRadius:12,overflow:"hidden" }}>
+            <input type="number" min="0" max="100" step="0.1" value={rate} onChange={e=>setRate(e.target.value)}
+              placeholder={t?String(t.assumedRate):"10"}
+              style={{ flex:1,background:"transparent",border:"none",outline:"none",color:T.white,fontSize:15,fontWeight:600,padding:"14px 16px",fontFamily:"inherit" }}/>
+            <span style={{ padding:"0 16px",color:"#7A8FA8",fontWeight:700 }}>% APR</span>
           </div>
+          <p style={{ color:"#7A8FA8",fontSize:12,marginTop:4 }}>Check your statement or account online</p>
         </div>
+        <CurrencyInput label="Minimum monthly payment (optional)" value={min} onChange={setMin}/>
       </div>
-      {err&&<p style={{ color:T.red,fontSize:13,marginBottom:12 }}>{err}</p>}
-      <Btn onClick={go}>Save debt</Btn>
+      {err&&<p style={{ color:T.red,fontSize:13,marginBottom:10 }}>{err}</p>}
+      <Btn onClick={go}>{editing?"Save changes":"Add debt"}</Btn>
     </Sheet>
   )
 }
@@ -2268,7 +2426,163 @@ const LESSONS = [
         explanation:"72 ÷ 7 = 10.3 years. So £5,000 invested today at 7% becomes ~£10,000 in 10 years, ~£20,000 in 20 years, and ~£40,000 in 30 years — without adding a single pound more."
       },
     ]
+  },,
+/* ── Lesson 3: Paying off debt — linked to pay_debt, calm, budget ── */
+  {
+    id:"pay_off_debt",
+    track:"Debt",
+    trackColor:T.red, trackDim:T.redDim, trackBorder:T.redBorder,
+    title:"Clear your debt faster and save thousands",
+    emoji:"💳", xp:20,
+    goalLinks:["pay_debt","calm","budget","net_worth"],
+    cards:[
+      {
+        type:"fact",
+        headline:"Debt isn't just a number — it's a monthly tax",
+        icon:"💸",
+        body:"Every pound you owe at 20% APR costs you 20p a year in interest. On a £5,000 credit card balance, that's £1,000 a year — just for having it. The fastest way to grow your net worth is to eliminate this invisible drain first.",
+        highlight:"Paying off 20% debt = a guaranteed 20% return",
+      },
+      {
+        type:"fact",
+        headline:"Two methods — both work, pick your style",
+        icon:"🎯",
+        body:"There are two proven strategies for clearing debt. The one you'll actually stick with is the right one.",
+        facts:[
+          { icon:"🏔️", label:"Avalanche (mathematically best)", text:"Pay minimums on everything. Throw every extra pound at the highest-rate debt first. Saves the most money in interest. Best for disciplined people who want the optimal outcome." },
+          { icon:"⛄", label:"Snowball (psychologically best)", text:"Pay minimums on everything. Throw every extra pound at the smallest balance first. Less optimal mathematically, but the quick wins keep you motivated. Research shows higher completion rates." },
+          { icon:"🏆", label:"Which wins?", text:"The one you actually do. Either strategy destroys more debt than making minimum payments. Choose based on what keeps you going." },
+        ]
+      },
+      {
+        type:"scenario",
+        prompt:"You have £500 extra per month. £3,000 credit card at 22%, £8,000 car loan at 7%. What should you do?",
+        context:"After paying minimums on both, you have £500 spare to put towards clearing debt.",
+        choices:[
+          { label:"Split £250 between both debts equally", best:false, outcome:"Splitting feels balanced but is the slowest approach. You're paying interest on the credit card for longer — costing you an extra £400-600 vs the avalanche method." },
+          { label:"Pay the car loan — it's the bigger debt", best:false, outcome:"Bigger balance, but at 7% APR this debt costs far less. Prioritising it over the 22% card means you're paying more in total interest." },
+          { label:"Clear the credit card first (avalanche)", best:true, outcome:"22% vs 7% — the difference is massive. Clearing the credit card first saves you roughly £600 in interest and frees up that payment sooner. Every month you delay costs money." },
+        ],
+        explanation:"Rate matters more than balance size. Always attack the most expensive debt first — the maths are clear."
+      },
+      {
+        type:"fact",
+        headline:"The minimum payment trap",
+        icon:"⚠️",
+        body:"Credit cards are designed so that minimum payments keep you in debt for decades. On a £5,000 balance at 22%, paying the minimum (about £100/month) will take you 7+ years to clear — and cost over £3,500 in interest alone.",
+        highlight:"Minimum payments = maximum profit for lenders",
+        facts:[
+          { icon:"📅", label:"Time to clear £5k at minimums", text:"7-8 years. That's thousands of pounds in interest on a manageable debt." },
+          { icon:"⚡", label:"Add £100 extra per month", text:"Clear in 2.5 years. Save over £2,500 in interest. One small change, massive impact." },
+        ]
+      },
+      {
+        type:"quiz",
+        question:"You have two debts: £2,000 at 24% APR and £6,000 at 5% APR. Which should you pay off first?",
+        options:["The £6,000 debt — it's larger","The £2,000 debt — it's smaller and easier to clear","The 24% debt — the rate is what matters","Pay them off equally"],
+        correct:2,
+        explanation:"Rate is what matters. The 24% debt costs you £480/year in interest. The 5% debt costs £300/year. Clearing the high-rate debt first is mathematically optimal — regardless of the balance size."
+      },
+    ]
   },
+
+  /* ── Lesson 4: Growing your pension ── */
+  {
+    id:"pension_basics",
+    track:"Pensions",
+    trackColor:T.amber, trackDim:T.amberDim, trackBorder:T.amberBorder,
+    title:"Your pension: the most tax-efficient investment you'll ever have",
+    emoji:"🏛️", xp:20,
+    goalLinks:["pension","invest","net_worth","house"],
+    cards:[
+      {
+        type:"fact",
+        headline:"A pension is just an investment account — with a bonus",
+        icon:"🎁",
+        body:"When you put money into a pension, the government adds 20-45% on top, depending on your tax rate. A basic rate taxpayer puts in £80 and ends up with £100 in their pension. That's an instant 25% return before a single investment is made.",
+        highlight:"25–81% instant return from tax relief",
+      },
+      {
+        type:"fact",
+        headline:"The compound effect inside your pension",
+        icon:"📈",
+        body:"Because pension money grows tax-free, compound interest works harder inside a pension than in almost any other account.",
+        facts:[
+          { icon:"💷", label:"£200/month from age 25", text:"At 7%/yr by age 65: roughly £528,000. Of that, you put in £96,000. The rest is compound growth — tax-free." },
+          { icon:"⏰", label:"Start at 35 instead", text:"Same £200/month, same 7%/yr: roughly £243,000 by 65. Starting 10 years later costs you £285,000 in growth." },
+          { icon:"🏢", label:"Employer match = free money", text:"If your employer matches contributions, always contribute enough to get the full match. It's an instant 100% return on that portion." },
+        ]
+      },
+      {
+        type:"scenario",
+        prompt:"Your employer offers 5% pension match. You currently contribute 3%. What should you do?",
+        context:"You earn £35,000. Your employer will match up to 5% of your salary into your pension.",
+        choices:[
+          { label:"Keep contributing 3% — 5% feels like a lot", best:false, outcome:"You're leaving £700/year of free employer money on the table. Over 30 years at 7% growth, that missed match compounds to over £66,000 in lost pension value." },
+          { label:"Increase to 5% to get the full match", best:true, outcome:"By increasing from 3% to 5% (£58/month extra), you unlock £1,750/year in employer contributions. Over 30 years at 7%, that employer money alone grows to roughly £175,000." },
+          { label:"Stop contributing entirely to save cash", best:false, outcome:"You'd lose the employer match, the tax relief, and the compound growth — all at once. This is the most expensive financial decision most people make." },
+        ],
+        explanation:"Employer match is the only genuinely free money in personal finance. Never leave it unclaimed."
+      },
+      {
+        type:"quiz",
+        question:"A basic rate taxpayer contributes £80 to their pension. How much ends up in the pension?",
+        options:["£80 — what you put in","£96 — with a small top-up","£100 — government adds 25%","£120 — double matched"],
+        correct:2,
+        explanation:"Basic rate tax relief means the government adds 25% (20% of the grossed-up amount). £80 from you → £100 in your pension. Higher rate taxpayers can claim even more back through their tax return."
+      },
+    ]
+  },
+
+  /* ── Lesson 5: Building wealth ── */
+  {
+    id:"building_wealth",
+    track:"Investing",
+    trackColor:T.purple, trackDim:T.purpleDim, trackBorder:T.purpleBorder,
+    title:"How to actually build wealth on a normal salary",
+    emoji:"🌱", xp:20,
+    goalLinks:["invest","net_worth","learn","house"],
+    cards:[
+      {
+        type:"fact",
+        headline:"Wealth isn't about earning more — it's about the gap",
+        icon:"💰",
+        body:"The wealth gap is simple: income minus spending. Every pound in that gap, invested consistently, builds net worth. A person earning £30k with a £300 monthly surplus can outperform someone earning £80k who spends everything.",
+        highlight:"Surplus invested consistently > high income spent",
+      },
+      {
+        type:"fact",
+        headline:"The four assets that build real wealth",
+        icon:"🏗️",
+        body:"Most wealth comes from a small number of asset types. Understanding them lets you make better allocation decisions.",
+        facts:[
+          { icon:"📊", label:"Index funds / ISA", text:"Low-cost funds that track the market. Historically 7-10% annual returns. The single best vehicle for most people. Start here." },
+          { icon:"🏛️", label:"Pension", text:"Tax-advantaged and often employer-matched. Should be your second priority after an emergency fund." },
+          { icon:"🏠", label:"Property", text:"Leveraged asset — your deposit controls a larger asset. Works well long-term but needs maintenance, insurance, and isn't liquid." },
+          { icon:"💼", label:"Business / side income", text:"Highest potential return, highest risk. Income generated can be redirected into the above three to compound faster." },
+        ]
+      },
+      {
+        type:"scenario",
+        prompt:"You have £500/month surplus. Emergency fund is sorted. What's the best order of priorities?",
+        context:"You have 3 months expenses saved, a workplace pension with 5% employer match, and no high-interest debt.",
+        choices:[
+          { label:"Max out ISA first, then increase pension", best:false, outcome:"Not wrong, but you might be leaving employer match on the table. Always capture the full employer match before contributing more elsewhere — it's a 100% return on that money." },
+          { label:"Max pension match first, then ISA, then extra pension", best:true, outcome:"Perfect order: (1) Employer match = free money, always take it. (2) ISA = tax-free growth, flexible access. (3) Additional pension for long-term tax efficiency. This order maximises every pound." },
+          { label:"Put everything into property saving for a deposit", best:false, outcome:"Property is a valid goal but not at the expense of tax-advantaged accounts. You can save for a deposit inside a Lifetime ISA (25% government bonus) while still capturing the employer match." },
+        ],
+        explanation:"Priority order: emergency fund → employer match → ISA → additional pension → other investing. This maximises free money, tax efficiency, and flexibility."
+      },
+      {
+        type:"quiz",
+        question:"Which investment vehicle gives you the most tax advantages for long-term wealth building in the UK?",
+        options:["Premium Bonds — government-backed and flexible","Pension + ISA together — for different time horizons","A high-interest savings account","Buy-to-let property"],
+        correct:1,
+        explanation:"Pension and ISA together give you the full picture: pension for tax relief on contributions (25-81% boost) plus tax-free growth, and ISA for flexible tax-free growth you can access any time. Together they're hard to beat."
+      },
+    ]
+  },
+
 ]
 
 /* ════════════════════════════════════════════════════════════════════
@@ -2366,7 +2680,7 @@ function LearnTab() {
         <div style={{ background:T.faint,border:`1px solid ${T.border}`,borderRadius:18,padding:"20px",marginTop:14,textAlign:"center" }}>
           <p style={{ fontSize:28,marginBottom:8 }}>🚀</p>
           <p style={{ color:T.white,fontWeight:700,fontSize:14,marginBottom:4 }}>More lessons coming</p>
-          <p style={{ color:T.muted,fontSize:13,lineHeight:1.5 }}>Investing, debt strategy, pensions, ISAs, budgeting — complete these two first to unlock what's next.</p>
+          <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.5 }}>Investing, debt strategy, pensions, ISAs, budgeting — complete these two first to unlock what's next.</p>
         </div>
       </div>
     </div>
@@ -2655,7 +2969,7 @@ function MatchCard({ card, color, shuffledDefs, matchSel, setMatchSel, matchDone
       {allDone && (
         <div className="ls-fadein" style={{ background:"rgba(52,211,153,.1)",border:"1px solid rgba(52,211,153,.3)",borderRadius:14,padding:"14px 18px" }}>
           <p style={{ color:"#34D399",fontWeight:700,fontSize:14,marginBottom:4 }}>All matched! 🎉</p>
-          {card.explanation && <p style={{ color:T.muted,fontSize:13,lineHeight:1.6 }}>{card.explanation}</p>}
+          {card.explanation && <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.6 }}>{card.explanation}</p>}
         </div>
       )}
     </div>
@@ -2940,9 +3254,8 @@ function BottomNav() {
   const TABS = [
     { icon:Home,       label:"Home",  idx:0 },
     { icon:BookOpen,   label:"Learn", idx:1, dot:hasNewLesson },
-    { icon:Target,     label:"Goals", idx:2 },
-    { icon:TrendingUp, label:"Track", idx:3 },
-    { icon:User,       label:"Me",    idx:4 },
+    { icon:TrendingUp, label:"Track", idx:2 },
+    { icon:User,       label:"Me",    idx:3 },
   ]
 
   return (
@@ -2973,7 +3286,7 @@ function BottomNav() {
    ════════════════════════════════════════════════════════════════════ */
 function AppShell() {
   const { tab } = useApp()
-  const CONTENT = [<HomeTab/>, <LearnTab/>, <GoalsTab/>, <TrackTab/>, <MeTab/>]
+  const CONTENT = [<HomeTab/>, <LearnTab/>, <TrackTab/>, <MeTab/>]
 
   return (
     <div style={{ height:"100dvh",display:"flex",flexDirection:"column",background:T.bg,overflow:"hidden" }}>
