@@ -21,6 +21,8 @@ input[type=number]{-moz-appearance:textfield}
 @keyframes shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
 @keyframes countUp{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
 @keyframes slideCard{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+@keyframes confettiFall{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
+@keyframes slideDown{from{transform:translateX(-50%) translateY(-20px);opacity:0}to{transform:translateX(-50%) translateY(0);opacity:1}}
 @keyframes glow{0%,100%{box-shadow:0 0 20px rgba(15,191,184,.2)}50%{box-shadow:0 0 40px rgba(15,191,184,.5)}}
 .ls-float{animation:float 4s ease-in-out infinite}
 .ls-star{animation:twinkle var(--d,2s) ease-in-out var(--dl,0s) infinite}
@@ -165,7 +167,7 @@ const buckets = assets => ({
   lifeAssets:     assets.filter(a=>["primary_residence","other_property","vehicle","other"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0),
 })
 
-/* Jagged projection — realistic market-style noise using seeded LCG */
+/* Jagged projection realistic market-style noise using seeded LCG */
 const calcProjection = (nw, surplus, currentAge) => {
   const age = currentAge || 35
   const years = Math.max(70 - age, 5)
@@ -184,7 +186,7 @@ const calcProjection = (nw, surplus, currentAge) => {
     conBase.push(c)
   }
 
-  // More jagged noise — mean-reverting random walk with higher amplitude
+  // More jagged noise mean-reverting random walk with higher amplitude
   let oNoise = 0, cNoise = 0
   for (let y = 0; y <= years; y++) {
     oNoise = oNoise * 0.55 + rand() * 0.18  // ±9% noise with persistence
@@ -376,21 +378,29 @@ function LockedCard({ icon, title, description, unlock, onUnlock }) {
 
 function InfoTooltip({ text, color=T.teal }) {
   const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(()=>{
+    if(!open) return
+    function handler(e) {
+      if(ref.current && !ref.current.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener("mousedown", handler, true)
+    document.addEventListener("touchstart", handler, true)
+    return ()=>{ document.removeEventListener("mousedown", handler, true); document.removeEventListener("touchstart", handler, true) }
+  },[open])
+
   return (
-    <div style={{ position:"relative",display:"inline-flex" }}>
-      <button onClick={e=>{ e.stopPropagation(); setOpen(!open) }} style={{ background:"none",border:"none",cursor:"pointer",padding:0,display:"flex",alignItems:"center" }}>
+    <div ref={ref} style={{ position:"relative",display:"inline-flex" }}>
+      <button onClick={e=>{ e.stopPropagation(); setOpen(v=>!v) }} style={{ background:"none",border:"none",cursor:"pointer",padding:0,display:"flex",alignItems:"center" }}>
         <div style={{ width:20,height:20,borderRadius:"50%",background:`${color}20`,border:`1px solid ${color}40`,display:"flex",alignItems:"center",justifyContent:"center" }}>
           <span style={{ fontSize:10,color,fontWeight:800 }}>?</span>
         </div>
       </button>
       {open && (
-        <>
-          <div style={{ position:"fixed",inset:0,zIndex:99,background:"transparent" }} onClick={()=>setOpen(false)}/>
-          <div style={{ position:"absolute",bottom:"calc(100% + 8px)",right:0,width:240,background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px 16px",zIndex:100,boxShadow:"0 8px 32px rgba(0,0,0,.5)" }}>
-            <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.6,fontWeight:500 }}>{text}</p>
-            <button onClick={()=>setOpen(false)} style={{ background:"none",border:"none",color:T.teal,fontSize:12,fontWeight:700,cursor:"pointer",marginTop:8,padding:0,fontFamily:"inherit" }}>Got it ✓</button>
-          </div>
-        </>
+        <div style={{ position:"absolute",bottom:"calc(100% + 8px)",right:0,width:240,background:T.card,border:`1px solid ${T.tealBorder}`,borderRadius:12,padding:"14px 16px",zIndex:200,boxShadow:"0 8px 32px rgba(0,0,0,.6)",pointerEvents:"auto" }}>
+          <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.6,fontWeight:500 }}>{text}</p>
+        </div>
       )}
     </div>
   )
@@ -438,62 +448,57 @@ function Onboarding() {
   return null
 }
 
-/* ── Welcome — Brilliant-inspired witty onboarding flow ─────────── */
+/* ── Welcome Brilliant-inspired witty onboarding flow ─────────── */
 const WELCOME_STEPS = [
   {
-    id: "hook",
-    headline: "Right, let's be honest.",
-    sub: "Most people have absolutely no idea what they're actually worth. Do you?",
+    id: "nw_question",
+    headline: "What's your net worth?",
+    sub: "Your net worth is everything you own, minus everything you owe. It's the single number that tells you your true financial position. Do you know yours?",
     choices: [
-      { id:"yes",   label:"Yep, I know my number", response:"Look at you." },
-      { id:"rough", label:"Roughly, maybe", response:"Close enough. Let's make it exact." },
-      { id:"no",    label:"Not a clue", response:"Honestly? Most people don't. That changes today." },
+      { id:"yes",   label:"Yes, I track it",          response:"Brilliant. Let's sharpen it." },
+      { id:"rough", label:"Roughly, maybe",            response:"Let's make it exact." },
+      { id:"no",    label:"Honestly, no idea",         response:"Most people don't. That changes right now." },
     ],
-    responseKey: "hookResp"
   },
   {
-    id: "goal",
-    headline: null, // filled from response
-    sub: "What's the main thing you want from LifeSmart?",
-    choices: [
-      { id:"grow",  label:"💸 Grow my wealth", emoji:"💸" },
-      { id:"debt",  label:"💳 Pay off debt",   emoji:"💳" },
-      { id:"plan",  label:"📅 Get a financial plan", emoji:"📅" },
-      { id:"peace", label:"😌 Peace of mind about money", emoji:"😌" },
+    id: "why_it_matters",
+    isInfoSlide: true,
+    headline: "Here is what knowing your net worth does.",
+    bullets: [
+      { icon:"📈", title:"People who track it build 4x more wealth", body:"Not because they earn more. Because measuring creates better decisions, automatically." },
+      { icon:"🔮", title:"See exactly where you will be at age 70", body:"Based on what you have today. Real numbers, not guesses." },
+      { icon:"🎯", title:"A plan built around your actual situation", body:"Goals, lessons and insights matched to where you are right now, not some generic template." },
     ],
   },
   {
     id: "situation",
     headline: null,
-    sub: "Quick — which best describes you right now?",
+    sub: "Quick one. Which best describes you right now?",
     choices: [
-      { id:"starting", label:"Just getting started with money" },
-      { id:"building", label:"Building — got some savings, some debt" },
-      { id:"growing",  label:"Growing — investing, on the up" },
-      { id:"sorted",   label:"Pretty sorted, want to optimise" },
+      { id:"starting", label:"Just getting started with money",          response:"Perfect time to start. The earlier, the better." },
+      { id:"building", label:"Got some savings and some debt",           response:"The messy middle. We will bring total clarity." },
+      { id:"growing",  label:"Investing and building steadily",          response:"Let's make sure that growth is optimised." },
+      { id:"sorted",   label:"Pretty sorted, want to go further",       response:"Good. Let's find the gaps you might be missing." },
     ],
   },
   {
     id: "ready",
-    headline: "Perfect. Takes about 3 minutes.",
-    sub: "You'll end up with your actual net worth, a projection to age 70, and a plan that's actually yours.",
-    bullets: ["📊 Net worth — the real number", "🚀 Where you could be at 70", "🎯 Your personalised playbook"],
-    isFinal: true
+    isFinal: true,
+    headline: null,
+    sub: "Your full financial picture takes about 3 minutes to build.",
+    finalCards: [
+      { icon:"📊", title:"Your net worth today", body:"The real number. Assets minus debts. Updated whenever you want." },
+      { icon:"🚀", title:"A projection to age 70", body:"See how your wealth grows with conservative and optimistic paths." },
+      { icon:"🎯", title:"Lessons built for you", body:"Short, clear, actionable. Matched to your goals and situation." },
+    ],
   }
 ]
 
-const GOAL_RESPONSES = {
-  grow:  "That's what compounding is for.",
-  debt:  "Every £1 of debt cleared is a guaranteed return.",
-  plan:  "A plan changes everything.",
-  peace: "Knowing your numbers is the cure for money anxiety.",
-}
-
 const SITUATION_RESPONSES = {
-  starting: "Perfect time to start. Seriously.",
-  building: "The messy middle. We'll bring clarity.",
+  starting: "Perfect time to start. The earlier, the better.",
+  building: "The messy middle. We will bring total clarity.",
   growing:  "Let's make sure that growth is optimised.",
-  sorted:   "Good. Let's find what you might be missing.",
+  sorted:   "Good. Let's find the gaps you might be missing.",
 }
 
 function WelcomeScreen({ onNext }) {
@@ -504,44 +509,46 @@ function WelcomeScreen({ onNext }) {
 
   const step = WELCOME_STEPS[stepIdx]
   const totalSteps = WELCOME_STEPS.length
-  const progress = ((stepIdx) / (totalSteps - 1)) * 100
+  const progress = (stepIdx / (totalSteps - 1)) * 100
 
   function getHeadline() {
     if(step.headline) return step.headline
-    if(step.id === "goal") {
-      const hookChoice = WELCOME_STEPS[0].choices.find(c=>c.id===responses.hook)
-      return hookChoice?.response || "Right then."
-    }
     if(step.id === "situation") {
-      return GOAL_RESPONSES[responses.goal] || "Good choice."
+      const nwChoice = WELCOME_STEPS[0].choices.find(c=>c.id===responses.nw_question)
+      return nwChoice?.response || "Good."
+    }
+    if(step.id === "ready") {
+      const sitChoice = WELCOME_STEPS[2].choices.find(c=>c.id===responses.situation)
+      return sitChoice?.response || "Let's build your picture."
     }
     return ""
   }
 
   function advance() {
     if(step.isFinal) { onNext(); return }
-    if(!selected && step.choices && !step.isFinal) return
+    const needsChoice = !!step.choices
+    if(needsChoice && !selected) return
     const newResponses = { ...responses, [step.id]: selected }
     setResponses(newResponses)
     setExiting(true)
-    setTimeout(() => {
-      setStepIdx(i => i+1)
+    setTimeout(()=>{
+      setStepIdx(i=>i+1)
       setSelected(null)
       setExiting(false)
-    }, 180)
+    }, 160)
   }
 
-  const canContinue = step.isFinal || !!selected
+  const canContinue = step.isFinal || step.isInfoSlide || !!selected
 
   return (
     <div style={{ minHeight:"100vh",background:T.bg,display:"flex",flexDirection:"column",position:"relative",overflow:"hidden" }}>
       <StarField count={40}/>
 
-      {/* Top bar: back + progress */}
+      {/* Top bar */}
       <div style={{ position:"relative",display:"flex",alignItems:"center",gap:12,padding:"44px 20px 0",zIndex:1 }}>
         {stepIdx > 0 && (
           <button onClick={()=>{ setStepIdx(i=>i-1); setSelected(null) }}
-            style={{ background:"none",border:"none",color:T.muted,cursor:"pointer",padding:4,display:"flex",alignItems:"center",flexShrink:0 }}>
+            style={{ background:"none",border:"none",cursor:"pointer",padding:4,display:"flex",alignItems:"center",flexShrink:0 }}>
             <ChevronLeft size={20} color={T.white}/>
           </button>
         )}
@@ -551,21 +558,19 @@ function WelcomeScreen({ onNext }) {
         <span style={{ color:T.teal,fontSize:11,fontWeight:700,flexShrink:0 }}>🚀 LifeSmart</span>
       </div>
 
-      {/* Step content */}
-      <div key={stepIdx} className={exiting?"ls-fadein":"ls-slidecard"}
-        style={{ flex:1,display:"flex",flexDirection:"column",padding:"32px 24px 20px",maxWidth:480,margin:"0 auto",width:"100%" }}>
+      {/* Content */}
+      <div key={stepIdx} style={{ flex:1,display:"flex",flexDirection:"column",padding:"32px 24px 20px",maxWidth:480,margin:"0 auto",width:"100%" }}>
 
-        {/* Headline */}
-        <div style={{ marginBottom:28 }}>
-          <h1 style={{ color:T.white,fontWeight:900,fontSize:"clamp(22px,5vw,30px)",lineHeight:1.2,marginBottom:10 }}>
+        <div style={{ marginBottom:24 }}>
+          <h1 style={{ color:T.white,fontWeight:900,fontSize:"clamp(22px,5vw,28px)",lineHeight:1.25,marginBottom:10 }}>
             {getHeadline()}
           </h1>
-          <p style={{ color:"#CBD5E1",fontSize:16,lineHeight:1.6,fontWeight:500 }}>{step.sub}</p>
+          {step.sub && <p style={{ color:"#CBD5E1",fontSize:15,lineHeight:1.65,fontWeight:500 }}>{step.sub}</p>}
         </div>
 
-        {/* Choices */}
+        {/* Choice step */}
         {step.choices && (
-          <div style={{ display:"flex",flexDirection:"column",gap:12,flex:1 }}>
+          <div style={{ display:"flex",flexDirection:"column",gap:10,flex:1 }}>
             {step.choices.map(c=>{
               const sel = selected===c.id
               return (
@@ -573,14 +578,13 @@ function WelcomeScreen({ onNext }) {
                   style={{
                     background: sel ? `linear-gradient(135deg,${T.tealDim},${T.purpleDim})` : T.card,
                     border: `2px solid ${sel ? T.teal : T.border}`,
-                    borderRadius: 16, padding:"16px 20px",
+                    borderRadius:16, padding:"15px 20px",
                     color: sel ? T.white : "#CBD5E1",
                     fontWeight: sel ? 700 : 500,
-                    fontSize: 16, cursor:"pointer",
+                    fontSize:15, cursor:"pointer",
                     textAlign:"left", fontFamily:"inherit",
                     transition:"all .15s",
-                    transform: sel ? "scale(1.01)" : "scale(1)",
-                    boxShadow: sel ? `0 0 20px ${T.teal}20` : "none"
+                    boxShadow: sel ? `0 0 20px ${T.teal}25` : "none"
                   }}>
                   {c.label}
                 </button>
@@ -589,35 +593,54 @@ function WelcomeScreen({ onNext }) {
           </div>
         )}
 
-        {/* Final bullets */}
-        {step.bullets && (
+        {/* Info slide */}
+        {step.isInfoSlide && (
           <div style={{ display:"flex",flexDirection:"column",gap:12,flex:1 }}>
             {step.bullets.map((b,i)=>(
-              <div key={i} className="ls-fadein" style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px 20px",animationDelay:`${i*0.1}s`,opacity:0,animationFillMode:"forwards" }}>
-                <p style={{ color:T.white,fontWeight:700,fontSize:16 }}>{b}</p>
+              <div key={i} style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:"16px 18px",display:"flex",gap:14,alignItems:"flex-start" }}>
+                <span style={{ fontSize:26,flexShrink:0,marginTop:2 }}>{b.icon}</span>
+                <div>
+                  <p style={{ color:T.white,fontWeight:700,fontSize:14,marginBottom:4 }}>{b.title}</p>
+                  <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.55 }}>{b.body}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Final summary cards */}
+        {step.finalCards && (
+          <div style={{ display:"flex",flexDirection:"column",gap:10,flex:1 }}>
+            {step.finalCards.map((c,i)=>(
+              <div key={i} style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:"16px 18px",display:"flex",gap:14,alignItems:"flex-start" }}>
+                <span style={{ fontSize:24,flexShrink:0,marginTop:2 }}>{c.icon}</span>
+                <div>
+                  <p style={{ color:T.white,fontWeight:700,fontSize:14,marginBottom:3 }}>{c.title}</p>
+                  <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.5 }}>{c.body}</p>
+                </div>
               </div>
             ))}
           </div>
         )}
       </div>
 
-      {/* Continue button */}
+      {/* Continue */}
       <div style={{ position:"relative",padding:"0 24px 48px",maxWidth:480,margin:"0 auto",width:"100%",zIndex:1 }}>
         <button onClick={advance}
           style={{
             width:"100%", padding:"17px",
             background: canContinue ? `linear-gradient(135deg,${T.teal},${T.purple})` : T.surface,
-            border: "none", borderRadius:16,
+            border:"none", borderRadius:16,
             color: canContinue ? T.bg : T.muted,
             fontWeight:900, fontSize:17,
             cursor: canContinue ? "pointer" : "default",
             fontFamily:"inherit",
             transition:"all .2s",
-            opacity: canContinue ? 1 : 0.6,
+            opacity: canContinue ? 1 : 0.55,
           }}>
-          {step.isFinal ? "Build my financial picture →" : "Continue →"}
+          {step.isFinal ? "Build my financial picture" : "Continue"}
         </button>
-        <p style={{ color:"#7A8FA8",fontSize:12,textAlign:"center",marginTop:12 }}>🔒 Private to you · No account needed · Free forever</p>
+        <p style={{ color:"#7A8FA8",fontSize:12,textAlign:"center",marginTop:12 }}>🔒 Private to you. No account needed. Free forever.</p>
       </div>
     </div>
   )
@@ -635,12 +658,12 @@ function AboutScreen({ name, setName, age, setAge, onNext, onBack }) {
 
         <div style={{ fontSize:48,marginBottom:20,textAlign:"center" }}>✋</div>
         <h2 style={{ color:T.white,fontSize:"clamp(22px,5vw,30px)",fontWeight:900,marginBottom:8,lineHeight:1.2,textAlign:"center" }}>Let's make it personal</h2>
-        <p style={{ color:"#CBD5E1",fontSize:14,marginBottom:32,lineHeight:1.6,textAlign:"center" }}>Just two quick things — we use your age to benchmark your journey.</p>
+        <p style={{ color:"#CBD5E1",fontSize:14,marginBottom:32,lineHeight:1.6,textAlign:"center" }}>Just two quick things we use your age to benchmark your journey.</p>
 
         <div style={{ display:"flex",flexDirection:"column",gap:18,marginBottom:32 }}>
           <Input label="Your first name" value={name} onChange={setName} placeholder="e.g. Jamie"/>
           <Input label="Your age" type="number" value={age} onChange={setAge} placeholder="e.g. 29" min="16" max="80"
-            helper="We use this to show you how your numbers compare — never judgemental, always useful."/>
+            helper="We use this to show you how your numbers compare never judgemental, always useful."/>
         </div>
 
         <Btn onClick={onNext} disabled={!name||!age}>Let's go, {name||"..."}! →</Btn>
@@ -649,7 +672,7 @@ function AboutScreen({ name, setName, age, setAge, onNext, onBack }) {
   )
 }
 
-/* ── Greeting — personalised bridge ──────────────────────────────── */
+/* ── Greeting personalised bridge ──────────────────────────────── */
 const GREETING_STEPS = [
   { icon:"📊", title:"Your net worth picture", sub:"A single number that tells the real story", color:T.teal },
   { icon:"🔮", title:"Where you could be at 70", sub:"Based on what you already have and earn", color:T.purple },
@@ -749,7 +772,7 @@ function AssetChecklistScreen({ values, setValues, onNext, onBack }) {
         <Btn onClick={onNext} disabled={!hasAny} style={{ marginBottom:8 }}>
           {hasAny ? `Continue with ${fmtK(total)} in assets →` : "Tap an asset type above"}
         </Btn>
-        {!hasAny && <button onClick={onNext} style={{ background:"none",border:"none",color:"#CBD5E1",fontSize:13,cursor:"pointer",width:"100%",padding:"8px",fontFamily:"inherit" }}>Skip — add later</button>}
+        {!hasAny && <button onClick={onNext} style={{ background:"none",border:"none",color:"#CBD5E1",fontSize:13,cursor:"pointer",width:"100%",padding:"8px",fontFamily:"inherit" }}>Skip add later</button>}
       </div>
     </div>
   )
@@ -820,11 +843,11 @@ function DebtChecklistScreen({ values, setValues, assets, age, onNext, onBack })
           <h2 style={{ color:T.white,fontSize:"clamp(20px,4vw,26px)",fontWeight:900,lineHeight:1.2 }}>What do you owe?</h2>
           {totalDebts>0 && <p style={{ color:T.red,fontWeight:800,fontSize:16 }}>{fmtK(totalDebts)}</p>}
         </div>
-        <p style={{ color:"#CBD5E1",fontSize:14,marginBottom:6,lineHeight:1.5 }}>Tap what applies. No debt? Great — just hit Continue.</p>
+        <p style={{ color:"#CBD5E1",fontSize:14,marginBottom:6,lineHeight:1.5 }}>Tap what applies. No debt? Great just hit Continue.</p>
 
         <div style={{ background:T.faint,border:`1px solid ${T.border}`,borderRadius:10,padding:"9px 14px",marginBottom:22,display:"flex",gap:8,alignItems:"flex-start" }}>
           <span style={{ fontSize:14,flexShrink:0 }}>💡</span>
-          <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.5 }}>Knowing your debts is the first step to clearing them. We use assumed interest rates — you can update them in Track later.</p>
+          <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.5 }}>Knowing your debts is the first step to clearing them. We use assumed interest rates you can update them in Track later.</p>
         </div>
 
         <div style={{ display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10,marginBottom:16 }}>
@@ -857,7 +880,7 @@ function DebtChecklistScreen({ values, setValues, assets, age, onNext, onBack })
         )}
 
         <Btn onClick={onNext}>
-          {hasAny ? "Continue →" : "No debt — continue →"}
+          {hasAny ? "Continue →" : "No debt continue →"}
         </Btn>
       </div>
     </div>
@@ -924,7 +947,7 @@ function IncomeOnboardScreen({ income, setIncome, onNext, onBack }) {
         <div style={{ display:"flex",flexDirection:"column",gap:8,marginBottom:28 }}>
           <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px 16px",display:"flex",gap:10,alignItems:"center" }}>
             <span style={{ fontSize:18 }}>📱</span>
-            <p style={{ color:T.white,fontSize:14,lineHeight:1.4,fontWeight:600 }}>Check your banking app or last payslip — it's the amount that lands in your account each month.</p>
+            <p style={{ color:T.white,fontSize:14,lineHeight:1.4,fontWeight:600 }}>Check your banking app or last payslip it's the amount that lands in your account each month.</p>
           </div>
         </div>
 
@@ -973,11 +996,11 @@ function SpendingOnboardScreen({ spending, setSpending, income, onNext, onBack }
         </div>
 
         <div style={{ fontSize:42,textAlign:"center",marginBottom:16 }}>🛒</div>
-        <h2 style={{ color:T.white,fontSize:"clamp(20px,4vw,26px)",fontWeight:900,marginBottom:8,lineHeight:1.2,textAlign:"center" }}>Monthly spending — total</h2>
-        <p style={{ color:"#CBD5E1",fontSize:13,marginBottom:20,lineHeight:1.6,textAlign:"center" }}>Everything that goes out. Rent, food, bills, fun — the lot.</p>
+        <h2 style={{ color:T.white,fontSize:"clamp(20px,4vw,26px)",fontWeight:900,marginBottom:8,lineHeight:1.2,textAlign:"center" }}>Monthly spending total</h2>
+        <p style={{ color:"#CBD5E1",fontSize:13,marginBottom:20,lineHeight:1.6,textAlign:"center" }}>Everything that goes out. Rent, food, bills, fun the lot.</p>
 
         <p style={{ color:"#CBD5E1",fontSize:14,marginBottom:10,fontWeight:600 }}>What to include:</p>
-        {/* Category hints — reference only */}
+        {/* Category hints reference only */}
         <div style={{ display:"flex",flexWrap:"wrap",gap:8,marginBottom:20 }}>
           {SPENDING_HINTS.map((h,i)=>(
             <div key={i} style={{ background:T.faint,border:`1px solid ${T.border}`,borderRadius:99,padding:"6px 12px",display:"flex",alignItems:"center",gap:6 }}>
@@ -999,7 +1022,7 @@ function SpendingOnboardScreen({ spending, setSpending, income, onNext, onBack }
               <p style={{ color:surplus>0?T.teal:T.red,fontWeight:800,fontSize:16 }}>{fmt(Math.abs(surplus))}</p>
             </div>
             <p style={{ color:surplus>0?T.teal:T.red,fontSize:12,fontWeight:700 }}>
-              {surplus>0 ? `✓ ${fmt(surplus)}/mo surplus — the fuel for your future` : `⚠ ${fmt(Math.abs(surplus))}/mo shortfall — we'll help you fix this`}
+              {surplus>0 ? `✓ ${fmt(surplus)}/mo surplus the fuel for your future` : `⚠ ${fmt(Math.abs(surplus))}/mo shortfall we'll help you fix this`}
             </p>
           </div>
         )}
@@ -1014,7 +1037,7 @@ function SpendingOnboardScreen({ spending, setSpending, income, onNext, onBack }
         )}
 
         <Btn onClick={onNext} disabled={spending<=0}>Build my picture →</Btn>
-        {spending<=0 && <button onClick={onNext} style={{ background:"none",border:"none",color:"#CBD5E1",fontSize:13,cursor:"pointer",width:"100%",padding:"8px",fontFamily:"inherit" }}>Skip — add later</button>}
+        {spending<=0 && <button onClick={onNext} style={{ background:"none",border:"none",color:"#CBD5E1",fontSize:13,cursor:"pointer",width:"100%",padding:"8px",fontFamily:"inherit" }}>Skip add later</button>}
       </div>
     </div>
   )
@@ -1033,7 +1056,7 @@ function WowScreen({ assets, debts, income, spending, name, onFinish }) {
     if(netWorth > 50000)  return "A solid foundation. Here's how to build on it fast."
     if(netWorth > 0)      return "You're in the green. Every step from here compounds."
     if(netWorth > -20000) return "Everyone starts somewhere. Here's your clear path forward."
-    return "You're not behind — you just have more runway. Let's use it."
+    return "You're not behind you just have more runway. Let's use it."
   }
 
   return (
@@ -1105,7 +1128,7 @@ function HomeTab() {
 
   const hasPriorities = (priorityGoals||[]).length > 0
 
-  // Recommended lesson — first one from priority goals not yet done
+  // Recommended lesson first one from priority goals not yet done
   const doneSet = new Set(completedLessons||[])
   const priorityLessonId = (priorityGoals||[]).map(id => PRIORITY_GOALS.find(g=>g.id===id)?.lesson).find(lid=>lid&&!doneSet.has(lid))
   const recLesson = LESSONS.find(l=>l.id===(priorityLessonId||LESSONS.find(l=>!doneSet.has(l.id))?.id))
@@ -1168,7 +1191,7 @@ function HomeTab() {
 
       <div style={{ maxWidth:1100,margin:"0 auto",padding:"0 18px" }}>
 
-        {/* ── Projection — the big hook ───────────────────────────── */}
+        {/* ── Projection the big hook ───────────────────────────── */}
         {netWorth!==0 && hasIncome && (
           <div style={{ marginBottom:20,marginTop:8 }}>
             <ProjectionHeroCard nw={netWorth} surplus={surplus} age={profile?.age} />
@@ -1176,7 +1199,7 @@ function HomeTab() {
         )}
         {(netWorth===0 || !hasIncome) && (
           <div style={{ marginTop:8,marginBottom:20 }}>
-            <LockedCard icon="🔮" title="Your wealth at 70 — projection locked"
+            <LockedCard icon="🔮" title="Your wealth at 70 projection locked"
               description="Add your assets and income to unlock your personalised wealth projection."
               unlock="Complete setup in Track →" onUnlock={()=>setTab(2)}/>
           </div>
@@ -1198,12 +1221,40 @@ function HomeTab() {
         {/* ── Insights label ─────────────────────────────────────── */}
         <p style={{ color:T.muted,fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:14,marginTop:4 }}>Your top insights</p>
 
-        <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(290px,1fr))",gap:14,marginBottom:24 }}>
+        <div style={{ display:"flex",flexDirection:"column",gap:14,marginBottom:24 }}>
 
-          {/* Safety net */}
+          {/* 1. FINANCIAL FREEDOM NUMBER   first, most motivating */}
+          {fireNumber ? (
+            <InsightCard icon="🔥" title="Your financial freedom number" sub="The amount you need to never have to work again" iconBg={T.amberDim} iconBorder={T.amberBorder}
+              infoText="Based on the 4% rule: if your invested wealth is 25x your annual spending, you can withdraw 4% per year forever without running out. This is the number that makes work optional.">
+              <p style={{ color:T.amber,fontWeight:900,fontSize:36,marginBottom:4,lineHeight:1 }}>{fmtK(fireNumber)}</p>
+              <p style={{ color:"#CBD5E1",fontSize:13,marginBottom:10 }}>25x your annual spending of {fmt(spending.monthly*12)}</p>
+              {bk.wealthBuilders > 0 ? (
+                <>
+                  <div style={{ background:T.surface,borderRadius:99,height:10,overflow:"hidden",marginBottom:8 }}>
+                    <div style={{ width:`${Math.min(100,(bk.wealthBuilders/fireNumber)*100)}%`,height:"100%",background:`linear-gradient(90deg,${T.amber},#FCD34D)`,borderRadius:99,transition:"width .8s ease" }}/>
+                  </div>
+                  <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
+                    <p style={{ color:"#CBD5E1",fontSize:13 }}>
+                      <strong style={{ color:T.amber }}>{Math.round((bk.wealthBuilders/fireNumber)*100)}%</strong> of the way there
+                    </p>
+                    <p style={{ color:"#7A8FA8",fontSize:12 }}>{fmt(bk.wealthBuilders)} working now</p>
+                  </div>
+                </>
+              ) : (
+                <p style={{ color:"#CBD5E1",fontSize:13 }}>Add your investments or pension in Track to see your progress towards this number.</p>
+              )}
+            </InsightCard>
+          ) : (
+            <LockedCard icon="🔥" title="Your financial freedom number"
+              description="Add your monthly spending to unlock this. It shows the exact amount you need invested to make work optional forever."
+              unlock="Add spending" onUnlock={()=>setTab(2)}/>
+          )}
+
+          {/* 2. Safety net */}
           {bk.safetyNet > 0 && (
-            <InsightCard icon="🛡️" title="Safety net" sub="Liquid savings" iconBg={T.tealDim} iconBorder={T.tealBorder}
-              infoText="Your easy-access savings — cash, current accounts, ISA savings. The rule of thumb is 3–6 months of expenses.">
+            <InsightCard icon="🛡️" title="Safety net" sub="Easy-access savings" iconBg={T.tealDim} iconBorder={T.tealBorder}
+              infoText="Your liquid savings: cash, current accounts, easy-access ISAs. The rule of thumb is 3 to 6 months of expenses. This is your buffer before anything else.">
               <p style={{ color:T.teal,fontWeight:900,fontSize:28,marginBottom:8 }}>{fmt(bk.safetyNet)}</p>
               {safetyMonths!=null ? (
                 <>
@@ -1216,56 +1267,34 @@ function HomeTab() {
                   </div>
                   <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.5 }}>
                     <strong style={{ color:safetyMonths>=3?T.green:T.amber }}>{safetyMonths} month{safetyMonths!==1?"s":""}</strong> of expenses covered.
-                    {safetyMonths<3 && " Aim for 3–6 months as your first target."}
-                    {safetyMonths>=6 && " Well covered — consider investing the excess."}
+                    {safetyMonths<3 && " Aim for 3 to 6 months as your first target."}
+                    {safetyMonths>=3 && safetyMonths<6 && " You have the foundation. Keep building."}
+                    {safetyMonths>=6 && " Fully covered. Consider putting excess to work in investments."}
                   </p>
                 </>
               ) : (
-                <p style={{ color:"#CBD5E1",fontSize:13 }}>Add monthly spending to see months covered.</p>
+                <p style={{ color:"#CBD5E1",fontSize:13 }}>Add monthly spending in Track to see how many months you are covered for.</p>
               )}
             </InsightCard>
           )}
 
-          {/* Wealth breakdown */}
+          {/* 3. Wealth breakdown */}
           {totalAssets > 0 && (
             <WealthBreakdownCard bk={bk} totalAssets={totalAssets}/>
           )}
 
-          {/* Interest drag */}
+          {/* 4. Interest drag */}
           {totalDebts > 0 && drag > 0 && (
-            <InsightCard icon="💸" title="Interest drag" sub="What debt costs you yearly" iconBg={T.redDim} iconBorder={T.redBorder}
-              infoText="The total annual interest cost across all your debts. Paying off high-rate debt first (the Avalanche method) gives you a guaranteed return equal to the interest rate you eliminate.">
+            <InsightCard icon="💸" title="Interest drag" sub="What debt costs you each year" iconBg={T.redDim} iconBorder={T.redBorder}
+              infoText="The total annual interest cost across all your debts. Paying off your highest-rate debt first (the avalanche method) gives you a guaranteed return equal to that interest rate.">
               <p style={{ color:T.red,fontWeight:900,fontSize:28,marginBottom:4 }}>
                 {fmt(Math.round(drag/12))}<span style={{ fontSize:16,fontWeight:600 }}>/mo</span>
               </p>
               <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.5 }}>
                 {fmt(Math.round(drag))}/yr quietly leaving your net worth.{" "}
-                <span style={{ color:T.white,fontWeight:600 }}>Paying off high-rate debt first is a guaranteed return.</span>
+                <span style={{ color:T.white,fontWeight:600 }}>Clearing high-rate debt first is a guaranteed return.</span>
               </p>
             </InsightCard>
-          )}
-
-          {/* FIRE number */}
-          {fireNumber ? (
-            <InsightCard icon="🔥" title="Financial freedom number" sub="25× annual spending · 4% rule" iconBg={T.amberDim} iconBorder={T.amberBorder}
-              infoText="The amount you need invested to never have to work again — based on the 4% safe withdrawal rate. At this number, 4% of your portfolio covers a full year's spending, indefinitely.">
-              <p style={{ color:T.amber,fontWeight:900,fontSize:28,marginBottom:6 }}>{fmtK(fireNumber)}</p>
-              {bk.wealthBuilders > 0 && (
-                <>
-                  <div style={{ background:T.surface,borderRadius:99,height:8,overflow:"hidden",marginBottom:6 }}>
-                    <div style={{ width:`${Math.min(100,(bk.wealthBuilders/fireNumber)*100)}%`,height:"100%",background:`linear-gradient(90deg,${T.amber},#FCD34D)`,borderRadius:99,transition:"width .8s ease" }}/>
-                  </div>
-                  <p style={{ color:T.muted,fontSize:12 }}>
-                    {Math.round((bk.wealthBuilders/fireNumber)*100)}% there · {fmt(bk.wealthBuilders)} working for you now
-                  </p>
-                </>
-              )}
-              {bk.wealthBuilders===0 && <p style={{ color:"#CBD5E1",fontSize:13 }}>Add investments or pension to track progress.</p>}
-            </InsightCard>
-          ) : (
-            <LockedCard icon="🔥" title="Financial freedom number"
-              description="Add monthly spending to unlock — the exact amount you need to achieve financial freedom."
-              unlock="Add spending →" onUnlock={()=>setTab(2)}/>
           )}
         </div>
 
@@ -1283,9 +1312,9 @@ function HomeTab() {
                 {recLesson.emoji}
               </div>
               <div style={{ flex:1 }}>
-                <p style={{ color:recLesson.trackColor||T.teal,fontWeight:700,fontSize:11,letterSpacing:.5,textTransform:"uppercase",marginBottom:4 }}>Next lesson · {recLesson.track}</p>
+                <p style={{ color:recLesson.trackColor||T.teal,fontWeight:700,fontSize:11,letterSpacing:.5,textTransform:"uppercase",marginBottom:4 }}>Next lesson {recLesson.track}</p>
                 <p style={{ color:T.white,fontWeight:700,fontSize:14,lineHeight:1.3,marginBottom:4 }}>{recLesson.title}</p>
-                <p style={{ color:T.muted,fontSize:12 }}>~{recLesson.cards?.length} min · +{recLesson.xp} XP</p>
+                <p style={{ color:T.muted,fontSize:12 }}>~{recLesson.cards?.length} min +{recLesson.xp} XP</p>
               </div>
               <ChevronRight size={18} color={T.muted}/>
             </button>
@@ -1303,7 +1332,7 @@ function DashboardBuilder({ state, setTab }) {
 
   const LOCKED = [
     { icon:"📊", label:"Budget breakdown", color:T.teal, colorDim:T.tealDim, colorBorder:T.tealBorder,
-      desc:"How your money is actually split — housing, food, fun and more.",
+      desc:"How your money is actually split housing, food, fun and more.",
       req:"Add spending categories in Track →", tab:3 },
     { icon:"🎯", label:"Debt payoff timeline", color:T.red, colorDim:T.redDim, colorBorder:T.redBorder,
       desc:"See exactly when each debt clears and how much interest you'll save.",
@@ -1323,10 +1352,10 @@ function DashboardBuilder({ state, setTab }) {
         <p style={{ color:T.teal,fontWeight:800,fontSize:15,marginBottom:8 }}>💡 Get more from LifeSmart</p>
         <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
           {[
-            { icon:"📝", text:"Enter your accurate asset and debt figures to get reliable projections — approximate numbers give approximate results." },
-            { icon:"📚", text:"Complete the lessons linked to your goals — each one gives you a practical edge." },
+            { icon:"📝", text:"Enter your accurate asset and debt figures to get reliable projections approximate numbers give approximate results." },
+            { icon:"📚", text:"Complete the lessons linked to your goals each one gives you a practical edge." },
             { icon:"📅", text:"Update your figures every month to watch your net worth chart update in real time." },
-            { icon:"🏆", text:"See how you compare to others your age — people who track consistently pull ahead." },
+            { icon:"🏆", text:"See how you compare to others your age people who track consistently pull ahead." },
           ].map((g,i)=>(
             <div key={i} style={{ display:"flex",gap:10,alignItems:"flex-start" }}>
               <span style={{ fontSize:16,flexShrink:0,marginTop:1 }}>{g.icon}</span>
@@ -1372,7 +1401,7 @@ function InsightCard({ icon, title, sub, iconBg, iconBorder, infoText, children 
   )
 }
 
-/* ── Projection hero card — big, jagged, exciting ─────────────── */
+/* ── Projection hero card big, jagged, exciting ─────────────── */
 function ProjectionHeroCard({ nw, surplus, age }) {
   const data = useMemo(()=>calcProjection(nw,surplus,age),[nw,surplus,age])
   const targetAge = 70
@@ -1389,12 +1418,12 @@ function ProjectionHeroCard({ nw, surplus, age }) {
             {fmtK(atTarget.conservative)}
           </p>
           <p style={{ color:"#CBD5E1",fontSize:14,fontWeight:600,marginBottom:6 }}>
-            At a conservative 5%/yr — roughly what a balanced global index fund has historically delivered — you're on track for <strong style={{ color:T.teal }}>{fmtK(atTarget.conservative)}</strong>.
+            At a conservative 5%/yr roughly what a balanced global index fund has historically delivered you're on track for <strong style={{ color:T.teal }}>{fmtK(atTarget.conservative)}</strong>.
           </p>
           {atTarget.optimistic > atTarget.conservative && (
             <div style={{ background:"rgba(245,158,11,.12)",border:"1px solid rgba(245,158,11,.25)",borderRadius:10,padding:"10px 14px",marginTop:8 }}>
               <p style={{ color:T.amber,fontSize:14,fontWeight:700 }}>
-                ✨ Or {fmtK(atTarget.optimistic)} if you make the right financial moves — just 8%/yr gets you there.
+                ✨ Or {fmtK(atTarget.optimistic)} if you make the right financial moves just 8%/yr gets you there.
               </p>
             </div>
           )}
@@ -1435,16 +1464,16 @@ function ProjectionHeroCard({ nw, surplus, age }) {
   )
 }
 
-/* ── Wealth breakdown — no bar, use visual blocks ─────────────── */
+/* ── Wealth breakdown no bar, use visual blocks ─────────────── */
 function WealthBreakdownCard({ bk, totalAssets }) {
   const segments = [
     {
       label:"Safety net", value:bk.safetyNet, color:T.teal, icon:"🛡️",
-      info:"Liquid savings you can access immediately — cash, easy-access accounts. This is your financial cushion. Goal: 3–6 months of expenses."
+      info:"Liquid savings you can access immediately cash, easy-access accounts. This is your financial cushion. Goal: 3–6 months of expenses."
     },
     {
       label:"Working wealth", value:bk.wealthBuilders, color:T.purple, icon:"📈",
-      info:"Investments, pension, and business assets that actively grow over time. This is the engine of long-term wealth — money that compounds while you sleep."
+      info:"Investments, pension, and business assets that actively grow over time. This is the engine of long-term wealth money that compounds while you sleep."
     },
     {
       label:"Life assets", value:bk.lifeAssets, color:T.amber, icon:"🏠",
@@ -1464,7 +1493,7 @@ function WealthBreakdownCard({ bk, totalAssets }) {
         <InfoTooltip text="A healthy wealth breakdown shifts over time: start by building a safety net, then grow your working wealth. Life assets (like property) have value but don't actively compound."/>
       </div>
 
-      {/* Visual blocks — proportional height bars */}
+      {/* Visual blocks proportional height bars */}
       <div style={{ display:"grid",gridTemplateColumns:`repeat(${segments.length},1fr)`,gap:8,marginBottom:16,height:80,alignItems:"flex-end" }}>
         {segments.map(s=>{
           const pct = Math.max(8, (s.value/totalAssets)*100)
@@ -1514,7 +1543,7 @@ function GoalPickerSection({ state, save, toast }) {
     <div style={{ marginBottom:24,paddingTop:4 }}>
       <div style={{ marginBottom:14 }}>
         <p style={{ color:T.white,fontWeight:800,fontSize:18,marginBottom:4 }}>What matters most to you?</p>
-        <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.5 }}>Pick your priorities — we'll tailor your lessons and goals around them.</p>
+        <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.5 }}>Pick your priorities we'll tailor your lessons and goals around them.</p>
       </div>
 
       <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(155px,1fr))",gap:10,marginBottom:16 }}>
@@ -1550,7 +1579,7 @@ function GoalLinkedLessons({ priorityGoals, completedLessons, setTab }) {
           <button key={l.id} onClick={()=>setTab(1)} style={{ background:T.card,border:`1.5px solid ${l.trackColor||T.teal}30`,borderRadius:16,padding:"14px 16px",cursor:"pointer",textAlign:"left",fontFamily:"inherit",display:"flex",alignItems:"center",gap:14 }}>
             <div style={{ width:44,height:44,borderRadius:12,background:`${l.trackColor||T.teal}20`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0 }}>{l.emoji}</div>
             <div style={{ flex:1 }}>
-              <p style={{ color:l.trackColor||T.teal,fontWeight:700,fontSize:10,letterSpacing:.5,textTransform:"uppercase",marginBottom:3 }}>{l.track} · {l.xp} XP</p>
+              <p style={{ color:l.trackColor||T.teal,fontWeight:700,fontSize:10,letterSpacing:.5,textTransform:"uppercase",marginBottom:3 }}>{l.track} {l.xp} XP</p>
               <p style={{ color:T.white,fontWeight:700,fontSize:13,lineHeight:1.3 }}>{l.title}</p>
             </div>
             <ChevronRight size={16} color={T.subtle}/>
@@ -1590,7 +1619,7 @@ function HomeGoalsSection({ goals, surplus, setTab, save, state, toast, priority
       {displayed.length===0 ? (
         <button onClick={()=>setShowSheet(true)} style={{ width:"100%",background:T.tealDim,border:`1.5px dashed ${T.tealBorder}`,borderRadius:16,padding:"18px",cursor:"pointer",textAlign:"center",fontFamily:"inherit" }}>
           <p style={{ color:T.teal,fontWeight:700,fontSize:14,marginBottom:4 }}>🎯 Set your first goal</p>
-          <p style={{ color:T.muted,fontSize:12 }}>Holiday, emergency fund, clear debt — people with goals save 2× faster.</p>
+          <p style={{ color:T.muted,fontSize:12 }}>Holiday, emergency fund, clear debt people with goals save 2× faster.</p>
         </button>
       ) : (
         <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))",gap:10 }}>
@@ -1771,7 +1800,7 @@ function GoalCard({ goal, surplus, onEdit, onDelete }) {
       {!isAction && (
         <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
           <p style={{ color:cfg.color,fontWeight:800,fontSize:14 }}>{displayPct}%</p>
-          <p style={{ color:T.muted,fontSize:12 }}>{fmt(current)} saved{eta?` · ${eta}`:""}</p>
+          <p style={{ color:T.muted,fontSize:12 }}>{fmt(current)} saved{eta?` ${eta}`:""}</p>
         </div>
       )}
       {isAction && (
@@ -1822,7 +1851,7 @@ function GoalsTab() {
         {active.length===0 && completed.length===0 ? (
           <button onClick={()=>setSheet("new")} style={{ width:"100%",background:T.tealDim,border:`1.5px dashed ${T.tealBorder}`,borderRadius:16,padding:"20px",cursor:"pointer",textAlign:"center",fontFamily:"inherit" }}>
             <p style={{ color:T.teal,fontWeight:700,fontSize:15,marginBottom:4 }}>Set your first goal</p>
-            <p style={{ color:"#CBD5E1",fontSize:13 }}>Holiday, house deposit, clear debt — people with written goals build 2x more wealth.</p>
+            <p style={{ color:"#CBD5E1",fontSize:13 }}>Holiday, house deposit, clear debt people with written goals build 2x more wealth.</p>
           </button>
         ) : (
           <div style={{ display:"flex",flexDirection:"column",gap:12,marginBottom:goals.length>0?16:0 }}>
@@ -2048,7 +2077,7 @@ function NetWorthOverviewSection({ state, setSection, setSheet, setEditItem }) {
         <span style={{ fontSize:20,flexShrink:0 }}>🎯</span>
         <div>
           <p style={{ color:T.amber,fontWeight:700,fontSize:14,marginBottom:4 }}>Keep your figures accurate</p>
-          <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.5 }}>Update your asset values and debt balances monthly — even a rough update takes 2 minutes and keeps your projections meaningful.</p>
+          <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.5 }}>Update your asset values and debt balances monthly even a rough update takes 2 minutes and keeps your projections meaningful.</p>
         </div>
       </div>
 
@@ -2091,7 +2120,7 @@ function NetWorthOverviewSection({ state, setSection, setSheet, setEditItem }) {
                 <span style={{ fontSize:18 }}>{t?.icon||"💳"}</span>
                 <div style={{ flex:1 }}>
                   <p style={{ color:"#CBD5E1",fontSize:13,fontWeight:600 }}>{d.name}</p>
-                  <p style={{ color:"#7A8FA8",fontSize:12 }}>{d.interestRate||t?.assumedRate}% APR · {fmt(Math.round(interest/12))}/mo interest</p>
+                  <p style={{ color:"#7A8FA8",fontSize:12 }}>{d.interestRate||t?.assumedRate}% APR {fmt(Math.round(interest/12))}/mo interest</p>
                 </div>
                 <p style={{ color:T.red,fontWeight:800,fontSize:14 }}>{fmt(d.balance)}</p>
               </div>
@@ -2148,7 +2177,7 @@ function AssetsSection({ assets, totalAssets, onAdd, onEdit, onDelete }) {
       </div>
 
       {assets.length===0 ? (
-        <EmptyState icon="💰" title="No assets tracked" body="Add your savings, pension, investments, property — everything of value." cta="Add an asset" onClick={onAdd}/>
+        <EmptyState icon="💰" title="No assets tracked" body="Add your savings, pension, investments, property everything of value." cta="Add an asset" onClick={onAdd}/>
       ) : (
         <>
           {/* Table header */}
@@ -2176,10 +2205,10 @@ function AssetsSection({ assets, totalAssets, onAdd, onEdit, onDelete }) {
                     <div key={a.id} style={{ display:"grid",gridTemplateColumns:"1fr auto auto auto",gap:8,alignItems:"center",padding:"12px 14px",background:T.card,border:`1px solid ${T.border}`,borderRadius:12,marginBottom:6 }}>
                       <div style={{ minWidth:0 }}>
                         <p style={{ color:T.white,fontWeight:700,fontSize:14,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{a.name}</p>
-                        <p style={{ color:"#7A8FA8",fontSize:12 }}>{t?.label}{a.monthlyIncome>0?` · ${fmt(a.monthlyIncome)}/mo income`:""}</p>
+                        <p style={{ color:"#7A8FA8",fontSize:12 }}>{t?.label}{a.monthlyIncome>0?` ${fmt(a.monthlyIncome)}/mo income`:""}</p>
                       </div>
                       <p style={{ color:a.annualReturn?T.purple:"#7A8FA8",fontWeight:700,fontSize:13,textAlign:"right",minWidth:70 }}>
-                        {a.annualReturn?`${a.annualReturn}%/yr`:"—"}
+                        {a.annualReturn?`${a.annualReturn}%/yr`:" "}
                       </p>
                       <p style={{ color:T.green,fontWeight:800,fontSize:14,textAlign:"right",minWidth:80 }}>{fmt(a.value)}</p>
                       <div style={{ display:"flex",gap:4,minWidth:54,justifyContent:"flex-end" }}>
@@ -2240,7 +2269,7 @@ function DebtsSection({ debts, totalDebts, drag, onAdd, onEdit, onDelete }) {
               <div key={d.id} style={{ display:"grid",gridTemplateColumns:"1fr auto auto auto auto",gap:8,alignItems:"center",padding:"12px 14px",background:T.card,border:`1px solid ${T.border}`,borderRadius:12,marginBottom:8 }}>
                 <div style={{ minWidth:0 }}>
                   <p style={{ color:T.white,fontWeight:700,fontSize:14,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{d.name}</p>
-                  <p style={{ color:"#7A8FA8",fontSize:12 }}>{t?.label}{d.minPayment>0?` · min ${fmt(d.minPayment)}/mo`:""}</p>
+                  <p style={{ color:"#7A8FA8",fontSize:12 }}>{t?.label}{d.minPayment>0?` min ${fmt(d.minPayment)}/mo`:""}</p>
                 </div>
                 <div style={{ background:`${rateColor}20`,border:`1px solid ${rateColor}40`,borderRadius:8,padding:"3px 8px",minWidth:55,textAlign:"center" }}>
                   <p style={{ color:rateColor,fontWeight:800,fontSize:12 }}>{rate}%</p>
@@ -2260,7 +2289,7 @@ function DebtsSection({ debts, totalDebts, drag, onAdd, onEdit, onDelete }) {
   )
 }
 
-/* ── Asset Sheet — detailed ───────────────────────────────────── */
+/* ── Asset Sheet detailed ───────────────────────────────────── */
 function AssetSheet({ item, onClose, onSave }) {
   const editing = !!item
   const [cat,     setCat]     = useState(item?.category||null)
@@ -2330,7 +2359,7 @@ function AssetSheet({ item, onClose, onSave }) {
   )
 }
 
-/* ── Debt Sheet — detailed ────────────────────────────────────── */
+/* ── Debt Sheet detailed ────────────────────────────────────── */
 function DebtSheet({ item, onClose, onSave }) {
   const editing = !!item
   const [cat,   setCat]   = useState(item?.category||null)
@@ -2474,15 +2503,15 @@ function IncomeSection({ income, assets, onSave }) {
 }
 
 /* ════════════════════════════════════════════════════════════════════
-   LESSONS — 5 fully working lessons, goal-linked
+   LESSONS 5 fully working lessons, goal-linked
    ════════════════════════════════════════════════════════════════════ */
 const LESSONS = [
-  /* ── Lesson 1: Net Worth — linked to grow_nw, calm, learn ─────── */
+  /* ── Lesson 1: Net Worth linked to grow_nw, calm, learn ─────── */
   {
     id:"nw_basics",
     track:"Foundations",
     trackColor:T.teal, trackDim:T.tealDim, trackBorder:T.tealBorder,
-    title:"What net worth actually is — and why it changes everything",
+    title:"What net worth actually is and why it changes everything",
     emoji:"📊", xp:15,
     goalLinks:["net_worth","calm","learn","budget"],
     cards:[
@@ -2498,7 +2527,7 @@ const LESSONS = [
         type:"fact",
         headline:"Why most people have no idea what theirs is",
         icon:"🤷",
-        body:"Nobody teaches this. Schools don't cover it. Banks don't show it. Most people feel vaguely okay or vaguely worried — but they're flying blind.",
+        body:"Nobody teaches this. Schools don't cover it. Banks don't show it. Most people feel vaguely okay or vaguely worried but they're flying blind.",
         facts:[
           { icon:"😰", label:"Flying blind", text:"Without a net worth number, financial decisions feel like guesswork. You don't know if you're ahead or behind, or what's actually moving the needle." },
           { icon:"📊", label:"Measurement = momentum", text:"People who track their net worth consistently make better decisions, save more, and reach financial goals faster. The act of measuring creates accountability." },
@@ -2508,12 +2537,12 @@ const LESSONS = [
       {
         type:"scenario",
         prompt:"Two people both earn £45k. After 20 years, who has more?",
-        context:"Alex saves £400/month in an ISA from age 28. Jordan earns the same but spends it all — nicer car, better holidays.",
+        context:"Alex saves £400/month in an ISA from age 28. Jordan earns the same but spends it all nicer car, better holidays.",
         choices:[
-          { label:"Jordan — lifestyle choices reflect financial confidence", best:false, outcome:"Lifestyle spending leaves no wealth trail. Jordan's car depreciated and the holidays produced no financial return. Net worth after 20 years: roughly £0 invested." },
-          { label:"Alex — tracking and investing consistently wins", best:true, outcome:"At 7% average return, Alex's £400/month over 20 years grows to roughly £208,000. Same income. Dramatically different net worth. The only difference was measuring and acting." },
+          { label:"Jordan lifestyle choices reflect financial confidence", best:false, outcome:"Lifestyle spending leaves no wealth trail. Jordan's car depreciated and the holidays produced no financial return. Net worth after 20 years: roughly £0 invested." },
+          { label:"Alex tracking and investing consistently wins", best:true, outcome:"At 7% average return, Alex's £400/month over 20 years grows to roughly £208,000. Same income. Dramatically different net worth. The only difference was measuring and acting." },
         ],
-        explanation:"Identical incomes, identical starting points, radically different outcomes. The gap is entirely explained by one person measuring — and acting on — their net worth."
+        explanation:"Identical incomes, identical starting points, radically different outcomes. The gap is entirely explained by one person measuring and acting on their net worth."
       },
       {
         type:"fact",
@@ -2523,7 +2552,7 @@ const LESSONS = [
         facts:[
           { icon:"⬆️", label:"Earn more", text:"A pay rise is the highest-leverage move for most people under 40. Even a 10% increase compounds dramatically over a career." },
           { icon:"⬇️", label:"Spend less", text:"Every £1 not spent is a £1 that builds assets. The gap between spending 80% and 100% of income over 30 years is hundreds of thousands of pounds." },
-          { icon:"📈", label:"Grow assets faster", text:"Money in a current account earning 0% vs an ISA growing at 7% — the difference over 20 years on £10,000 is £27,000." },
+          { icon:"📈", label:"Grow assets faster", text:"Money in a current account earning 0% vs an ISA growing at 7% the difference over 20 years on £10,000 is £27,000." },
           { icon:"💳", label:"Eliminate bad debt", text:"Paying off a 22% credit card is a guaranteed 22% return. Nothing reliably beats that." },
         ]
       },
@@ -2537,62 +2566,74 @@ const LESSONS = [
     ]
   },
 
-  /* ── Lesson 2: Compound interest — linked to invest, learn, pension ── */
+  /* ── Lesson 2: Compound interest linked to invest, learn, pension ── */
   {
     id:"compound_interest",
     track:"Investing",
     trackColor:T.purple, trackDim:T.purpleDim, trackBorder:T.purpleBorder,
-    title:"Compound interest — the force that works for or against you",
+    title:"How your money grows by itself (and why starting today beats waiting)",
     emoji:"🌱", xp:15,
     goalLinks:["invest","learn","pension","net_worth"],
     cards:[
       {
         type:"fact",
-        headline:"Interest on interest — it's exponential, not linear",
+        headline:"First, what is a return?",
+        icon:"💡",
+        body:"A return is simply the profit your money makes. If you put £1,000 in an investment and it grows to £1,070 after a year, your return is £70. That's a 7% annual return.",
+        highlight:"Return = profit on your money",
+        sub:"This return can come from interest (like a savings account), dividends (companies sharing profits), or the investment growing in value.",
+      },
+      {
+        type:"fact",
+        headline:"Now, what makes it compound?",
         icon:"📈",
-        body:"Compound interest means you earn returns not just on what you put in — but on every pound of returns you've already earned. It starts slow. Then it accelerates dramatically.",
-        highlight:"Time in the market > amount invested",
-        visual:"compound_explainer",
+        body:"Compound return means your returns earn returns. In year one, you earn £70 on your £1,000. In year two, you earn 7% on £1,070   so £74.90, not £70. In year three, 7% on £1,144.90. Every year, the base grows, so the return grows too.",
+        highlight:"You are earning returns on your returns   not just on what you put in",
+        facts:[
+          { icon:"📅", label:"Simple return (not compounding)", text:"£1,000 at 7%: you earn £70 every single year. After 10 years: £1,700 total." },
+          { icon:"📈", label:"Compound return (the real thing)", text:"£1,000 at 7% compounding: after 10 years you have £1,967. After 30 years: £7,612. Same money, dramatically different outcome." },
+        ]
       },
       {
         type:"interactive",
         id:"growth_chart",
-        headline:"See the compound curve",
-        prompt:"Drag to see how your monthly investment grows over time",
-        hint:"Notice how the gap between what you put in (grey) and what you end up with (teal) widens dramatically in the later years. That gap is pure compound interest doing its work.",
+        headline:"See the compound curve yourself",
+        prompt:"Move the slider to see how a monthly investment grows over time",
+        hint:"The grey area is what you actually paid in. The teal area on top is your compound return doing its work   notice how it gets bigger and bigger relative to what you put in. That gap is free money, generated by time.",
       },
       {
         type:"fact",
-        headline:"The Rule of 72 — how fast does your money double?",
+        headline:"The Rule of 72: how fast does money double?",
         icon:"⚡",
-        body:"Divide 72 by your annual return to find how long it takes to double your money.",
+        body:"This is a simple shortcut. Divide 72 by your annual return rate and that tells you roughly how many years it takes to double your money.",
         facts:[
-          { icon:"🏦", label:"Savings account at 4%", text:"72 ÷ 4 = 18 years to double. £10,000 becomes £20,000." },
-          { icon:"📈", label:"Index fund at 7%", text:"72 ÷ 7 = ~10 years to double. £10,000 becomes £80,000 in 30 years." },
-          { icon:"💳", label:"Credit card at 24%", text:"72 ÷ 24 = 3 years to double. A £1,000 balance left unpaid becomes £2,000, then £4,000." },
+          { icon:"🏦", label:"Savings account at 4%/yr", text:"72 ÷ 4 = 18 years to double. Safe, but slow." },
+          { icon:"📈", label:"Index fund at 7%/yr (historical average)", text:"72 ÷ 7 = about 10 years to double. £10,000 becomes £80,000 in 30 years." },
+          { icon:"💳", label:"Credit card debt at 24%/yr", text:"72 ÷ 24 = 3 years to double what you owe. A £1,000 balance becomes £2,000, then £4,000. This is compound working against you." },
         ]
       },
       {
         type:"scenario",
-        prompt:"Sarah invests £200/mo from age 25. Tom invests £400/mo from age 35. Both stop at 65 with 7% returns. Who wins?",
-        context:"Sarah starts 10 years earlier with half the monthly amount. Tom invests twice as much but starts later.",
+        prompt:"Emma invests £200 per month from age 25. Jake invests £400 per month from age 35. Both stop at 65. Both earn 7% per year. Who ends up with more?",
+        context:"Emma puts in half the money but starts 10 years earlier. Jake puts in twice as much but starts later.",
         choices:[
-          { label:"Tom — he invested twice as much every month", best:false, outcome:"Tom's total invested: £144,000. Final value: ~£524,000. Starting later is brutally expensive." },
-          { label:"Sarah — starting 10 years earlier wins", best:true, outcome:"Sarah's total invested: £96,000 (less than Tom). Final value: ~£527,000. Starting earlier wins — even investing less. Time is the most powerful variable." },
-          { label:"They end up roughly equal", best:false, outcome:"They're very close, but Sarah wins — having invested £48,000 less. That's the power of starting early." },
+          { label:"Jake. He invested twice as much each month.", best:false, outcome:"Jake invested £144,000 total and ends up with around £524,000. Starting late is expensive." },
+          { label:"Emma. Starting earlier wins even with less money.", best:true, outcome:"Emma invested only £96,000 total   £48,000 less than Jake   and ends up with around £527,000. Time beats amount. This is compound return doing its job over a longer runway." },
+          { label:"They end up about the same.", best:false, outcome:"Very close actually, but Emma wins having invested £48,000 less. That difference is pure compound return from starting 10 years earlier." },
         ],
-        explanation:"Starting a decade earlier effectively doubles your money — even if you invest half as much each month. This is why starting now, even with small amounts, beats waiting until you earn more."
+        explanation:"Starting a decade earlier is worth more than doubling your monthly investment. This is why financial advisers always say the best time to start is now, even with a small amount."
       },
       {
         type:"quiz",
-        question:"Using the Rule of 72, money invested at 7%/yr doubles roughly every:",
+        question:"Using the Rule of 72, money invested at 7% per year doubles roughly every:",
         options:["5 years","10 years","15 years","20 years"],
         correct:1,
-        explanation:"72 ÷ 7 = 10.3 years. So £5,000 invested today at 7% becomes ~£10,000 in 10 years, ~£20,000 in 20 years, and ~£40,000 in 30 years — without adding a single pound more."
+        explanation:"72 ÷ 7 = about 10 years. So £5,000 today at 7% becomes around £10,000 in 10 years, £20,000 in 20 years, and £40,000 in 30 years. Without adding a single pound more. That is compound return."
       },
     ]
   },
-  /* ── Lesson 3: Paying off debt — linked to pay_debt, calm, budget ── */
+
+  /* ── Lesson 3: Paying off debt linked to pay_debt, calm, budget ── */
   {
     id:"pay_off_debt",
     track:"Debt",
@@ -2603,14 +2644,14 @@ const LESSONS = [
     cards:[
       {
         type:"fact",
-        headline:"Debt isn't just a number — it's a monthly tax",
+        headline:"Debt isn't just a number it's a monthly tax",
         icon:"💸",
-        body:"Every pound you owe at 20% APR costs you 20p a year in interest. On a £5,000 credit card balance, that's £1,000 a year — just for having it. The fastest way to grow your net worth is to eliminate this invisible drain first.",
+        body:"Every pound you owe at 20% APR costs you 20p a year in interest. On a £5,000 credit card balance, that's £1,000 a year just for having it. The fastest way to grow your net worth is to eliminate this invisible drain first.",
         highlight:"Paying off 20% debt = a guaranteed 20% return",
       },
       {
         type:"fact",
-        headline:"Two methods — both work, pick your style",
+        headline:"Two methods both work, pick your style",
         icon:"🎯",
         body:"There are two proven strategies for clearing debt. The one you'll actually stick with is the right one.",
         facts:[
@@ -2624,17 +2665,17 @@ const LESSONS = [
         prompt:"You have £500 extra per month. £3,000 credit card at 22%, £8,000 car loan at 7%. What should you do?",
         context:"After paying minimums on both, you have £500 spare to put towards clearing debt.",
         choices:[
-          { label:"Split £250 between both debts equally", best:false, outcome:"Splitting feels balanced but is the slowest approach. You're paying interest on the credit card for longer — costing you an extra £400-600 vs the avalanche method." },
-          { label:"Pay the car loan — it's the bigger debt", best:false, outcome:"Bigger balance, but at 7% APR this debt costs far less. Prioritising it over the 22% card means you're paying more in total interest." },
-          { label:"Clear the credit card first (avalanche)", best:true, outcome:"22% vs 7% — the difference is massive. Clearing the credit card first saves you roughly £600 in interest and frees up that payment sooner. Every month you delay costs money." },
+          { label:"Split £250 between both debts equally", best:false, outcome:"Splitting feels balanced but is the slowest approach. You're paying interest on the credit card for longer costing you an extra £400-600 vs the avalanche method." },
+          { label:"Pay the car loan it's the bigger debt", best:false, outcome:"Bigger balance, but at 7% APR this debt costs far less. Prioritising it over the 22% card means you're paying more in total interest." },
+          { label:"Clear the credit card first (avalanche)", best:true, outcome:"22% vs 7% the difference is massive. Clearing the credit card first saves you roughly £600 in interest and frees up that payment sooner. Every month you delay costs money." },
         ],
-        explanation:"Rate matters more than balance size. Always attack the most expensive debt first — the maths are clear."
+        explanation:"Rate matters more than balance size. Always attack the most expensive debt first the maths are clear."
       },
       {
         type:"fact",
         headline:"The minimum payment trap",
         icon:"⚠️",
-        body:"Credit cards are designed so that minimum payments keep you in debt for decades. On a £5,000 balance at 22%, paying the minimum (about £100/month) will take you 7+ years to clear — and cost over £3,500 in interest alone.",
+        body:"Credit cards are designed so that minimum payments keep you in debt for decades. On a £5,000 balance at 22%, paying the minimum (about £100/month) will take you 7+ years to clear and cost over £3,500 in interest alone.",
         highlight:"Minimum payments = maximum profit for lenders",
         facts:[
           { icon:"📅", label:"Time to clear £5k at minimums", text:"7-8 years. That's thousands of pounds in interest on a manageable debt." },
@@ -2644,9 +2685,9 @@ const LESSONS = [
       {
         type:"quiz",
         question:"You have two debts: £2,000 at 24% APR and £6,000 at 5% APR. Which should you pay off first?",
-        options:["The £6,000 debt — it's larger","The £2,000 debt — it's smaller and easier to clear","The 24% debt — the rate is what matters","Pay them off equally"],
+        options:["The £6,000 debt it's larger","The £2,000 debt it's smaller and easier to clear","The 24% debt the rate is what matters","Pay them off equally"],
         correct:2,
-        explanation:"Rate is what matters. The 24% debt costs you £480/year in interest. The 5% debt costs £300/year. Clearing the high-rate debt first is mathematically optimal — regardless of the balance size."
+        explanation:"Rate is what matters. The 24% debt costs you £480/year in interest. The 5% debt costs £300/year. Clearing the high-rate debt first is mathematically optimal regardless of the balance size."
       },
     ]
   },
@@ -2662,7 +2703,7 @@ const LESSONS = [
     cards:[
       {
         type:"fact",
-        headline:"A pension is just an investment account — with a bonus",
+        headline:"A pension is just an investment account with a bonus",
         icon:"🎁",
         body:"When you put money into a pension, the government adds 20-45% on top, depending on your tax rate. A basic rate taxpayer puts in £80 and ends up with £100 in their pension. That's an instant 25% return before a single investment is made.",
         highlight:"25–81% instant return from tax relief",
@@ -2673,7 +2714,7 @@ const LESSONS = [
         icon:"📈",
         body:"Because pension money grows tax-free, compound interest works harder inside a pension than in almost any other account.",
         facts:[
-          { icon:"💷", label:"£200/month from age 25", text:"At 7%/yr by age 65: roughly £528,000. Of that, you put in £96,000. The rest is compound growth — tax-free." },
+          { icon:"💷", label:"£200/month from age 25", text:"At 7%/yr by age 65: roughly £528,000. Of that, you put in £96,000. The rest is compound growth tax-free." },
           { icon:"⏰", label:"Start at 35 instead", text:"Same £200/month, same 7%/yr: roughly £243,000 by 65. Starting 10 years later costs you £285,000 in growth." },
           { icon:"🏢", label:"Employer match = free money", text:"If your employer matches contributions, always contribute enough to get the full match. It's an instant 100% return on that portion." },
         ]
@@ -2683,16 +2724,16 @@ const LESSONS = [
         prompt:"Your employer offers 5% pension match. You currently contribute 3%. What should you do?",
         context:"You earn £35,000. Your employer will match up to 5% of your salary into your pension.",
         choices:[
-          { label:"Keep contributing 3% — 5% feels like a lot", best:false, outcome:"You're leaving £700/year of free employer money on the table. Over 30 years at 7% growth, that missed match compounds to over £66,000 in lost pension value." },
+          { label:"Keep contributing 3% 5% feels like a lot", best:false, outcome:"You're leaving £700/year of free employer money on the table. Over 30 years at 7% growth, that missed match compounds to over £66,000 in lost pension value." },
           { label:"Increase to 5% to get the full match", best:true, outcome:"By increasing from 3% to 5% (£58/month extra), you unlock £1,750/year in employer contributions. Over 30 years at 7%, that employer money alone grows to roughly £175,000." },
-          { label:"Stop contributing entirely to save cash", best:false, outcome:"You'd lose the employer match, the tax relief, and the compound growth — all at once. This is the most expensive financial decision most people make." },
+          { label:"Stop contributing entirely to save cash", best:false, outcome:"You'd lose the employer match, the tax relief, and the compound growth all at once. This is the most expensive financial decision most people make." },
         ],
         explanation:"Employer match is the only genuinely free money in personal finance. Never leave it unclaimed."
       },
       {
         type:"quiz",
         question:"A basic rate taxpayer contributes £80 to their pension. How much ends up in the pension?",
-        options:["£80 — what you put in","£96 — with a small top-up","£100 — government adds 25%","£120 — double matched"],
+        options:["£80 what you put in","£96 with a small top-up","£100 government adds 25%","£120 double matched"],
         correct:2,
         explanation:"Basic rate tax relief means the government adds 25% (20% of the grossed-up amount). £80 from you → £100 in your pension. Higher rate taxpayers can claim even more back through their tax return."
       },
@@ -2710,7 +2751,7 @@ const LESSONS = [
     cards:[
       {
         type:"fact",
-        headline:"Wealth isn't about earning more — it's about the gap",
+        headline:"Wealth isn't about earning more it's about the gap",
         icon:"💰",
         body:"The wealth gap is simple: income minus spending. Every pound in that gap, invested consistently, builds net worth. A person earning £30k with a £300 monthly surplus can outperform someone earning £80k who spends everything.",
         highlight:"Surplus invested consistently > high income spent",
@@ -2723,7 +2764,7 @@ const LESSONS = [
         facts:[
           { icon:"📊", label:"Index funds / ISA", text:"Low-cost funds that track the market. Historically 7-10% annual returns. The single best vehicle for most people. Start here." },
           { icon:"🏛️", label:"Pension", text:"Tax-advantaged and often employer-matched. Should be your second priority after an emergency fund." },
-          { icon:"🏠", label:"Property", text:"Leveraged asset — your deposit controls a larger asset. Works well long-term but needs maintenance, insurance, and isn't liquid." },
+          { icon:"🏠", label:"Property", text:"Leveraged asset your deposit controls a larger asset. Works well long-term but needs maintenance, insurance, and isn't liquid." },
           { icon:"💼", label:"Business / side income", text:"Highest potential return, highest risk. Income generated can be redirected into the above three to compound faster." },
         ]
       },
@@ -2732,7 +2773,7 @@ const LESSONS = [
         prompt:"You have £500/month surplus. Emergency fund is sorted. What's the best order of priorities?",
         context:"You have 3 months expenses saved, a workplace pension with 5% employer match, and no high-interest debt.",
         choices:[
-          { label:"Max out ISA first, then increase pension", best:false, outcome:"Not wrong, but you might be leaving employer match on the table. Always capture the full employer match before contributing more elsewhere — it's a 100% return on that money." },
+          { label:"Max out ISA first, then increase pension", best:false, outcome:"Not wrong, but you might be leaving employer match on the table. Always capture the full employer match before contributing more elsewhere it's a 100% return on that money." },
           { label:"Max pension match first, then ISA, then extra pension", best:true, outcome:"Perfect order: (1) Employer match = free money, always take it. (2) ISA = tax-free growth, flexible access. (3) Additional pension for long-term tax efficiency. This order maximises every pound." },
           { label:"Put everything into property saving for a deposit", best:false, outcome:"Property is a valid goal but not at the expense of tax-advantaged accounts. You can save for a deposit inside a Lifetime ISA (25% government bonus) while still capturing the employer match." },
         ],
@@ -2741,7 +2782,7 @@ const LESSONS = [
       {
         type:"quiz",
         question:"Which investment vehicle gives you the most tax advantages for long-term wealth building in the UK?",
-        options:["Premium Bonds — government-backed and flexible","Pension + ISA together — for different time horizons","A high-interest savings account","Buy-to-let property"],
+        options:["Premium Bonds government-backed and flexible","Pension + ISA together for different time horizons","A high-interest savings account","Buy-to-let property"],
         correct:1,
         explanation:"Pension and ISA together give you the full picture: pension for tax relief on contributions (25-81% boost) plus tax-free growth, and ISA for flexible tax-free growth you can access any time. Together they're hard to beat."
       },
@@ -2753,9 +2794,48 @@ const LESSONS = [
 /* ════════════════════════════════════════════════════════════════════
    LEARN TAB
    ════════════════════════════════════════════════════════════════════ */
+// Confetti component for lesson completion
+function Confetti({ active }) {
+  if(!active) return null
+  const pieces = Array.from({length:30},(_,i)=>({
+    id:i,
+    x: Math.random()*100,
+    color: [T.teal,T.purple,T.amber,T.green,T.blue,"#F472B6"][Math.floor(Math.random()*6)],
+    delay: Math.random()*0.4,
+    size: 6+Math.random()*6,
+    spin: Math.random()*360,
+  }))
+  return (
+    <div style={{ position:"fixed",inset:0,zIndex:999,pointerEvents:"none",overflow:"hidden" }}>
+      {pieces.map(p=>(
+        <div key={p.id} style={{
+          position:"absolute",
+          left:`${p.x}%`,top:"-20px",
+          width:p.size,height:p.size,
+          background:p.color,
+          borderRadius:Math.random()>0.5?"50%":"2px",
+          animation:`confettiFall 1.4s ${p.delay}s ease-in forwards`,
+          transform:`rotate(${p.spin}deg)`,
+        }}/>
+      ))}
+    </div>
+  )
+}
+
+const COMING_SOON_LESSONS = [
+  { emoji:"🏠", title:"How to build wealth through property", track:"Property", trackColor:T.amber, desc:"Mortgages, equity, and whether buying beats renting" },
+  { emoji:"📊", title:"ISAs explained: the best tax-free wrapper in the UK", track:"Tax", trackColor:T.teal, desc:"Stocks and Shares ISA vs Cash ISA and how to use them" },
+  { emoji:"🤝", title:"Investing your first £1,000 step by step", track:"Investing", trackColor:T.purple, desc:"Index funds, platforms, and exactly how to start" },
+  { emoji:"💰", title:"The 50/30/20 rule: a budget that actually works", track:"Budgeting", trackColor:T.green, desc:"A simple framework used by millions worldwide" },
+  { emoji:"🧮", title:"How to pay off your mortgage 10 years early", track:"Property", trackColor:T.amber, desc:"Overpayments, offset accounts and the maths behind it" },
+  { emoji:"🌍", title:"Why global index funds beat almost everything", track:"Investing", trackColor:T.purple, desc:"The evidence behind passive investing and why it works" },
+]
+
 function LearnTab() {
   const { state, save, toast } = useApp()
   const [activeLesson, setActiveLesson] = useState(null)
+  const [showConfetti, setShowConfetti] = useState(false)
+  const [justCompleted, setJustCompleted] = useState(null)
   const completedLessons = state.completedLessons||[]
   const doneSet = new Set(completedLessons)
   const priorityGoals = state.priorityGoals||[]
@@ -2770,7 +2850,10 @@ function LearnTab() {
       completedLessons: newCompleted,
       profile: { ...state.profile, points:(state.profile.points||0)+xpGain }
     })
-    toast(`🎉 +${xpGain} XP`)
+    setJustCompleted(lessonId)
+    setShowConfetti(true)
+    setTimeout(()=>setShowConfetti(false), 1800)
+    setTimeout(()=>setJustCompleted(null), 3000)
     setActiveLesson(null)
   }
 
@@ -2780,7 +2863,6 @@ function LearnTab() {
     return <LessonPlayer lesson={lesson} onComplete={()=>completeLesson(lesson.id)} onBack={()=>setActiveLesson(null)}/>
   }
 
-  // Sort: priority-linked lessons first, then undone first
   const sorted = [...LESSONS].sort((a,b)=>{
     const aLinked = a.goalLinks?.some(g=>priorityGoals.includes(g))
     const bLinked = b.goalLinks?.some(g=>priorityGoals.includes(g))
@@ -2793,24 +2875,43 @@ function LearnTab() {
     return 0
   })
 
+  const doneCount = completedLessons.length
+  const encouragement = doneCount===0
+    ? "Every lesson you complete moves your net worth in the right direction."
+    : doneCount===1
+    ? "One lesson done. You already know more than most people ever learn about money."
+    : doneCount < LESSONS.length
+    ? `${doneCount} lessons completed. You are building the knowledge that most people never get.`
+    : "You have completed every lesson. Your financial knowledge is genuinely rare."
+
   return (
     <div style={{ flex:1,overflowY:"auto",paddingBottom:100 }}>
+      <Confetti active={showConfetti}/>
+
+      {/* Completion banner */}
+      {justCompleted && (
+        <div style={{ position:"fixed",top:60,left:"50%",transform:"translateX(-50%)",zIndex:500,background:`linear-gradient(135deg,${T.teal},${T.purple})`,borderRadius:16,padding:"14px 24px",boxShadow:"0 8px 32px rgba(0,0,0,.5)",textAlign:"center",animation:"slideDown .3s ease" }}>
+          <p style={{ color:T.bg,fontWeight:900,fontSize:15 }}>🎉 Lesson complete!</p>
+          <p style={{ color:T.bg,fontSize:13,opacity:.85,marginTop:2 }}>You are one step closer to growing your net worth</p>
+        </div>
+      )}
+
       <div style={{ padding:"28px 18px 10px",maxWidth:700,margin:"0 auto",width:"100%" }}>
 
-        {/* Header */}
         <h2 style={{ color:T.white,fontWeight:900,fontSize:22,marginBottom:4 }}>Learn</h2>
-        <p style={{ color:"#CBD5E1",fontSize:13,marginBottom:20 }}>
-          {completedLessons.length}/{LESSONS.length} completed · {completedLessons.length*15} XP earned
+        <p style={{ color:"#CBD5E1",fontSize:13,marginBottom:6 }}>
+          {doneCount}/{LESSONS.length} completed
         </p>
+        <p style={{ color:T.teal,fontSize:13,fontWeight:600,marginBottom:20 }}>{encouragement}</p>
 
         {/* XP bar */}
         <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px 16px",marginBottom:24 }}>
           <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8 }}>
-            <p style={{ color:T.white,fontWeight:700,fontSize:13 }}>Your progress</p>
-            <p style={{ color:T.teal,fontWeight:800,fontSize:13 }}>{completedLessons.length}/{LESSONS.length} lessons</p>
+            <p style={{ color:T.white,fontWeight:700,fontSize:13 }}>Progress</p>
+            <p style={{ color:T.teal,fontWeight:800,fontSize:13 }}>{state.profile?.points||0} XP earned</p>
           </div>
           <div style={{ background:T.surface,borderRadius:99,height:8,overflow:"hidden" }}>
-            <div style={{ width:`${LESSONS.length>0?Math.round(completedLessons.length/LESSONS.length*100):0}%`,height:"100%",background:`linear-gradient(90deg,${T.teal},${T.purple})`,borderRadius:99,transition:"width .6s ease" }}/>
+            <div style={{ width:`${LESSONS.length>0?Math.round(doneCount/LESSONS.length*100):0}%`,height:"100%",background:`linear-gradient(90deg,${T.teal},${T.purple})`,borderRadius:99,transition:"width .6s ease" }}/>
           </div>
         </div>
 
@@ -2819,33 +2920,70 @@ function LearnTab() {
           {sorted.map(lesson=>{
             const done   = doneSet.has(lesson.id)
             const linked = lesson.goalLinks?.some(g=>priorityGoals.includes(g))
+            const justDone = justCompleted===lesson.id
             return (
               <button key={lesson.id} onClick={()=>setActiveLesson(lesson.id)}
-                style={{ background:T.card,border:`1.5px solid ${linked&&!done?lesson.trackColor+"40":T.border}`,borderRadius:18,padding:"18px 20px",cursor:"pointer",textAlign:"left",fontFamily:"inherit",display:"flex",gap:14,alignItems:"center",opacity:done?.75:1,transition:"all .15s" }}>
-                <div style={{ width:54,height:54,borderRadius:16,background:done?"rgba(52,211,153,.15)":`${lesson.trackColor}20`,border:`1.5px solid ${done?"rgba(52,211,153,.3)":lesson.trackColor+"40"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,flexShrink:0 }}>
+                style={{
+                  background: done
+                    ? `linear-gradient(135deg,${lesson.trackColor}18,${lesson.trackColor}08)`
+                    : T.card,
+                  border: `1.5px solid ${done ? lesson.trackColor+"50" : linked&&!done ? lesson.trackColor+"40" : T.border}`,
+                  borderRadius:18, padding:"18px 20px",
+                  cursor:"pointer", textAlign:"left", fontFamily:"inherit",
+                  display:"flex", gap:14, alignItems:"center",
+                  transition:"all .3s",
+                  boxShadow: done ? `0 0 20px ${lesson.trackColor}15` : justDone ? `0 0 30px ${T.teal}40` : "none"
+                }}>
+                <div style={{
+                  width:54, height:54, borderRadius:16, flexShrink:0,
+                  background: done ? `${lesson.trackColor}30` : `${lesson.trackColor}18`,
+                  border: `1.5px solid ${done ? lesson.trackColor+"80" : lesson.trackColor+"40"}`,
+                  display:"flex", alignItems:"center", justifyContent:"center", fontSize:26,
+                }}>
                   {done ? "✅" : lesson.emoji}
                 </div>
                 <div style={{ flex:1,minWidth:0 }}>
-                  {linked && !done && <p style={{ color:lesson.trackColor,fontWeight:700,fontSize:10,letterSpacing:1,textTransform:"uppercase",marginBottom:3 }}>★ Matches your goals</p>}
-                  <p style={{ color:T.white,fontWeight:700,fontSize:14,lineHeight:1.3,marginBottom:4 }}>{lesson.title}</p>
+                  {done && <p style={{ color:lesson.trackColor,fontWeight:700,fontSize:10,letterSpacing:1,textTransform:"uppercase",marginBottom:3 }}>✓ Completed</p>}
+                  {!done && linked && <p style={{ color:lesson.trackColor,fontWeight:700,fontSize:10,letterSpacing:1,textTransform:"uppercase",marginBottom:3 }}>★ Matches your goals</p>}
+                  <p style={{ color: done ? T.white : T.white,fontWeight:700,fontSize:14,lineHeight:1.3,marginBottom:4 }}>{lesson.title}</p>
                   <div style={{ display:"flex",gap:10,alignItems:"center",flexWrap:"wrap" }}>
-                    <span style={{ background:`${lesson.trackColor}20`,color:lesson.trackColor,fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:6,border:`1px solid ${lesson.trackColor}30` }}>{lesson.track}</span>
-                    <span style={{ color:"#7A8FA8",fontSize:12 }}>{lesson.cards?.length} cards · +{lesson.xp} XP</span>
+                    <span style={{ background:`${lesson.trackColor}${done?"40":"20"}`,color:lesson.trackColor,fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:6,border:`1px solid ${lesson.trackColor}${done?"60":"30"}` }}>{lesson.track}</span>
+                    <span style={{ color:"#7A8FA8",fontSize:12 }}>{lesson.cards?.length} cards +{lesson.xp} XP</span>
                   </div>
                 </div>
                 <div style={{ flexShrink:0 }}>
-                  {done ? <span style={{ color:T.green,fontSize:11,fontWeight:700 }}>Done ✓</span> : <ChevronRight size={18} color={T.muted}/>}
+                  {done
+                    ? <div style={{ background:`${lesson.trackColor}25`,borderRadius:8,padding:"4px 8px" }}><span style={{ color:lesson.trackColor,fontSize:12,fontWeight:800 }}>Done ✓</span></div>
+                    : <ChevronRight size={18} color={T.muted}/>
+                  }
                 </div>
               </button>
             )
           })}
         </div>
 
-        {/* Teaser for more */}
-        <div style={{ background:T.faint,border:`1px solid ${T.border}`,borderRadius:18,padding:"20px",marginTop:14,textAlign:"center" }}>
-          <p style={{ fontSize:28,marginBottom:8 }}>🚀</p>
-          <p style={{ color:T.white,fontWeight:700,fontSize:14,marginBottom:4 }}>More lessons coming</p>
-          <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.5 }}>Investing, debt strategy, pensions, ISAs, budgeting — complete these two first to unlock what's next.</p>
+        {/* Coming soon greyed lessons */}
+        <div style={{ marginTop:24 }}>
+          <p style={{ color:"#7A8FA8",fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:14 }}>Coming soon</p>
+          <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
+            {COMING_SOON_LESSONS.map((l,i)=>(
+              <div key={i} style={{ background:T.faint,border:`1px solid ${T.border}`,borderRadius:16,padding:"16px 18px",display:"flex",gap:12,alignItems:"center",opacity:0.5 }}>
+                <div style={{ width:48,height:48,borderRadius:14,background:`${l.trackColor}12`,border:`1px solid ${l.trackColor}20`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0 }}>
+                  {l.emoji}
+                </div>
+                <div style={{ flex:1,minWidth:0 }}>
+                  <p style={{ color:T.white,fontWeight:700,fontSize:13,marginBottom:3 }}>{l.title}</p>
+                  <div style={{ display:"flex",gap:8,alignItems:"center" }}>
+                    <span style={{ background:`${l.trackColor}15`,color:l.trackColor,fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:6 }}>{l.track}</span>
+                    <span style={{ color:"#7A8FA8",fontSize:11 }}>{l.desc}</span>
+                  </div>
+                </div>
+                <div style={{ background:T.surface,borderRadius:8,padding:"4px 10px" }}>
+                  <span style={{ color:"#7A8FA8",fontSize:11,fontWeight:700 }}>Soon</span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -2977,9 +3115,12 @@ function FactCard({ card, color }) {
       )}
 
       {card.highlight && (
-        <div style={{ background:`${color}12`,border:`1.5px solid ${color}35`,borderRadius:14,padding:"14px 18px",marginBottom:card.facts?18:0 }}>
+        <div style={{ background:`${color}12`,border:`1.5px solid ${color}35`,borderRadius:14,padding:"14px 18px",marginBottom:card.sub||card.facts?14:0 }}>
           <p style={{ color,fontWeight:700,fontSize:14,lineHeight:1.5 }}>💡 {card.highlight}</p>
         </div>
+      )}
+      {card.sub && (
+        <p style={{ color:"#CBD5E1",fontSize:14,lineHeight:1.65,marginBottom:card.facts?18:0 }}>{card.sub}</p>
       )}
 
       {card.facts && (
@@ -3288,7 +3429,7 @@ function MeTab() {
               {state.profile.age && <p style={{ color:"#CBD5E1",fontSize:13,marginBottom:4 }}>Age {state.profile.age}</p>}
               <div style={{ display:"flex",alignItems:"center",gap:6 }}>
                 <span style={{ fontSize:14 }}>{lvl.emoji}</span>
-                <span style={{ color:"#CBD5E1",fontSize:13 }}>Level {lvl.level} — {lvl.label}</span>
+                <span style={{ color:"#CBD5E1",fontSize:13 }}>Level {lvl.level} {lvl.label}</span>
               </div>
             </div>
             <div style={{ textAlign:"right" }}>
@@ -3402,7 +3543,7 @@ function MeTab() {
           </button>
         </div>
 
-        <p style={{ color:"#7A8FA8",fontSize:12,textAlign:"center",marginTop:16 }}>🔒 Your data stays on your device · LifeSmart</p>
+        <p style={{ color:"#7A8FA8",fontSize:12,textAlign:"center",marginTop:16 }}>🔒 Your data stays on your device LifeSmart</p>
       </div>
     </div>
   )
