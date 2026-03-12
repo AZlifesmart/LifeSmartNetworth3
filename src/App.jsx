@@ -49,6 +49,96 @@ const T = {
 /* ════════════════════════════════════════════════════════════════════
    CONSTANTS
    ════════════════════════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════════════════
+   PRIORITY MODES
+   ════════════════════════════════════════════════════════════════════ */
+const PRIORITY_MODES = [
+  {
+    id:"grow",   icon:"📈", label:"Grow my wealth",
+    sub:"Track everything, grow your net worth, beat the numbers",
+    color:T.teal, dim:T.tealDim, border:T.tealBorder,
+    tagline:(n)=>`${n?n+", your":"Your"} wealth is compounding.`,
+    encouragement:"Every figure you track is a decision made better.",
+    primaryLesson:"compound_interest",
+  },
+  {
+    id:"safety", icon:"🛡️", label:"Feel financially secure",
+    sub:"Understand your safety net, reduce money stress, sleep better",
+    color:T.green, dim:"rgba(52,211,153,.10)", border:"rgba(52,211,153,.30)",
+    tagline:(n)=>`${n?n+", you're":"You're"} more secure than you think.`,
+    encouragement:"Knowing your numbers is the cure for money anxiety.",
+    primaryLesson:"nw_basics",
+  },
+  {
+    id:"learn",  icon:"💡", label:"Learn about money",
+    sub:"Build real financial knowledge from scratch, no jargon",
+    color:T.purple, dim:T.purpleDim, border:T.purpleBorder,
+    tagline:(n)=>`${n?n+", you're":"You're"} building knowledge that pays forever.`,
+    encouragement:"Every lesson makes your next financial decision a better one.",
+    primaryLesson:"nw_basics",
+  },
+  {
+    id:"action", icon:"🎯", label:"Take action on my finances",
+    sub:"Invest, buy a home, clear debt — get a clear plan",
+    color:T.amber, dim:T.amberDim, border:T.amberBorder,
+    tagline:(n)=>`${n?n+", your":"Your"} plan is taking shape.`,
+    encouragement:"A clear plan is worth more than any individual financial decision.",
+    primaryLesson:"pay_off_debt",
+  },
+]
+
+/* ════════════════════════════════════════════════════════════════════
+   MONEY PERSONALITY
+   ════════════════════════════════════════════════════════════════════ */
+function calcPersonality(state) {
+  const assets  = state.assets||[]
+  const debts   = state.debts||[]
+  const mode    = state.profile?.mode||"grow"
+  const age     = state.profile?.age||35
+  const totalA  = assets.reduce((s,a)=>s+(a.value||0),0)
+  const savings = assets.filter(a=>["savings","cash"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0)
+  const invested= assets.filter(a=>["investment","stocks"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0)
+  const pension = assets.filter(a=>a.category==="pension").reduce((s,a)=>s+(a.value||0),0)
+  const property= assets.filter(a=>a.category==="property").reduce((s,a)=>s+(a.value||0),0)
+
+  let mindset  = mode==="safety"?"security":mode==="learn"||mode==="action"?"freedom":"growth"
+  if(mindset==="growth" && savings>invested*2) mindset="security"
+
+  let behaviour = "starter"
+  if(totalA>0){
+    const ir = (invested+pension)/Math.max(totalA,1)
+    if(property>0&&(invested+pension)>10000) behaviour="builder"
+    else if(ir>0.5) behaviour="investor"
+    else if(savings>5000) behaviour="saver"
+  }
+
+  let risk = "balanced"
+  const ip = totalA>0?(invested+pension)/totalA:0
+  if(ip>0.6&&age<50) risk="adventurous"
+  else if(ip<0.2&&savings>0&&invested===0) risk="cautious"
+
+  const ARCHETYPES = {
+    "security-saver-cautious":     {name:"The Guardian",    emoji:"🛡️",color:T.green,  summary:"Your priority is protection. You build carefully and steadily and that discipline is a strength most people never develop."},
+    "security-builder-balanced":   {name:"The Cultivator",  emoji:"🌱",color:T.teal,   summary:"You are building solid foundations while staying grounded. Growth is happening even when it feels slow."},
+    "growth-investor-adventurous": {name:"The Accelerator", emoji:"🚀",color:T.teal,   summary:"You think long-term and are not fazed by short-term noise. Your money works as hard as you do."},
+    "freedom-builder-balanced":    {name:"The Navigator",   emoji:"🧭",color:T.purple, summary:"You are working towards options. Every smart decision brings financial independence a step closer."},
+    "freedom-starter-cautious":    {name:"The Learner",     emoji:"💡",color:T.purple, summary:"You are at the start of the journey and you know it. That self-awareness is rarer and more valuable than you think."},
+    "growth-builder-balanced":     {name:"The Grower",      emoji:"⚡",color:T.amber,  summary:"You have real momentum and the habits are forming. The opportunity now is to make sure they are pointed the right way."},
+    "growth-saver-balanced":       {name:"The Architect",   emoji:"🏗️",color:T.blue,   summary:"Strong foundations, but your money is not working hard enough yet. There is a clear and exciting next step available."},
+    "freedom-investor-adventurous":{name:"The Opportunist", emoji:"🌊",color:T.amber,  summary:"You move decisively and back yourself. The opportunity is to make sure your foundations match your ambition."},
+  }
+  const key = `${mindset}-${behaviour}-${risk}`
+  return { mindset, behaviour, risk, archetype:ARCHETYPES[key]||ARCHETYPES["freedom-starter-cautious"] }
+}
+
+const PERSONALITY_LOCKED = [
+  {id:"risk",    icon:"🎯", label:"Your full risk profile",           unlock:"Complete 1 lesson",       check:(s)=>(s.completedLessons||[]).length>=1},
+  {id:"balance", icon:"⚖️", label:"Saving vs investing balance",      unlock:"Add 3 or more assets",    check:(s)=>(s.assets||[]).length>=3},
+  {id:"peers",   icon:"👥", label:"How you compare to your age group", unlock:"Update your figures 3 times", check:(s)=>(s.history||[]).length>=3},
+  {id:"blindspot",icon:"🔍",label:"Your biggest financial blind spot", unlock:"Complete 3 lessons",      check:(s)=>(s.completedLessons||[]).length>=3},
+]
+
+
 const ASSET_TYPES = [
   { id:"property",    label:"Property",     icon:"🏠", cat:"primary_residence", desc:"Home, flat, land",         hint:"Check Zoopla or Rightmove",          bucket:"life"   },
   { id:"savings",     label:"Savings",      icon:"💰", cat:"savings",           desc:"Cash, ISA, current acct",  hint:"Check your banking app",             bucket:"safety" },
@@ -430,14 +520,14 @@ function Onboarding() {
     })
     save({
       ...state,
-      profile:{ ...state.profile, name:name||"Friend", age:parseInt(age)||null, onboardingComplete:true, points:20, lastCheckIn:new Date().toISOString() },
+      profile:{ ...state.profile, name:name||"Friend", age:parseInt(age)||null, onboardingComplete:true, points:20, lastCheckIn:new Date().toISOString(), mode:state.profile?.mode||"grow" },
       assets: newAssets, debts: newDebts,
       income: { ...state.income, primary:income },
       spending: { ...state.spending, monthly:spending },
     })
   }
 
-  if(screen==="welcome")   return <WelcomeScreen  onNext={()=>setScreen("about")} />
+  if(screen==="welcome")   return <WelcomeScreen  onNext={(mode)=>{ save({...state,profile:{...state.profile,mode:mode||"grow"}}); setScreen("about") }} />
   if(screen==="about")     return <AboutScreen    name={name} setName={setName} age={age} setAge={setAge} onNext={()=>setScreen("greeting")} onBack={()=>setScreen("welcome")} />
   if(screen==="greeting")  return <GreetingScreen name={name} onNext={()=>setScreen("assets")} onBack={()=>setScreen("about")} />
   if(screen==="assets")    return <AssetChecklistScreen values={assets} setValues={setAssets} onNext={()=>setScreen("debts")} onBack={()=>setScreen("greeting")} />
@@ -482,6 +572,12 @@ const WELCOME_STEPS = [
     ],
   },
   {
+    id: "mode",
+    isModeSelect: true,
+    headline: "What matters most to you right now?",
+    sub: "This shapes how LifeSmart works for you. You can always change it later.",
+  },
+  {
     id: "ready",
     isFinal: true,
     headline: null,
@@ -518,16 +614,17 @@ function WelcomeScreen({ onNext }) {
       return nwChoice?.response || "Good."
     }
     if(step.id === "ready") {
-      const sitChoice = WELCOME_STEPS[2].choices.find(c=>c.id===responses.situation)
-      return sitChoice?.response || "Let's build your picture."
+      const selMode = PRIORITY_MODES.find(m=>m.id===responses.mode)
+      return selMode ? selMode.tagline("") || "Let's build your picture." : "Let's build your picture."
     }
     return ""
   }
 
   function advance() {
-    if(step.isFinal) { onNext(); return }
-    const needsChoice = !!step.choices
+    if(step.isFinal) { onNext(responses.mode||"grow"); return }
+    const needsChoice = step.choices && !step.isModeSelect
     if(needsChoice && !selected) return
+    if(step.isModeSelect && !selected) return
     const newResponses = { ...responses, [step.id]: selected }
     setResponses(newResponses)
     setExiting(true)
@@ -569,7 +666,7 @@ function WelcomeScreen({ onNext }) {
         </div>
 
         {/* Choice step */}
-        {step.choices && (
+        {step.choices && !step.isModeSelect && (
           <div style={{ display:"flex",flexDirection:"column",gap:10,flex:1 }}>
             {step.choices.map(c=>{
               const sel = selected===c.id
@@ -587,6 +684,36 @@ function WelcomeScreen({ onNext }) {
                     boxShadow: sel ? `0 0 20px ${T.teal}25` : "none"
                   }}>
                   {c.label}
+                </button>
+              )
+            })}
+          </div>
+        )}
+
+        {/* Mode select step */}
+        {step.isModeSelect && (
+          <div style={{ display:"flex",flexDirection:"column",gap:10,flex:1 }}>
+            {PRIORITY_MODES.map(m=>{
+              const sel = selected===m.id
+              return (
+                <button key={m.id} onClick={()=>setSelected(m.id)}
+                  style={{
+                    background: sel ? `${m.dim}` : T.card,
+                    border: `2px solid ${sel ? m.color : T.border}`,
+                    borderRadius:16, padding:"16px 20px",
+                    cursor:"pointer", textAlign:"left", fontFamily:"inherit",
+                    transition:"all .15s",
+                    boxShadow: sel ? `0 0 20px ${m.color}25` : "none",
+                    display:"flex", alignItems:"center", gap:14
+                  }}>
+                  <div style={{ width:44,height:44,borderRadius:12,background:sel?`${m.color}25`:`${m.color}12`,border:`1.5px solid ${sel?m.color:m.color+"30"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0 }}>
+                    {m.icon}
+                  </div>
+                  <div style={{ flex:1 }}>
+                    <p style={{ color:sel?T.white:"#CBD5E1",fontWeight:700,fontSize:15,marginBottom:3 }}>{m.label}</p>
+                    <p style={{ color:sel?"#CBD5E1":"#7A8FA8",fontSize:13,lineHeight:1.4 }}>{m.sub}</p>
+                  </div>
+                  {sel && <div style={{ width:20,height:20,borderRadius:"50%",background:m.color,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}><Check size={12} color={T.bg}/></div>}
                 </button>
               )
             })}
@@ -1101,10 +1228,22 @@ function WowScreen({ assets, debts, income, spending, name, onFinish }) {
           )}
         </div>
 
+        {/* Personality teaser */}
+        <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:"16px 20px",marginBottom:24,textAlign:"left" }}>
+          <p style={{ color:"#7A8FA8",fontSize:11,fontWeight:700,letterSpacing:1.2,textTransform:"uppercase",marginBottom:8 }}>Your money personality</p>
+          <div style={{ display:"flex",alignItems:"center",gap:12 }}>
+            <span style={{ fontSize:32 }}>✨</span>
+            <div>
+              <p style={{ color:T.white,fontWeight:700,fontSize:15,marginBottom:2 }}>Calculating your profile...</p>
+              <p style={{ color:"#CBD5E1",fontSize:13 }}>Based on your figures, we will reveal your money personality type on your dashboard.</p>
+            </div>
+          </div>
+        </div>
+
         <Btn onClick={onFinish} style={{ fontSize:16,padding:"16px 28px" }}>
-          Explore my picture →
+          See my full picture
         </Btn>
-        <p style={{ color:"#CBD5E1",fontSize:13,marginTop:14 }}>You'll be able to set goals and explore insights on your dashboard</p>
+        <p style={{ color:"#CBD5E1",fontSize:13,marginTop:14 }}>Your personality type, insights and goals are waiting on your dashboard</p>
       </div>
     </div>
   )
@@ -1126,24 +1265,30 @@ function HomeTab() {
   const fireNumber   = hasSpending ? spending.monthly * 12 * 25 : null
   const [showEdit, setShowEdit] = useState(false)
 
+  // Mode + personality
+  const mode = PRIORITY_MODES.find(m=>m.id===(profile?.mode||"grow")) || PRIORITY_MODES[0]
+  const personality = calcPersonality(state)
+
   const hasPriorities = (priorityGoals||[]).length > 0
 
-  // Recommended lesson first one from priority goals not yet done
+  // Recommended lesson — mode-aware
   const doneSet = new Set(completedLessons||[])
   const priorityLessonId = (priorityGoals||[]).map(id => PRIORITY_GOALS.find(g=>g.id===id)?.lesson).find(lid=>lid&&!doneSet.has(lid))
-  const recLesson = LESSONS.find(l=>l.id===(priorityLessonId||LESSONS.find(l=>!doneSet.has(l.id))?.id))
+  const modePrimaryLesson = mode.primaryLesson
+  const recLessonId = priorityLessonId || (doneSet.has(modePrimaryLesson)?null:modePrimaryLesson) || LESSONS.find(l=>!doneSet.has(l.id))?.id
+  const recLesson = LESSONS.find(l=>l.id===recLessonId)
 
   return (
     <div style={{ flex:1,overflowY:"auto",paddingBottom:100 }}>
 
       {/* ── Hero strip ──────────────────────────────────────────────── */}
-      <div style={{ position:"relative",background:`linear-gradient(180deg,${T.teal}12 0%,transparent 100%)`,padding:"32px 20px 22px" }}>
+      <div style={{ position:"relative",background:`linear-gradient(180deg,${mode.color}12 0%,transparent 100%)`,padding:"32px 20px 22px" }}>
         <StarField count={12}/>
         <div style={{ position:"relative",maxWidth:1100,margin:"0 auto" }}>
           <div style={{ display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10 }}>
             <div>
-              <p style={{ fontSize:11,fontWeight:700,color:T.teal,letterSpacing:1.5,textTransform:"uppercase",marginBottom:4 }}>
-                {profile.name ? `${profile.name}'s net worth` : "Your net worth"}
+              <p style={{ fontSize:11,fontWeight:700,color:mode.color,letterSpacing:1.5,textTransform:"uppercase",marginBottom:4 }}>
+                {mode.tagline(profile.name||"")}
               </p>
               <div style={{ fontSize:"clamp(34px,8vw,52px)",fontWeight:900,lineHeight:1,
                 color:netWorth>=0?T.teal:T.red,
@@ -1218,6 +1363,33 @@ function HomeTab() {
           </>
         )}
 
+        {/* ── Persistent lesson strip ─────────────────────────────── */}
+        {recLesson && !doneSet.has(recLesson.id) && (
+          <button onClick={()=>setTab(1)} style={{ width:"100%",background:T.card,border:`1.5px solid ${recLesson.trackColor}35`,borderRadius:16,padding:"14px 18px",cursor:"pointer",textAlign:"left",fontFamily:"inherit",display:"flex",alignItems:"center",gap:14,marginBottom:20 }}>
+            <div style={{ width:46,height:46,borderRadius:13,background:`${recLesson.trackColor}20`,border:`1.5px solid ${recLesson.trackColor}40`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0 }}>
+              {recLesson.emoji}
+            </div>
+            <div style={{ flex:1,minWidth:0 }}>
+              <p style={{ color:recLesson.trackColor,fontWeight:700,fontSize:11,letterSpacing:.5,textTransform:"uppercase",marginBottom:2 }}>Next lesson · {recLesson.track}</p>
+              <p style={{ color:T.white,fontWeight:700,fontSize:13,lineHeight:1.3 }}>{recLesson.title}</p>
+              <p style={{ color:"#7A8FA8",fontSize:11,marginTop:2 }}>{recLesson.cards?.length} cards · {recLesson.xp} XP · Takes about 5 mins</p>
+            </div>
+            <div style={{ background:`${recLesson.trackColor}15`,borderRadius:99,padding:"5px 12px",flexShrink:0 }}>
+              <p style={{ color:recLesson.trackColor,fontSize:12,fontWeight:700 }}>Start</p>
+            </div>
+          </button>
+        )}
+        {recLesson && doneSet.has(recLesson.id) && (completedLessons||[]).length < LESSONS.length && (
+          <button onClick={()=>setTab(1)} style={{ width:"100%",background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:"12px 18px",cursor:"pointer",textAlign:"left",fontFamily:"inherit",display:"flex",alignItems:"center",gap:12,marginBottom:20 }}>
+            <span style={{ fontSize:20 }}>💡</span>
+            <div style={{ flex:1 }}>
+              <p style={{ color:T.white,fontWeight:700,fontSize:13 }}>{(completedLessons||[]).length}/{LESSONS.length} lessons done</p>
+              <p style={{ color:"#CBD5E1",fontSize:12 }}>{mode.encouragement}</p>
+            </div>
+            <p style={{ color:T.teal,fontSize:12,fontWeight:700,flexShrink:0 }}>View all</p>
+          </button>
+        )}
+
         {/* ── Insights label ─────────────────────────────────────── */}
         <p style={{ color:T.muted,fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:14,marginTop:4 }}>Your top insights</p>
 
@@ -1251,9 +1423,9 @@ function HomeTab() {
               unlock="Add spending" onUnlock={()=>setTab(2)}/>
           )}
 
-          {/* 2. Safety net */}
+          {/* 2. Safety net — extra detail in safety mode */}
           {bk.safetyNet > 0 && (
-            <InsightCard icon="🛡️" title="Safety net" sub="Easy-access savings" iconBg={T.tealDim} iconBorder={T.tealBorder}
+            <InsightCard icon="🛡️" title={mode.id==="safety"?"Your financial safety net":"Safety net"} sub="Easy-access savings" iconBg={T.tealDim} iconBorder={T.tealBorder}
               infoText="Your liquid savings: cash, current accounts, easy-access ISAs. The rule of thumb is 3 to 6 months of expenses. This is your buffer before anything else.">
               <p style={{ color:T.teal,fontWeight:900,fontSize:28,marginBottom:8 }}>{fmt(bk.safetyNet)}</p>
               {safetyMonths!=null ? (
@@ -1263,17 +1435,26 @@ function HomeTab() {
                   </div>
                   <div style={{ display:"flex",justifyContent:"space-between",marginBottom:6 }}>
                     <p style={{ color:"#7A8FA8",fontSize:12 }}>0 months</p>
-                    <p style={{ color:"#7A8FA8",fontSize:12 }}>6 months</p>
+                    <p style={{ color:"#7A8FA8",fontSize:12 }}>6 months target</p>
                   </div>
                   <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.5 }}>
-                    <strong style={{ color:safetyMonths>=3?T.green:T.amber }}>{safetyMonths} month{safetyMonths!==1?"s":""}</strong> of expenses covered.
-                    {safetyMonths<3 && " Aim for 3 to 6 months as your first target."}
-                    {safetyMonths>=3 && safetyMonths<6 && " You have the foundation. Keep building."}
-                    {safetyMonths>=6 && " Fully covered. Consider putting excess to work in investments."}
+                    {mode.id==="safety"
+                      ? safetyMonths>=6
+                        ? `You are well protected. Your savings cover ${safetyMonths} full months of expenses — that is a real foundation of security.`
+                        : safetyMonths>=3
+                        ? `You have ${safetyMonths} months of expenses covered. You are protected. Aim for 6 months to feel fully secure.`
+                        : `Your savings cover ${safetyMonths} month${safetyMonths!==1?"s":""} of expenses. Building this to 3 months is the single most powerful thing you can do for your financial security.`
+                      : <>
+                        <strong style={{ color:safetyMonths>=3?T.green:T.amber }}>{safetyMonths} month{safetyMonths!==1?"s":""}</strong> of expenses covered.
+                        {safetyMonths<3 && " Aim for 3 to 6 months as your first target."}
+                        {safetyMonths>=3 && safetyMonths<6 && " You have the foundation. Keep building."}
+                        {safetyMonths>=6 && " Fully covered. Consider putting excess to work in investments."}
+                      </>
+                    }
                   </p>
                 </>
               ) : (
-                <p style={{ color:"#CBD5E1",fontSize:13 }}>Add monthly spending in Track to see how many months you are covered for.</p>
+                <p style={{ color:"#CBD5E1",fontSize:13 }}>Add monthly spending in Track to see how many months of expenses you are covered for.</p>
               )}
             </InsightCard>
           )}
@@ -3401,6 +3582,114 @@ function GrowthChartCard({ color, hint }) {
 /* ════════════════════════════════════════════════════════════════════
    ME TAB
    ════════════════════════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════════════════
+   MONEY PERSONALITY CARD
+   ════════════════════════════════════════════════════════════════════ */
+function MoneyPersonalityCard({ state, save }) {
+  const p = calcPersonality(state)
+  const arch = p.archetype
+  const [showMode, setShowMode] = useState(false)
+  const mode = PRIORITY_MODES.find(m=>m.id===(state.profile?.mode||"grow"))||PRIORITY_MODES[0]
+  const unlocked = PERSONALITY_LOCKED.filter(l=>l.check(state))
+  const locked   = PERSONALITY_LOCKED.filter(l=>!l.check(state))
+
+  const DIM_LABELS = {
+    mindset:   { security:"Security-focused", growth:"Growth-focused",   freedom:"Freedom-focused" },
+    behaviour: { starter:"Starter",           saver:"Saver",             builder:"Builder",         investor:"Investor" },
+    risk:      { cautious:"Cautious",          balanced:"Balanced",       adventurous:"Adventurous" },
+  }
+
+  return (
+    <div style={{ marginBottom:16 }}>
+      <div style={{ background:T.card,border:`1.5px solid ${arch.color}35`,borderRadius:20,padding:"22px",position:"relative",overflow:"hidden" }}>
+        <div style={{ position:"absolute",top:0,right:0,width:120,height:120,background:`radial-gradient(circle at 100% 0%,${arch.color}15,transparent 70%)`,pointerEvents:"none" }}/>
+
+        <div style={{ display:"flex",alignItems:"flex-start",gap:14,marginBottom:16,position:"relative" }}>
+          <div style={{ width:56,height:56,borderRadius:16,background:`${arch.color}20`,border:`2px solid ${arch.color}40`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,flexShrink:0 }}>
+            {arch.emoji}
+          </div>
+          <div style={{ flex:1 }}>
+            <p style={{ color:"#7A8FA8",fontSize:11,fontWeight:700,letterSpacing:1.2,textTransform:"uppercase",marginBottom:4 }}>Your money personality</p>
+            <p style={{ color:T.white,fontWeight:900,fontSize:20,marginBottom:4 }}>{arch.name}</p>
+            <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.55 }}>{arch.summary}</p>
+          </div>
+        </div>
+
+        {/* 3 dimensions */}
+        <div style={{ display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:16 }}>
+          {[
+            { label:"Mindset",  val:DIM_LABELS.mindset[p.mindset],   color:T.teal },
+            { label:"Behaviour",val:DIM_LABELS.behaviour[p.behaviour],color:T.purple },
+            { label:"Risk",     val:DIM_LABELS.risk[p.risk],          color:T.amber },
+          ].map(d=>(
+            <div key={d.label} style={{ background:T.surface,borderRadius:12,padding:"10px 10px" }}>
+              <p style={{ color:"#7A8FA8",fontSize:10,fontWeight:700,letterSpacing:.8,textTransform:"uppercase",marginBottom:3 }}>{d.label}</p>
+              <p style={{ color:d.color,fontWeight:800,fontSize:12 }}>{d.val}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Locked insights */}
+        <div style={{ borderTop:`1px solid ${T.border}`,paddingTop:14 }}>
+          <p style={{ color:"#7A8FA8",fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:10 }}>Deeper insights</p>
+          <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
+            {PERSONALITY_LOCKED.map(l=>{
+              const done = l.check(state)
+              return (
+                <div key={l.id} style={{ display:"flex",alignItems:"center",gap:10,background:done?`${arch.color}10`:T.faint,borderRadius:10,padding:"10px 12px",border:`1px solid ${done?arch.color+"30":T.border}` }}>
+                  <span style={{ fontSize:16,flexShrink:0 }}>{l.icon}</span>
+                  <p style={{ color:done?T.white:"#7A8FA8",fontWeight:done?700:500,fontSize:13,flex:1 }}>{l.label}</p>
+                  {done
+                    ? <span style={{ color:arch.color,fontSize:11,fontWeight:700 }}>Unlocked ✓</span>
+                    : <span style={{ color:"#7A8FA8",fontSize:11 }}>{l.unlock}</span>
+                  }
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Mode selector */}
+      <div style={{ marginTop:12 }}>
+        <button onClick={()=>setShowMode(v=>!v)}
+          style={{ width:"100%",background:T.card,border:`1px solid ${mode.border}`,borderRadius:14,padding:"13px 18px",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:12,justifyContent:"space-between" }}>
+          <div style={{ display:"flex",alignItems:"center",gap:10 }}>
+            <span style={{ fontSize:18 }}>{mode.icon}</span>
+            <div style={{ textAlign:"left" }}>
+              <p style={{ color:"#7A8FA8",fontSize:11,fontWeight:700,letterSpacing:.8,textTransform:"uppercase",marginBottom:1 }}>Your focus mode</p>
+              <p style={{ color:T.white,fontWeight:700,fontSize:13 }}>{mode.label}</p>
+            </div>
+          </div>
+          <p style={{ color:mode.color,fontSize:12,fontWeight:700 }}>Change</p>
+        </button>
+
+        {showMode && (
+          <div className="ls-fadein" style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:"14px",marginTop:8 }}>
+            <p style={{ color:"#CBD5E1",fontSize:13,marginBottom:12,fontWeight:500 }}>What do you want LifeSmart to focus on?</p>
+            <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
+              {PRIORITY_MODES.map(m=>{
+                const sel = m.id===(state.profile?.mode||"grow")
+                return (
+                  <button key={m.id} onClick={()=>{ save({...state,profile:{...state.profile,mode:m.id}}); setShowMode(false) }}
+                    style={{ background:sel?m.dim:T.faint,border:`1.5px solid ${sel?m.color:T.border}`,borderRadius:12,padding:"12px 14px",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:12,textAlign:"left" }}>
+                    <span style={{ fontSize:20 }}>{m.icon}</span>
+                    <div style={{ flex:1 }}>
+                      <p style={{ color:sel?T.white:"#CBD5E1",fontWeight:700,fontSize:14 }}>{m.label}</p>
+                      <p style={{ color:sel?"#CBD5E1":"#7A8FA8",fontSize:12 }}>{m.sub}</p>
+                    </div>
+                    {sel && <Check size={16} color={m.color}/>}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function MeTab() {
   const { state, reset, save, toast } = useApp()
   const xp      = state.profile.points||0
@@ -3463,6 +3752,9 @@ function MeTab() {
             </div>
           ))}
         </div>
+
+        {/* Money Personality Card */}
+        <MoneyPersonalityCard state={state} save={save}/>
 
         {/* Priorities */}
         {priorityGoals.length > 0 && (
