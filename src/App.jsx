@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext, createContext, useMemo, useRef } from "react"
-import { Home, BookOpen, User, Check, X, ChevronLeft, ChevronRight, Pencil, Trash2, Plus, Star, Sparkles, TrendingUp, Shield, Lock, Target, Zap, Info } from "lucide-react"
+import { Home, BookOpen, User, Check, X, ChevronLeft, ChevronRight, Pencil, Trash2, Plus, Star, Sparkles, TrendingUp, BarChart2, Shield, Lock, Target, Zap, Info } from "lucide-react"
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, ReferenceLine } from "recharts"
 
 const G = `
@@ -1522,6 +1522,20 @@ function WowScreen({ assets, debts, income, spending, name, onFinish }) {
           </div>
         </div>
 
+        {/* Track + Learn mission */}
+        <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:20,textAlign:"left" }}>
+          <div style={{ background:T.card,border:`1.5px solid ${T.tealBorder}`,borderRadius:14,padding:"14px 12px" }}>
+            <p style={{ fontSize:20,marginBottom:6 }}>📊</p>
+            <p style={{ color:T.teal,fontWeight:800,fontSize:13,marginBottom:4 }}>Track</p>
+            <p style={{ color:"#7A8FA8",fontSize:11,lineHeight:1.5 }}>Update your numbers once a month. 10 minutes keeps your picture accurate and your motivation alive.</p>
+          </div>
+          <div style={{ background:T.card,border:`1.5px solid ${T.purpleBorder}`,borderRadius:14,padding:"14px 12px" }}>
+            <p style={{ fontSize:20,marginBottom:6 }}>💡</p>
+            <p style={{ color:T.purple,fontWeight:800,fontSize:13,marginBottom:4 }}>Learn</p>
+            <p style={{ color:"#7A8FA8",fontSize:11,lineHeight:1.5 }}>Complete short lessons to make better financial decisions. The knowledge compounds just like money.</p>
+          </div>
+        </div>
+
         <Btn onClick={onFinish} style={{ fontSize:16,padding:"16px 28px" }}>
           See my full picture
         </Btn>
@@ -1540,19 +1554,19 @@ function HomeTab() {
   const { netWorth, totalAssets, totalDebts } = calcTotals(assets, debts)
   const surplus    = calcSurplus(income, assets, spending)
   const bk         = buckets(assets)
-  const drag       = totalInterestDrag(debts)
   const hasSpending= (spending?.monthly||0) > 0
   const hasIncome  = (income?.primary||0) > 0
   const safetyMonths = (bk.safetyNet > 0 && spending.monthly > 0) ? Math.floor(bk.safetyNet / spending.monthly) : null
   const fireNumber   = hasSpending ? spending.monthly * 12 * 25 : null
   const [showEdit, setShowEdit] = useState(false)
   const [showQuiz, setShowQuiz] = useState(false)
+  const [showResult, setShowResult] = useState(false)
 
-  const mode = PRIORITY_MODES.find(m=>m.id===(profile?.mode||"grow")) || PRIORITY_MODES[0]
-  const quizResult = profile?.personalityResult
-  const arch = quizResult?.archetype
+  const mode      = PRIORITY_MODES.find(m=>m.id===(profile?.mode||"grow")) || PRIORITY_MODES[0]
+  const quizResult= profile?.personalityResult
+  const arch      = quizResult?.archetype
 
-  const doneSet = new Set(completedLessons||[])
+  const doneSet   = new Set(completedLessons||[])
   const hasPriorities = (priorityGoals||[]).length > 0
   const priorityLessonId = (priorityGoals||[]).map(id => PRIORITY_GOALS.find(g=>g.id===id)?.lesson).find(lid=>lid&&!doneSet.has(lid))
   const modePrimaryLesson = mode.primaryLesson
@@ -1570,7 +1584,30 @@ function HomeTab() {
   ]
   const allDone = actions.every(a=>a.done)
 
-  if(showQuiz) return <PersonalityQuiz state={state} save={save} onClose={()=>setShowQuiz(false)}/>
+  // Compact asset groups for dashboard snapshot
+  const assetRows = [
+    { label:"Savings & Cash",     color:T.teal,   value: assets.filter(a=>["savings","cash"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0) },
+    { label:"Investments & ISA",  color:T.purple, value: assets.filter(a=>["investments","stocks"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0) },
+    { label:"Pension",            color:T.amber,  value: assets.filter(a=>a.category==="pension").reduce((s,a)=>s+(a.value||0),0) },
+    { label:"Property",           color:T.green,  value: assets.filter(a=>["primary_residence","investment_property"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0) },
+    { label:"Other assets",       color:T.blue,   value: assets.filter(a=>!["savings","cash","investments","stocks","pension","primary_residence","investment_property"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0) },
+  ].filter(r=>r.value>0)
+
+  const debtRows = [
+    { label:"Mortgage",           color:T.amber,  value: debts.filter(d=>["mortgage","primary_residence"].includes(d.category)).reduce((s,d)=>s+(d.balance||0),0) },
+    { label:"Personal loans",     color:T.red,    value: debts.filter(d=>["personal_loan","loan"].includes(d.category)).reduce((s,d)=>s+(d.balance||0),0) },
+    { label:"Credit cards",       color:T.red,    value: debts.filter(d=>["credit_card","credit"].includes(d.category)).reduce((s,d)=>s+(d.balance||0),0) },
+    { label:"Student loan",       color:T.muted,  value: debts.filter(d=>["student_loan","student"].includes(d.category)).reduce((s,d)=>s+(d.balance||0),0) },
+    { label:"Other debts",        color:T.muted,  value: debts.filter(d=>!["mortgage","primary_residence","personal_loan","loan","credit_card","credit","student_loan","student"].includes(d.category)).reduce((s,d)=>s+(d.balance||0),0) },
+  ].filter(r=>r.value>0)
+
+  if(showQuiz)   return <PersonalityQuiz state={state} save={save} onClose={()=>setShowQuiz(false)}/>
+  if(showResult) return <div style={{ position:"fixed",inset:0,background:T.bg,zIndex:300,overflowY:"auto" }}>
+    <div style={{ padding:"24px 20px 60px",maxWidth:520,margin:"0 auto" }}>
+      <button onClick={()=>setShowResult(false)} style={{ background:"none",border:"none",cursor:"pointer",color:T.muted,fontSize:20,padding:4,marginBottom:16 }}>←</button>
+      <PersonalityResult result={quizResult} onClose={()=>setShowResult(false)}/>
+    </div>
+  </div>
 
   return (
     <div style={{ flex:1,overflowY:"auto",paddingBottom:100 }}>
@@ -1595,9 +1632,8 @@ function HomeTab() {
                 style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:10,padding:"7px 12px",cursor:"pointer",color:T.muted,fontSize:12,fontWeight:700,fontFamily:"inherit" }}>
                 Update ✎
               </button>
-              {/* Personality badge */}
               {arch && (
-                <button onClick={()=>setShowQuiz(true)}
+                <button onClick={()=>setShowResult(true)}
                   style={{ background:`${arch.color}18`,border:`1px solid ${arch.color}40`,borderRadius:10,padding:"6px 10px",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:5 }}>
                   <span style={{ fontSize:14 }}>{arch.emoji}</span>
                   <span style={{ color:arch.color,fontSize:11,fontWeight:700 }}>{arch.name}</span>
@@ -1625,10 +1661,10 @@ function HomeTab() {
           {showEdit && (
             <div className="ls-fadein" style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px 16px",marginTop:14 }}>
               <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.5,marginBottom:10 }}>
-                Update your numbers in <strong style={{ color:T.white }}>Track</strong>. Use <strong style={{ color:T.white }}>Goals</strong> to set targets.
+                Update your numbers in <strong style={{ color:T.white }}>Analytics</strong> — or reset and start fresh.
               </p>
               <div style={{ display:"flex",gap:10 }}>
-                <button onClick={()=>{setTab(2);setShowEdit(false)}} style={{ flex:1,background:T.tealDim,border:`1px solid ${T.tealBorder}`,borderRadius:8,padding:"8px 12px",color:T.teal,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>Go to Track →</button>
+                <button onClick={()=>{setTab(2);setShowEdit(false)}} style={{ flex:1,background:T.tealDim,border:`1px solid ${T.tealBorder}`,borderRadius:8,padding:"8px 12px",color:T.teal,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>Go to Analytics →</button>
                 <button onClick={()=>{ if(window.confirm("Restart from scratch? All data will be cleared.")) reset() }}
                   style={{ background:"none",border:`1px solid ${T.border}`,borderRadius:8,padding:"8px 12px",color:T.muted,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>🔄 Restart</button>
               </div>
@@ -1639,33 +1675,40 @@ function HomeTab() {
 
       <div style={{ maxWidth:1100,margin:"0 auto",padding:"0 18px" }}>
 
-        {/* ── Track + Learn dual theme ────────────────────────────── */}
-        <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginTop:14,marginBottom:20 }}>
-          <button onClick={()=>setTab(2)} style={{ background:T.card,border:`1.5px solid ${T.tealBorder}`,borderRadius:14,padding:"14px",cursor:"pointer",fontFamily:"inherit",textAlign:"left" }}>
-            <div style={{ fontSize:22,marginBottom:6 }}>📊</div>
-            <p style={{ color:T.teal,fontWeight:800,fontSize:14,marginBottom:3 }}>Track</p>
-            <p style={{ color:"#7A8FA8",fontSize:11,lineHeight:1.4 }}>Update numbers monthly. 10 minutes keeps your picture accurate.</p>
-          </button>
-          <button onClick={()=>setTab(1)} style={{ background:T.card,border:`1.5px solid ${T.purpleBorder}`,borderRadius:14,padding:"14px",cursor:"pointer",fontFamily:"inherit",textAlign:"left" }}>
-            <div style={{ fontSize:22,marginBottom:6 }}>💡</div>
-            <p style={{ color:T.purple,fontWeight:800,fontSize:14,marginBottom:3 }}>Learn</p>
-            <p style={{ color:"#7A8FA8",fontSize:11,lineHeight:1.4 }}>Complete lessons to optimise every financial decision you make.</p>
-          </button>
+        {/* ── Mission statement ───────────────────────────────────── */}
+        <div style={{ paddingTop:18,marginBottom:20 }}>
+          <p style={{ color:T.white,fontWeight:800,fontSize:16,marginBottom:6,lineHeight:1.4 }}>
+            Track your numbers. Learn the fundamentals.
+          </p>
+          <p style={{ color:"#7A8FA8",fontSize:13,lineHeight:1.6 }}>
+            Update your figures monthly in <span style={{ color:T.teal,fontWeight:700 }}>Analytics</span> to watch your net worth grow over time. Complete <span style={{ color:T.purple,fontWeight:700 }}>lessons</span> to make better financial decisions every day.
+          </p>
         </div>
+
+        {/* ── Projection — the hook ──────────────────────────────── */}
+        {netWorth!==0 && hasIncome && (
+          <div style={{ marginBottom:20 }}>
+            <ProjectionHeroCard nw={netWorth} surplus={surplus} age={profile?.age} />
+          </div>
+        )}
+        {(netWorth===0 || !hasIncome) && (
+          <div style={{ marginBottom:20 }}>
+            <LockedCard icon="🔮" title="Your wealth at 70 projection"
+              description="Add your assets and income in Analytics to unlock your personalised wealth projection."
+              unlock="Go to Analytics →" onUnlock={()=>setTab(2)}/>
+          </div>
+        )}
 
         {/* ── Action checklist ────────────────────────────────────── */}
         {!allDone && (
           <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:18,padding:"18px",marginBottom:20 }}>
-            <p style={{ color:T.muted,fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:14 }}>Getting started</p>
+            <p style={{ color:T.muted,fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:14 }}>Get started</p>
             <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
               {actions.map(a=>(
                 <button key={a.id} onClick={a.done ? undefined : a.onClick}
                   style={{ display:"flex",alignItems:"flex-start",gap:12,background:a.done?`${T.teal}08`:T.surface,border:`1px solid ${a.done?T.tealBorder:T.border}`,borderRadius:12,padding:"12px 14px",cursor:a.done?"default":"pointer",fontFamily:"inherit",textAlign:"left" }}>
                   <div style={{ width:26,height:26,borderRadius:"50%",flexShrink:0,background:a.done?T.teal:T.surface,border:`2px solid ${a.done?T.teal:T.border}`,display:"flex",alignItems:"center",justifyContent:"center",marginTop:1 }}>
-                    {a.done
-                      ? <span style={{ color:T.bg,fontSize:13,fontWeight:900 }}>✓</span>
-                      : <span style={{ fontSize:13 }}>{a.emoji}</span>
-                    }
+                    {a.done ? <span style={{ color:T.bg,fontSize:13,fontWeight:900 }}>✓</span> : <span style={{ fontSize:13 }}>{a.emoji}</span>}
                   </div>
                   <div style={{ flex:1 }}>
                     <p style={{ color:a.done?T.muted:T.white,fontWeight:700,fontSize:13,marginBottom:2,textDecoration:a.done?"line-through":"none" }}>{a.label}</p>
@@ -1678,27 +1721,78 @@ function HomeTab() {
           </div>
         )}
 
-        {/* ── Projection ──────────────────────────────────────────── */}
-        {netWorth!==0 && hasIncome && (
-          <div style={{ marginBottom:20 }}>
-            <ProjectionHeroCard nw={netWorth} surplus={surplus} age={profile?.age} />
+        {/* ── Live snapshot: Assets + Debts line items ─────────────── */}
+        <div style={{ marginBottom:20 }}>
+          <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12 }}>
+            <p style={{ color:T.muted,fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase" }}>Your money right now</p>
+            <button onClick={()=>setTab(2)} style={{ background:"none",border:"none",cursor:"pointer",color:T.teal,fontSize:12,fontWeight:700,fontFamily:"inherit" }}>Update →</button>
           </div>
-        )}
-        {(netWorth===0 || !hasIncome) && (
-          <div style={{ marginBottom:20 }}>
-            <LockedCard icon="🔮" title="Your wealth at 70 projection locked"
-              description="Add your assets and income to unlock your personalised wealth projection."
-              unlock="Complete setup in Track →" onUnlock={()=>setTab(2)}/>
-          </div>
-        )}
 
-        {/* ── Personality quiz prompt (if not done) ───────────────── */}
+          <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:18,overflow:"hidden" }}>
+            {/* Assets */}
+            <div style={{ padding:"14px 16px",borderBottom:`1px solid ${T.border}` }}>
+              <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:assetRows.length?10:0 }}>
+                <p style={{ color:T.green,fontWeight:800,fontSize:13 }}>Assets</p>
+                <p style={{ color:T.green,fontWeight:900,fontSize:15 }}>{fmtK(totalAssets)}</p>
+              </div>
+              {assetRows.length > 0 ? assetRows.map((r,i)=>(
+                <div key={i} style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"5px 0",borderTop:i>0?`1px solid ${T.border}`:undefined }}>
+                  <div style={{ display:"flex",alignItems:"center",gap:8 }}>
+                    <div style={{ width:8,height:8,borderRadius:"50%",background:r.color,flexShrink:0 }}/>
+                    <p style={{ color:"#CBD5E1",fontSize:13 }}>{r.label}</p>
+                  </div>
+                  <p style={{ color:T.white,fontWeight:700,fontSize:13 }}>{fmtK(r.value)}</p>
+                </div>
+              )) : (
+                <button onClick={()=>setTab(2)} style={{ background:"none",border:`1px dashed ${T.border}`,borderRadius:8,padding:"10px",width:"100%",cursor:"pointer",color:T.muted,fontSize:12,fontFamily:"inherit" }}>
+                  + Add your first asset in Analytics
+                </button>
+              )}
+            </div>
+
+            {/* Debts */}
+            <div style={{ padding:"14px 16px" }}>
+              <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:debtRows.length?10:0 }}>
+                <p style={{ color:totalDebts>0?T.red:T.muted,fontWeight:800,fontSize:13 }}>Debts</p>
+                <p style={{ color:totalDebts>0?T.red:T.muted,fontWeight:900,fontSize:15 }}>{fmtK(totalDebts)}</p>
+              </div>
+              {debtRows.length > 0 ? debtRows.map((r,i)=>(
+                <div key={i} style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"5px 0",borderTop:i>0?`1px solid ${T.border}`:undefined }}>
+                  <div style={{ display:"flex",alignItems:"center",gap:8 }}>
+                    <div style={{ width:8,height:8,borderRadius:"50%",background:r.color,flexShrink:0 }}/>
+                    <p style={{ color:"#CBD5E1",fontSize:13 }}>{r.label}</p>
+                  </div>
+                  <p style={{ color:T.white,fontWeight:700,fontSize:13 }}>{fmtK(r.value)}</p>
+                </div>
+              )) : (
+                <p style={{ color:T.muted,fontSize:13 }}>No debts recorded.</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* ── 3 headline numbers only ──────────────────────────────── */}
+        <div style={{ display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:20 }}>
+          {[
+            { icon:"🔥", label:"Financial freedom", val: fireNumber ? fmtK(fireNumber) : "—", sub:"Target",        color:T.amber,  onClick:()=>setTab(2) },
+            { icon:"🛡️", label:"Safety net",         val: safetyMonths!=null ? `${safetyMonths}mo` : "—",  sub:"Covered",      color:T.teal,   onClick:()=>setTab(2) },
+            { icon:"💰", label:"Monthly surplus",    val: surplus!==0 ? fmtK(Math.abs(surplus)) : "—", sub:surplus>0?"Surplus":"Shortfall", color:surplus>0?T.green:T.red, onClick:()=>setTab(2) },
+          ].map(k=>(
+            <button key={k.label} onClick={()=>setTab(2)}
+              style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px 10px",cursor:"pointer",fontFamily:"inherit",textAlign:"center" }}>
+              <p style={{ fontSize:18,marginBottom:4 }}>{k.icon}</p>
+              <p style={{ color:k.color,fontWeight:900,fontSize:16,marginBottom:2 }}>{k.val}</p>
+              <p style={{ color:T.muted,fontSize:10,lineHeight:1.3 }}>{k.label}</p>
+            </button>
+          ))}
+        </div>
+        <p style={{ color:T.muted,fontSize:11,textAlign:"center",marginBottom:20 }}>Tap any number to update in Analytics →</p>
+
+        {/* ── Personality quiz / result card ──────────────────────── */}
         {!quizResult && (
           <button onClick={()=>setShowQuiz(true)}
             style={{ width:"100%",background:`linear-gradient(135deg,${T.purpleDim},${T.tealDim})`,border:`1.5px solid ${T.purpleBorder}`,borderRadius:18,padding:"20px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",marginBottom:20,display:"flex",alignItems:"center",gap:14 }}>
-            <div style={{ width:52,height:52,borderRadius:16,background:`${T.purple}20`,border:`1.5px solid ${T.purpleBorder}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,flexShrink:0 }}>
-              🧠
-            </div>
+            <div style={{ width:52,height:52,borderRadius:16,background:`${T.purple}20`,border:`1.5px solid ${T.purpleBorder}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,flexShrink:0 }}>🧠</div>
             <div style={{ flex:1 }}>
               <p style={{ color:T.purple,fontWeight:700,fontSize:11,letterSpacing:.5,textTransform:"uppercase",marginBottom:4 }}>4 minute quiz</p>
               <p style={{ color:T.white,fontWeight:800,fontSize:15,marginBottom:3 }}>Discover your money personality</p>
@@ -1709,14 +1803,10 @@ function HomeTab() {
             </div>
           </button>
         )}
-
-        {/* ── Personality result card (if done) ───────────────────── */}
         {quizResult && arch && (
-          <button onClick={()=>setShowQuiz(true)}
+          <button onClick={()=>setShowResult(true)}
             style={{ width:"100%",background:`${arch.color}12`,border:`1.5px solid ${arch.color}35`,borderRadius:18,padding:"16px 20px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",marginBottom:20,display:"flex",alignItems:"center",gap:14 }}>
-            <div style={{ width:48,height:48,borderRadius:14,background:`${arch.color}20`,border:`1.5px solid ${arch.color}50`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0 }}>
-              {arch.emoji}
-            </div>
+            <div style={{ width:48,height:48,borderRadius:14,background:`${arch.color}20`,border:`1.5px solid ${arch.color}50`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0 }}>{arch.emoji}</div>
             <div style={{ flex:1 }}>
               <p style={{ color:arch.color,fontWeight:700,fontSize:11,letterSpacing:.5,textTransform:"uppercase",marginBottom:3 }}>Your money personality</p>
               <p style={{ color:T.white,fontWeight:800,fontSize:15,marginBottom:2 }}>{arch.name}</p>
@@ -1727,9 +1817,7 @@ function HomeTab() {
         )}
 
         {/* ── Priority goals ──────────────────────────────────────── */}
-        {!hasPriorities && (
-          <GoalPickerSection state={state} save={save} toast={toast}/>
-        )}
+        {!hasPriorities && <GoalPickerSection state={state} save={save} toast={toast}/>}
         {hasPriorities && (
           <>
             <GoalLinkedLessons priorityGoals={priorityGoals} completedLessons={state.completedLessons||[]} setTab={setTab}/>
@@ -1737,93 +1825,12 @@ function HomeTab() {
           </>
         )}
 
-        {/* ── Insights label ──────────────────────────────────────── */}
-        <p style={{ color:T.muted,fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:14,marginTop:4 }}>Your top insights</p>
-
-        <div style={{ display:"flex",flexDirection:"column",gap:14,marginBottom:24 }}>
-
-          {/* 1. FIRE number */}
-          {fireNumber ? (
-            <InsightCard icon="🔥" title="Your financial freedom number" sub="The amount you need to never have to work again" iconBg={T.amberDim} iconBorder={T.amberBorder}
-              infoText="Based on the 4% rule: if your invested wealth is 25x your annual spending, you can withdraw 4% per year forever without running out.">
-              <p style={{ color:T.amber,fontWeight:900,fontSize:36,marginBottom:4,lineHeight:1 }}>{fmtK(fireNumber)}</p>
-              <p style={{ color:"#CBD5E1",fontSize:13,marginBottom:10 }}>25x your annual spending of {fmt(spending.monthly*12)}</p>
-              {bk.wealthBuilders > 0 ? (
-                <>
-                  <div style={{ background:T.surface,borderRadius:99,height:10,overflow:"hidden",marginBottom:8 }}>
-                    <div style={{ width:`${Math.min(100,(bk.wealthBuilders/fireNumber)*100)}%`,height:"100%",background:`linear-gradient(90deg,${T.amber},#FCD34D)`,borderRadius:99,transition:"width .8s ease" }}/>
-                  </div>
-                  <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
-                    <p style={{ color:"#CBD5E1",fontSize:13 }}>
-                      <strong style={{ color:T.amber }}>{Math.round((bk.wealthBuilders/fireNumber)*100)}%</strong> of the way there
-                    </p>
-                    <p style={{ color:"#7A8FA8",fontSize:12 }}>{fmt(bk.wealthBuilders)} working now</p>
-                  </div>
-                </>
-              ) : (
-                <p style={{ color:"#CBD5E1",fontSize:13 }}>Add your investments or pension in Track to see progress.</p>
-              )}
-            </InsightCard>
-          ) : (
-            <LockedCard icon="🔥" title="Your financial freedom number"
-              description="Add your monthly spending to unlock this."
-              unlock="Add spending" onUnlock={()=>setTab(2)}/>
-          )}
-
-          {/* 2. Safety net */}
-          {bk.safetyNet > 0 && (
-            <InsightCard icon="🛡️" title={mode.id==="safety"?"Your financial safety net":"Safety net"} sub="Easy-access savings" iconBg={T.tealDim} iconBorder={T.tealBorder}
-              infoText="Your liquid savings. The rule of thumb is 3 to 6 months of expenses.">
-              <p style={{ color:T.teal,fontWeight:900,fontSize:28,marginBottom:8 }}>{fmt(bk.safetyNet)}</p>
-              {safetyMonths!=null ? (
-                <>
-                  <div style={{ background:T.surface,borderRadius:99,height:8,overflow:"hidden",marginBottom:8 }}>
-                    <div style={{ width:`${Math.min(100,(safetyMonths/6)*100)}%`,height:"100%",background:`linear-gradient(90deg,${safetyMonths>=3?T.green:T.amber},${safetyMonths>=6?"#86EFAC":T.amber})`,borderRadius:99,transition:"width .8s ease" }}/>
-                  </div>
-                  <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.5 }}>
-                    <strong style={{ color:safetyMonths>=3?T.green:T.amber }}>{safetyMonths} month{safetyMonths!==1?"s":""}</strong> of expenses covered.
-                    {safetyMonths<3 && " Aim for 3 to 6 months as your first target."}
-                    {safetyMonths>=3 && safetyMonths<6 && " You have the foundation. Keep building."}
-                    {safetyMonths>=6 && " Fully covered. Consider putting excess to work in investments."}
-                  </p>
-                </>
-              ) : (
-                <p style={{ color:"#CBD5E1",fontSize:13 }}>Add monthly spending in Track to see months covered.</p>
-              )}
-            </InsightCard>
-          )}
-
-          {/* 3. Wealth breakdown */}
-          {totalAssets > 0 && (
-            <WealthBreakdownCard bk={bk} totalAssets={totalAssets}/>
-          )}
-
-          {/* 4. Interest drag */}
-          {totalDebts > 0 && drag > 0 && (
-            <InsightCard icon="💸" title="Interest drag" sub="What debt costs you each year" iconBg={T.redDim} iconBorder={T.redBorder}
-              infoText="Total annual interest across all debts. Paying highest-rate debt first is a guaranteed return equal to that rate.">
-              <p style={{ color:T.red,fontWeight:900,fontSize:28,marginBottom:4 }}>
-                {fmt(Math.round(drag/12))}<span style={{ fontSize:16,fontWeight:600 }}>/mo</span>
-              </p>
-              <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.5 }}>
-                {fmt(Math.round(drag))}/yr leaving your net worth.{" "}
-                <span style={{ color:T.white,fontWeight:600 }}>Clear high-rate debt first.</span>
-              </p>
-            </InsightCard>
-          )}
-        </div>
-
-        {/* ── Dashboard builder ────────────────────────────────────── */}
-        <DashboardBuilder state={state} save={save} setTab={setTab} toast={toast}/>
-
-        {/* ── Next lesson recommendation ───────────────────────────── */}
+        {/* ── Next lesson ─────────────────────────────────────────── */}
         {recLesson && !doneSet.has(recLesson.id) && (
           <div style={{ marginBottom:28 }}>
             <p style={{ color:T.muted,fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:12 }}>Next lesson</p>
             <button onClick={()=>setTab(1)} style={{ width:"100%",background:T.card,border:`1.5px solid ${recLesson.trackColor||T.teal}40`,borderRadius:18,padding:"16px 18px",cursor:"pointer",textAlign:"left",fontFamily:"inherit",display:"flex",alignItems:"center",gap:14 }}>
-              <div style={{ width:50,height:50,borderRadius:14,background:`${recLesson.trackColor||T.teal}20`,border:`1.5px solid ${recLesson.trackColor||T.teal}40`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0 }}>
-                {recLesson.emoji}
-              </div>
+              <div style={{ width:50,height:50,borderRadius:14,background:`${recLesson.trackColor||T.teal}20`,border:`1.5px solid ${recLesson.trackColor||T.teal}40`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0 }}>{recLesson.emoji}</div>
               <div style={{ flex:1 }}>
                 <p style={{ color:recLesson.trackColor||T.teal,fontWeight:700,fontSize:11,letterSpacing:.5,textTransform:"uppercase",marginBottom:3 }}>{recLesson.track}</p>
                 <p style={{ color:T.white,fontWeight:700,fontSize:14,lineHeight:1.3,marginBottom:3 }}>{recLesson.title}</p>
@@ -2405,7 +2412,7 @@ function GoalsTab() {
 }
 
 
-function TrackTab() {
+function AnalyticsTab() {
   const { state, save, toast } = useApp()
   const [section, setSection] = useState("net_worth")
   const [sheet, setSheet]     = useState(null)
@@ -2479,9 +2486,20 @@ function TrackTab() {
       {/* Header */}
       <div style={{ background:T.surface,padding:"20px 18px 0",borderBottom:`1px solid ${T.border}` }}>
         <div style={{ maxWidth:900,margin:"0 auto" }}>
-          <p style={{ color:T.teal,fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:4 }}>Financial MOT</p>
-          <h2 style={{ color:T.white,fontWeight:900,fontSize:20,marginBottom:2 }}>Your complete financial picture</h2>
-          <p style={{ color:"#CBD5E1",fontSize:13,marginBottom:14 }}>Keep this updated monthly to watch your net worth grow in real time.</p>
+          <p style={{ color:T.teal,fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:4 }}>Analytics + Track</p>
+          <h2 style={{ color:T.white,fontWeight:900,fontSize:20,marginBottom:6 }}>Your financial control panel</h2>
+          <div style={{ background:`${T.teal}10`,border:`1px solid ${T.tealBorder}`,borderRadius:14,padding:"14px 16px",marginBottom:14 }}>
+            <p style={{ color:T.white,fontWeight:700,fontSize:13,marginBottom:4 }}>Why keeping this updated matters</p>
+            <p style={{ color:"#CBD5E1",fontSize:12,lineHeight:1.55,marginBottom:8 }}>
+              Accurate numbers unlock real insights — your FIRE number, wealth projection, and safety net coverage are only meaningful if the figures underneath them are right.
+              Takes <strong style={{ color:T.teal }}>10 minutes once a month</strong>. The habit pays for itself.
+            </p>
+            <div style={{ display:"flex",gap:8,flexWrap:"wrap" }}>
+              <span style={{ background:T.tealDim,color:T.teal,fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:99,border:`1px solid ${T.tealBorder}` }}>📊 Real-time net worth</span>
+              <span style={{ background:T.amberDim,color:T.amber,fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:99,border:`1px solid ${T.amberBorder}` }}>🔥 FIRE number</span>
+              <span style={{ background:T.purpleDim,color:T.purple,fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:99,border:`1px solid ${T.purpleBorder}` }}>🚀 Wealth projection</span>
+            </div>
+          </div>
 
           {/* Net worth summary bar */}
           <div style={{ display:"flex",gap:12,marginBottom:16,overflowX:"auto",paddingBottom:4 }}>
@@ -3414,24 +3432,18 @@ function LearnTab() {
       <div style={{ padding:"28px 18px 10px",maxWidth:700,margin:"0 auto",width:"100%" }}>
 
         <h2 style={{ color:T.white,fontWeight:900,fontSize:22,marginBottom:4 }}>Learn</h2>
-        <p style={{ color:"#CBD5E1",fontSize:13,marginBottom:4 }}>
-          {doneCount}/{LESSONS.length} completed
-        </p>
-        <p style={{ color:T.purple,fontSize:13,fontWeight:600,marginBottom:20 }}>{encouragement}</p>
+        <p style={{ color:T.purple,fontSize:13,fontWeight:600,marginBottom:16 }}>{doneCount}/{LESSONS.length} completed · {encouragement}</p>
 
-        {/* Track + Learn dual prompt */}
-        <div style={{ background:`linear-gradient(135deg,${T.purpleDim},${T.tealDim})`,border:`1px solid ${T.purpleBorder}`,borderRadius:16,padding:"16px",marginBottom:20 }}>
-          <p style={{ color:T.white,fontWeight:800,fontSize:14,marginBottom:4 }}>Two ways to build wealth here</p>
-          <div style={{ display:"flex",gap:14,marginTop:8 }}>
-            <div style={{ flex:1 }}>
-              <p style={{ color:T.purple,fontWeight:700,fontSize:12,marginBottom:3 }}>📚 Learn</p>
-              <p style={{ color:"#7A8FA8",fontSize:12,lineHeight:1.5 }}>Complete lessons to make smarter decisions. Each one pays for itself.</p>
-            </div>
-            <div style={{ width:1,background:T.border }}/>
-            <div style={{ flex:1 }}>
-              <p style={{ color:T.teal,fontWeight:700,fontSize:12,marginBottom:3 }}>📊 Track</p>
-              <p style={{ color:"#7A8FA8",fontSize:12,lineHeight:1.5 }}>Update your numbers monthly in Track. 10 minutes. Keeps everything accurate.</p>
-            </div>
+        {/* Why learning matters */}
+        <div style={{ background:`${T.purple}10`,border:`1px solid ${T.purpleBorder}`,borderRadius:16,padding:"16px",marginBottom:20 }}>
+          <p style={{ color:T.white,fontWeight:800,fontSize:14,marginBottom:6 }}>Why this is worth your time</p>
+          <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.6,marginBottom:10 }}>
+            Each lesson changes how you think about a real financial decision — pension contributions, debt payoff, investing. The knowledge compounds just like money does.
+          </p>
+          <div style={{ display:"flex",gap:8,flexWrap:"wrap" }}>
+            <span style={{ background:T.purpleDim,color:T.purple,fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:99,border:`1px solid ${T.purpleBorder}` }}>⏱ 5 mins per lesson</span>
+            <span style={{ background:T.tealDim,color:T.teal,fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:99,border:`1px solid ${T.tealBorder}` }}>✓ Quiz at the end</span>
+            <span style={{ background:T.amberDim,color:T.amber,fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:99,border:`1px solid ${T.amberBorder}` }}>🌟 XP earned</span>
           </div>
         </div>
 
@@ -4106,6 +4118,15 @@ function PersonalityResult({ result, onClose }) {
     er:  { cautious:"Cautious",         balanced:"Balanced",         adventurous:"Adventurous" },
   }
   const dims = result.dimensions
+  const DIM_TIPS = {
+    "Risk appetite":      "How comfortable you are with investment risk and potential losses. High = comfortable seeing portfolio drops. Low = prefers certainty.",
+    "Time horizon":       "Whether you naturally think short-term (next few months) or long-term (decades). Affects how you should invest your pension and savings.",
+    "Decision style":     "Data-driven = researches thoroughly before deciding. Intuitive = trusts gut feel and moves faster. Neither is better — both have blind spots.",
+    "Advice preference":  "Whether you prefer to decide independently or value trusted guidance. Affects whether a financial adviser would genuinely help you.",
+    "Money mindset":      "Abundance = believes there will always be enough. Scarcity-cautious = carries background worry about money running out, even when it won't.",
+    "Complexity comfort": "Simplicity = wants one account, one plan, no fuss. Loves detail = enjoys understanding every layer of a financial product or portfolio.",
+  }
+  const [activeTip, setActiveTip] = useState(null)
   const dimRows = [
     { key:"Risk appetite",        val: dims.sg==="growth"?"High":dims.sg==="security"?"Low":"Medium",          color: dims.sg==="growth"?T.teal:dims.sg==="security"?T.amber:T.muted },
     { key:"Time horizon",         val: dims.pf==="future"?"Long-term":"Short-term",                             color: dims.pf==="future"?T.teal:T.amber },
@@ -4144,9 +4165,18 @@ function PersonalityResult({ result, onClose }) {
           <p style={{ color:T.muted,fontSize:11,fontWeight:700,letterSpacing:1.2,textTransform:"uppercase",marginBottom:10 }}>Your financial profile</p>
           <div style={{ display:"flex",flexDirection:"column",gap:8,marginBottom:20 }}>
             {dimRows.map(d=>(
-              <div key={d.key} style={{ display:"flex",justifyContent:"space-between",alignItems:"center",background:T.card,border:`1px solid ${T.border}`,borderRadius:10,padding:"10px 14px" }}>
-                <p style={{ color:"#7A8FA8",fontSize:13 }}>{d.key}</p>
-                <p style={{ color:d.color,fontWeight:700,fontSize:13 }}>{d.val}</p>
+              <div key={d.key} style={{ background:T.card,border:`1px solid ${activeTip===d.key?arch.color+"50":T.border}`,borderRadius:10,padding:"10px 14px",transition:"border .15s" }}>
+                <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
+                  <div style={{ display:"flex",alignItems:"center",gap:6 }}>
+                    <p style={{ color:"#7A8FA8",fontSize:13 }}>{d.key}</p>
+                    <button onClick={()=>setActiveTip(activeTip===d.key?null:d.key)}
+                      style={{ background:`${arch.color}20`,border:`1px solid ${arch.color}30`,borderRadius:"50%",width:16,height:16,cursor:"pointer",fontFamily:"inherit",fontSize:9,fontWeight:800,color:arch.color,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>?</button>
+                  </div>
+                  <p style={{ color:d.color,fontWeight:700,fontSize:13 }}>{d.val}</p>
+                </div>
+                {activeTip===d.key && (
+                  <p className="ls-fadein" style={{ color:"#CBD5E1",fontSize:12,lineHeight:1.55,marginTop:8,paddingTop:8,borderTop:`1px solid ${T.border}` }}>{DIM_TIPS[d.key]}</p>
+                )}
               </div>
             ))}
           </div>
@@ -4264,7 +4294,15 @@ function MoneyPersonalityCard({ state, save, onOpenQuiz }) {
       </div>
 
       {/* Mode selector */}
-      <div style={{ marginTop:12 }}>
+      {/* Retake / view result buttons */}
+      <div style={{ display:"flex",gap:8,marginBottom:8 }}>
+        {quizResult
+          ? <button onClick={onOpenQuiz} style={{ flex:1,background:`${arch.color}15`,border:`1px solid ${arch.color}35`,borderRadius:10,padding:"9px 14px",cursor:"pointer",fontFamily:"inherit",color:arch.color,fontWeight:700,fontSize:12 }}>View full result →</button>
+          : <button onClick={onOpenQuiz} style={{ flex:1,background:T.purpleDim,border:`1px solid ${T.purpleBorder}`,borderRadius:10,padding:"9px 14px",cursor:"pointer",fontFamily:"inherit",color:T.purple,fontWeight:700,fontSize:12 }}>Take the quiz →</button>
+        }
+      </div>
+
+      <div style={{ marginTop:4 }}>
         <button onClick={()=>setShowMode(v=>!v)}
           style={{ width:"100%",background:T.card,border:`1px solid ${mode.border}`,borderRadius:14,padding:"13px 18px",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:12,justifyContent:"space-between" }}>
           <div style={{ display:"flex",alignItems:"center",gap:10 }}>
@@ -4305,8 +4343,16 @@ function MoneyPersonalityCard({ state, save, onOpenQuiz }) {
 
 function MeTab() {
   const { state, reset, save, toast } = useApp()
-  const [showQuiz, setShowQuiz] = useState(false)
-  if(showQuiz) return <PersonalityQuiz state={state} save={save} onClose={()=>setShowQuiz(false)}/>
+  const [showQuiz,   setShowQuiz]   = useState(false)
+  const [showResult, setShowResult] = useState(false)
+  const quizResult = state.profile?.personalityResult
+  if(showQuiz)   return <PersonalityQuiz state={state} save={save} onClose={()=>setShowQuiz(false)}/>
+  if(showResult && quizResult) return <div style={{ position:"fixed",inset:0,background:T.bg,zIndex:300,overflowY:"auto" }}>
+    <div style={{ padding:"24px 20px 60px",maxWidth:520,margin:"0 auto" }}>
+      <button onClick={()=>setShowResult(false)} style={{ background:"none",border:"none",cursor:"pointer",color:T.muted,fontSize:20,padding:4,marginBottom:16 }}>←</button>
+      <PersonalityResult result={quizResult} onClose={()=>setShowResult(false)}/>
+    </div>
+  </div>
   const xp      = state.profile.points||0
   const lvl     = getLevelInfo(xp)
   const nextLvl = getNextLevel(xp)
@@ -4371,7 +4417,8 @@ function MeTab() {
         </div>
 
         {/* Money Personality Card */}
-        <MoneyPersonalityCard state={state} save={save} onOpenQuiz={()=>setShowQuiz(true)}/>
+        <MoneyPersonalityCard state={state} save={save}
+          onOpenQuiz={quizResult ? ()=>setShowResult(true) : ()=>setShowQuiz(true)}/>
 
         {/* Priorities */}
         {priorityGoals.length > 0 && (
@@ -4467,10 +4514,10 @@ function BottomNav() {
   const hasNewLesson = completedLessons.length < LESSONS.length
 
   const TABS = [
-    { icon:Home,       label:"Home",  idx:0 },
-    { icon:BookOpen,   label:"Learn", idx:1, dot:hasNewLesson },
-    { icon:TrendingUp, label:"Track", idx:2 },
-    { icon:User,       label:"Me",    idx:3 },
+    { icon:Home,       label:"Home",      idx:0 },
+    { icon:BookOpen,   label:"Learn",     idx:1, dot:hasNewLesson },
+    { icon:BarChart2,  label:"Analytics", idx:2 },
+    { icon:User,       label:"Me",        idx:3 },
   ]
 
   return (
@@ -4501,7 +4548,7 @@ function BottomNav() {
    ════════════════════════════════════════════════════════════════════ */
 function AppShell() {
   const { tab } = useApp()
-  const CONTENT = [<HomeTab/>, <LearnTab/>, <TrackTab/>, <MeTab/>]
+  const CONTENT = [<HomeTab/>, <LearnTab/>, <AnalyticsTab/>, <MeTab/>]
 
   return (
     <div style={{ height:"100dvh",display:"flex",flexDirection:"column",background:T.bg,overflow:"hidden" }}>
