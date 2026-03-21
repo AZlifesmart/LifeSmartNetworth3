@@ -5,34 +5,60 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart,
 const G = `
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Outfit',system-ui,sans-serif;background:#070D1A;-webkit-font-smoothing:antialiased}
+body{font-family:'Outfit',system-ui,sans-serif;background:#070D1A;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 input[type=number]{-moz-appearance:textfield}
-::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar{width:3px;height:3px}
 ::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:#1C2D47;border-radius:2px}
-@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+::-webkit-scrollbar-thumb{background:#1C2D47;border-radius:99px}
+
+/* ── Keyframes ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
-@keyframes twinkle{0%,100%{opacity:.12;transform:scale(1)}50%{opacity:.85;transform:scale(1.5)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+@keyframes twinkle{0%,100%{opacity:.08;transform:scale(1)}50%{opacity:.9;transform:scale(1.6)}}
 @keyframes slideIn{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:translateX(0)}}
 @keyframes slideUp{from{opacity:0;transform:translateY(100%)}to{opacity:1;transform:translateY(0)}}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(15,191,184,.4)}70%{box-shadow:0 0 0 10px rgba(15,191,184,0)}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(15,191,184,.35)}70%{box-shadow:0 0 0 12px rgba(15,191,184,0)}}
 @keyframes shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
-@keyframes countUp{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
+@keyframes countUp{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:scale(1)}}
 @keyframes slideCard{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
 @keyframes confettiFall{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
 @keyframes slideDown{from{transform:translateX(-50%) translateY(-20px);opacity:0}to{transform:translateX(-50%) translateY(0);opacity:1}}
-@keyframes glow{0%,100%{box-shadow:0 0 20px rgba(15,191,184,.2)}50%{box-shadow:0 0 40px rgba(15,191,184,.5)}}
-.ls-float{animation:float 4s ease-in-out infinite}
-.ls-star{animation:twinkle var(--d,2s) ease-in-out var(--dl,0s) infinite}
+@keyframes glow{0%,100%{box-shadow:0 0 20px rgba(15,191,184,.15)}50%{box-shadow:0 0 50px rgba(15,191,184,.45)}}
+@keyframes rocketFly{0%{transform:translate(-120px,60px) rotate(-20deg);opacity:0}15%{opacity:1}85%{opacity:1}100%{transform:translate(calc(100vw + 120px),-60px) rotate(-20deg);opacity:0}}
+@keyframes rocketBob{0%,100%{transform:translateY(0) rotate(-18deg)}50%{transform:translateY(-8px) rotate(-18deg)}}
+@keyframes nebulaPulse{0%,100%{opacity:.18;transform:scale(1)}50%{opacity:.28;transform:scale(1.05)}}
+@keyframes numberPop{0%{transform:scale(.7);opacity:0}60%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
+
+/* ── Utility classes ── */
+.ls-float{animation:float 5s ease-in-out infinite}
+.ls-star{animation:twinkle var(--d,2.5s) ease-in-out var(--dl,0s) infinite}
 .ls-fadein{animation:fadeUp .5s ease-out forwards}
 .ls-slidein{animation:slideIn .35s ease-out forwards}
 .ls-slidecard{animation:slideCard .4s ease-out forwards}
-.ls-countup{animation:countUp .6s cubic-bezier(.34,1.56,.64,1) forwards}
+.ls-countup{animation:countUp .65s cubic-bezier(.34,1.56,.64,1) forwards}
 .ls-pulse{animation:pulse 2.5s ease-in-out infinite}
-.ls-shimmer{background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.06) 50%,transparent 100%);background-size:200% 100%;animation:shimmer 2s linear infinite}
-.ls-glow{animation:glow 3s ease-in-out infinite}
+.ls-shimmer{background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.05) 50%,transparent 100%);background-size:200% 100%;animation:shimmer 2.5s linear infinite}
+.ls-glow{animation:glow 4s ease-in-out infinite}
+.ls-rocket-fly{animation:rocketFly 6s ease-in-out forwards}
+.ls-rocket-bob{animation:rocketBob 3s ease-in-out infinite}
+.ls-nebula{animation:nebulaPulse 8s ease-in-out infinite}
+.ls-numpop{animation:numberPop .5s cubic-bezier(.34,1.56,.64,1) forwards}
+
+/* ── Apple-chic card refinements ── */
+.ls-card-glass{
+  background: linear-gradient(145deg, rgba(15,29,50,.95) 0%, rgba(11,20,36,.98) 100%);
+  box-shadow: 0 1px 0 rgba(255,255,255,.06) inset, 0 8px 32px rgba(0,0,0,.35);
+}
+.ls-card-lift{
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.ls-card-lift:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0,0,0,.4);
+}
+button{-webkit-tap-highlight-color:transparent}
 `
 
 const T = {
@@ -718,16 +744,30 @@ function Sheet({ title, onClose, children }) {
   )
 }
 
-function StarField({ count=40 }) {
+function StarField({ count=40, showRocket=false }) {
   const stars = useMemo(()=>Array.from({length:count},(_,i)=>({
     x: (i*137.508)%100, y: (i*93.7+17)%100,
-    size: ((i*31)%3)+1, delay: (i*0.4)%4, dur: 1.5+((i*0.7)%2.5)
+    size: i%7===0 ? 2.8 : i%3===0 ? 1.8 : ((i*31)%2)+0.8,
+    delay: (i*0.4)%5, dur: 1.5+((i*0.7)%3.5),
+    tint: i%11===0 ? "rgba(15,191,184,.9)" : i%7===0 ? "rgba(167,139,250,.8)" : "rgba(255,255,255,.95)"
   })),[count])
   return (
     <div style={{ position:"absolute",inset:0,overflow:"hidden",pointerEvents:"none" }}>
+      {/* Nebula glows */}
+      <div className="ls-nebula" style={{ position:"absolute",top:"-20%",left:"-10%",width:"65%",height:"65%",
+        background:"radial-gradient(ellipse,rgba(167,139,250,.1) 0%,transparent 70%)",pointerEvents:"none" }}/>
+      <div className="ls-nebula" style={{ position:"absolute",bottom:"-20%",right:"-10%",width:"55%",height:"55%",
+        background:"radial-gradient(ellipse,rgba(15,191,184,.07) 0%,transparent 70%)",pointerEvents:"none",animationDelay:"4s" }}/>
+      {/* Stars */}
       {stars.map((s,i)=>(
-        <div key={i} className="ls-star" style={{ position:"absolute",left:`${s.x}%`,top:`${s.y}%`,width:s.size,height:s.size,borderRadius:"50%",background:"#fff","--d":`${s.dur}s`,"--dl":`${s.delay}s` }}/>
+        <div key={i} className="ls-star" style={{ position:"absolute",left:`${s.x}%`,top:`${s.y}%`,width:s.size,height:s.size,borderRadius:"50%",background:s.tint,"--d":`${s.dur}s`,"--dl":`${s.delay}s` }}/>
       ))}
+      {/* Flying rocket */}
+      {showRocket && (
+        <div className="ls-rocket-fly" style={{ position:"absolute",top:"42%",left:0,fontSize:26,userSelect:"none",filter:"drop-shadow(0 0 8px rgba(15,191,184,.6))" }}>
+          🚀
+        </div>
+      )}
     </div>
   )
 }
@@ -823,51 +863,49 @@ function Onboarding() {
 /* ── Welcome Brilliant-inspired witty onboarding flow ─────────── */
 const WELCOME_STEPS = [
   {
-    id: "nw_question",
-    headline: "What's your net worth?",
-    sub: "Your net worth is everything you own, minus everything you owe. It's the single number that tells you your true financial position. Do you know yours?",
-    choices: [
-      { id:"yes",   label:"Yes, I track it",          response:"Brilliant. Let's sharpen it." },
-      { id:"rough", label:"Roughly, maybe",            response:"Let's make it exact." },
-      { id:"no",    label:"Honestly, no idea",         response:"Most people don't. That changes right now." },
-    ],
+    id: "hook",
+    isHook: true,
+    headline: "People in their 30s and 40s say the same thing.",
+    quote: "\"If I\'d known this 10 years ago, everything would be different.\"",
+    sub: "You\'re reading this now. That\'s your advantage. Don\'t waste it.",
   },
   {
-    id: "why_it_matters",
-    isInfoSlide: true,
-    headline: "Here is what knowing your net worth does.",
+    id: "what_we_are",
+    isManifesto: true,
+    headline: "Finance, finally opened up.",
+    sub: "Canva opened up design. Replit opened up coding. LifeSmart opens up finance — for everyone who was never taught it.",
     bullets: [
-      { icon:"📈", title:"People who track it build 4x more wealth", body:"Not because they earn more. Because measuring creates better decisions, automatically." },
-      { icon:"🔮", title:"See exactly where you will be at age 70", body:"Based on what you have today. Real numbers, not guesses." },
-      { icon:"🎯", title:"A plan built around your actual situation", body:"Goals, lessons and insights matched to where you are right now, not some generic template." },
+      { icon:"📈", stat:"4×", text:"more wealth built by people who track their numbers. Not higher earners. Just more aware ones." },
+      { icon:"🧠", stat:"5 min", text:"a month is all it takes to keep your picture accurate. The compound effect does the rest." },
+      { icon:"🎯", stat:"Free", text:"No advisor needed. No minimum balance. Just you, your numbers, and the knowledge to act on them." },
     ],
   },
   {
-    id: "situation",
-    headline: null,
-    sub: "Quick one. Which best describes you right now?",
+    id: "nw_question",
+    headline: "Quick question.",
+    sub: "Where are you with your finances right now?",
     choices: [
-      { id:"starting", label:"Just getting started with money",          response:"Perfect time to start. The earlier, the better." },
-      { id:"building", label:"Got some savings and some debt",           response:"The messy middle. We will bring total clarity." },
-      { id:"growing",  label:"Investing and building steadily",          response:"Let's make sure that growth is optimised." },
-      { id:"sorted",   label:"Pretty sorted, want to go further",       response:"Good. Let's find the gaps you might be missing." },
+      { id:"starting", label:"Just getting started",     response:"Perfect. Earlier is always better." },
+      { id:"building", label:"Some savings, some debt",  response:"The messy middle. Let\'s bring clarity." },
+      { id:"growing",  label:"Investing and building",   response:"Let\'s make sure it\'s optimised." },
+      { id:"sorted",   label:"Fairly sorted, want more", response:"Good. Let\'s find the gaps." },
     ],
   },
   {
     id: "mode",
     isModeSelect: true,
-    headline: "What matters most to you right now?",
-    sub: "This shapes how LifeSmart works for you. You can always change it later.",
+    headline: "What\'s your main focus?",
+    sub: "This shapes what LifeSmart surfaces for you first.",
   },
   {
     id: "ready",
     isFinal: true,
-    headline: null,
-    sub: "Your full financial picture takes about 3 minutes to build.",
+    headline: "3 minutes. Your whole financial picture.",
+    sub: null,
     finalCards: [
-      { icon:"📊", title:"Your net worth today", body:"The real number. Assets minus debts. Updated whenever you want." },
-      { icon:"🚀", title:"A projection to age 70", body:"See how your wealth grows with conservative and optimistic paths." },
-      { icon:"🎯", title:"Lessons built for you", body:"Short, clear, actionable. Matched to your goals and situation." },
+      { icon:"📊", title:"Net worth, right now", body:"Assets minus debts. The one number that actually matters." },
+      { icon:"🚀", title:"Your wealth at age 70", body:"A real projection based on what you have today." },
+      { icon:"💡", title:"Lessons that change decisions", body:"Not lectures. Scenarios. Knowledge you\'ll actually use." },
     ],
   }
 ]
@@ -917,11 +955,11 @@ function WelcomeScreen({ onNext }) {
     }, 160)
   }
 
-  const canContinue = step.isFinal || step.isInfoSlide || !!selected
+  const canContinue = step.isFinal || step.isInfoSlide || step.isHook || step.isManifesto || !!selected
 
   return (
     <div style={{ minHeight:"100vh",background:T.bg,display:"flex",flexDirection:"column",position:"relative",overflow:"hidden" }}>
-      <StarField count={40}/>
+      <StarField count={50} showRocket={step.isHook}/>
 
       {/* Top bar */}
       <div style={{ position:"relative",display:"flex",alignItems:"center",gap:12,padding:"44px 20px 0",zIndex:1 }}>
@@ -946,6 +984,33 @@ function WelcomeScreen({ onNext }) {
           </h1>
           {step.sub && <p style={{ color:"#CBD5E1",fontSize:15,lineHeight:1.65,fontWeight:500 }}>{step.sub}</p>}
         </div>
+
+        {/* Hook slide */}
+        {step.isHook && (
+          <div className="ls-fadein" style={{ flex:1,display:"flex",flexDirection:"column",justifyContent:"center",gap:20 }}>
+            <div style={{ background:"linear-gradient(135deg,rgba(167,139,250,.15),rgba(15,191,184,.08))",border:"1px solid rgba(167,139,250,.25)",borderRadius:20,padding:"24px 22px",position:"relative" }}>
+              <p style={{ color:T.purple,fontSize:13,fontWeight:700,letterSpacing:.5,textTransform:"uppercase",marginBottom:12 }}>What people wish they knew earlier</p>
+              <p style={{ color:T.white,fontSize:"clamp(18px,4vw,22px)",fontWeight:800,lineHeight:1.4,marginBottom:0,fontStyle:"italic" }}>{step.quote}</p>
+              <div style={{ position:"absolute",top:16,right:16,fontSize:24,opacity:.4 }}>💬</div>
+            </div>
+            <p style={{ color:"#7A8FA8",fontSize:15,lineHeight:1.7,textAlign:"center" }}>{step.sub}</p>
+          </div>
+        )}
+
+        {/* Manifesto slide */}
+        {step.isManifesto && (
+          <div className="ls-fadein" style={{ flex:1,display:"flex",flexDirection:"column",gap:14 }}>
+            {step.bullets.map((b,i)=>(
+              <div key={i} style={{ background:"linear-gradient(135deg,rgba(15,29,50,.9),rgba(11,20,36,.95))",border:`1px solid ${T.border}`,borderRadius:18,padding:"18px 20px",display:"flex",alignItems:"center",gap:16,boxShadow:"0 1px 0 rgba(255,255,255,.05) inset" }}>
+                <div style={{ width:56,height:56,borderRadius:16,background:i===0?T.tealDim:i===1?T.purpleDim:T.amberDim,border:`1.5px solid ${i===0?T.tealBorder:i===1?T.purpleBorder:T.amberBorder}`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
+                  <span style={{ fontSize:10,marginBottom:1 }}>{b.icon}</span>
+                  <p style={{ color:i===0?T.teal:i===1?T.purple:T.amber,fontWeight:900,fontSize:18,lineHeight:1 }}>{b.stat}</p>
+                </div>
+                <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.55 }}>{b.text}</p>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Choice step */}
         {step.choices && !step.isModeSelect && (
@@ -1039,13 +1104,14 @@ function WelcomeScreen({ onNext }) {
           style={{
             width:"100%", padding:"17px",
             background: canContinue ? `linear-gradient(135deg,${T.teal},${T.purple})` : T.surface,
-            border:"none", borderRadius:16,
+            border:"none", borderRadius:18,
             color: canContinue ? T.bg : T.muted,
             fontWeight:900, fontSize:17,
             cursor: canContinue ? "pointer" : "default",
             fontFamily:"inherit",
             transition:"all .2s",
-            opacity: canContinue ? 1 : 0.55,
+            opacity: canContinue ? 1 : 0.5,
+            boxShadow: canContinue ? "0 4px 24px rgba(15,191,184,.35)" : "none",
           }}>
           {step.isFinal ? "Build my financial picture" : "Continue"}
         </button>
@@ -1097,40 +1163,32 @@ function GreetingScreen({ name, onNext, onBack }) {
           <ChevronLeft size={16}/> Back
         </button>
 
-        <h2 style={{ color:T.white,fontSize:"clamp(24px,5vw,32px)",fontWeight:900,marginBottom:8,lineHeight:1.2 }}>
-          Hi {name}! 👋
+        <h2 style={{ color:T.white,fontSize:"clamp(26px,5vw,34px)",fontWeight:900,marginBottom:6,lineHeight:1.15 }}>
+          Hi {name}. 👋
         </h2>
-        <p style={{ color:"#CBD5E1",fontSize:15,marginBottom:28,lineHeight:1.6 }}>
-          Here's what we're building together in the next few minutes:
+        <p style={{ color:"#7A8FA8",fontSize:15,marginBottom:28,lineHeight:1.6 }}>
+          3 minutes. Your complete financial picture.
         </p>
 
-        <div style={{ display:"flex",flexDirection:"column",gap:12,marginBottom:28 }}>
+        <div style={{ display:"flex",flexDirection:"column",gap:10,marginBottom:32 }}>
           {GREETING_STEPS.map((s,i)=>(
-            <div key={i} className="ls-fadein" style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:"16px 18px",display:"flex",alignItems:"center",gap:14,animationDelay:`${i*0.15}s`,opacity:0,animationFillMode:"forwards" }}>
-              <div style={{ width:46,height:46,borderRadius:14,background:`${s.color}20`,border:`1.5px solid ${s.color}40`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0 }}>
+            <div key={i} className="ls-fadein ls-card-glass" style={{ border:`1px solid ${T.border}`,borderRadius:16,padding:"14px 16px",display:"flex",alignItems:"center",gap:14,animationDelay:`${i*0.12}s`,opacity:0,animationFillMode:"forwards" }}>
+              <div style={{ width:44,height:44,borderRadius:13,background:`${s.color}18`,border:`1px solid ${s.color}35`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0 }}>
                 {s.icon}
               </div>
               <div>
-                <p style={{ color:T.white,fontWeight:700,fontSize:14,marginBottom:2 }}>{s.title}</p>
-                <p style={{ color:T.muted,fontSize:12,lineHeight:1.4 }}>{s.sub}</p>
+                <p style={{ color:T.white,fontWeight:700,fontSize:14,marginBottom:1 }}>{s.title}</p>
+                <p style={{ color:T.muted,fontSize:12 }}>{s.sub}</p>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Net worth explainer */}
-        <div style={{ background:T.tealDim,border:`1px solid ${T.tealBorder}`,borderRadius:14,padding:"14px 16px",marginBottom:28 }}>
-          <p style={{ color:T.teal,fontWeight:700,fontSize:13,marginBottom:4 }}>💡 What is net worth?</p>
-          <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.6 }}>
-            Everything you <strong style={{ color:T.green }}>own</strong> (home, savings, pension, investments) <strong style={{ color:T.muted }}>minus</strong> everything you <strong style={{ color:T.red }}>owe</strong> (mortgage, loans, credit cards). <strong style={{ color:T.white }}>That's it.</strong>
-          </p>
-        </div>
-
-        <p style={{ color:"#CBD5E1",fontSize:13,marginBottom:24,textAlign:"center",lineHeight:1.6 }}>
-          Rough estimates are completely fine. You can refine everything later.
+        <p style={{ color:T.subtle,fontSize:12,marginBottom:20,textAlign:"center" }}>
+          Estimates are fine — you can refine everything later.
         </p>
 
-        <Btn onClick={onNext} style={{ fontSize:16 }}>Start building →</Btn>
+        <Btn onClick={onNext} style={{ fontSize:16 }}>Let's build it →</Btn>
       </div>
     </div>
   )
@@ -1166,9 +1224,9 @@ function AssetChecklistScreen({ values, setValues, onNext, onBack }) {
         <p style={{ color:"#CBD5E1",fontSize:14,marginBottom:6,lineHeight:1.5 }}>Tap each one. Rough estimates are totally fine.</p>
 
         {/* Helpful hint */}
-        <div style={{ background:T.tealDim,border:`1px solid ${T.tealBorder}`,borderRadius:10,padding:"9px 14px",marginBottom:22,display:"flex",gap:8,alignItems:"flex-start" }}>
-          <span style={{ fontSize:14,flexShrink:0 }}>💡</span>
-          <p style={{ color:T.teal,fontSize:12,lineHeight:1.5 }}>Not sure of exact values? Estimates work fine. Tap any asset type to see where to check.</p>
+        <div style={{ background:T.tealDim,border:`1px solid ${T.tealBorder}`,borderRadius:10,padding:"8px 14px",marginBottom:18,display:"flex",gap:8,alignItems:"center" }}>
+          <span style={{ fontSize:13,flexShrink:0 }}>💡</span>
+          <p style={{ color:T.teal,fontSize:12 }}>Estimates are fine. Tap any type to see where to find the number.</p>
         </div>
 
         <div style={{ display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10,marginBottom:28 }}>
@@ -1254,9 +1312,9 @@ function DebtChecklistScreen({ values, setValues, assets, age, onNext, onBack })
         </div>
         <p style={{ color:"#CBD5E1",fontSize:14,marginBottom:6,lineHeight:1.5 }}>Tap what applies. No debt? Great just hit Continue.</p>
 
-        <div style={{ background:T.faint,border:`1px solid ${T.border}`,borderRadius:10,padding:"9px 14px",marginBottom:22,display:"flex",gap:8,alignItems:"flex-start" }}>
-          <span style={{ fontSize:14,flexShrink:0 }}>💡</span>
-          <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.5 }}>Knowing your debts is the first step to clearing them. We use assumed interest rates you can update them in Track later.</p>
+        <div style={{ background:T.faint,border:`1px solid ${T.border}`,borderRadius:10,padding:"8px 14px",marginBottom:18,display:"flex",gap:8,alignItems:"center" }}>
+          <span style={{ fontSize:13,flexShrink:0 }}>💡</span>
+          <p style={{ color:T.muted,fontSize:12 }}>Knowing your debts is the first step to clearing them. We use estimated rates — update any time.</p>
         </div>
 
         <div style={{ display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10,marginBottom:16 }}>
@@ -1461,11 +1519,11 @@ function WowScreen({ assets, debts, income, spending, name, onFinish }) {
   const nwPos       = netWorth >= 0
 
   const getMessage = () => {
-    if(netWorth > 200000) return "Serious wealth. Now let's make every pound work harder."
-    if(netWorth > 50000)  return "A solid foundation. Here's how to build on it fast."
-    if(netWorth > 0)      return "You're in the green. Every step from here compounds."
-    if(netWorth > -20000) return "Everyone starts somewhere. Here's your clear path forward."
-    return "You're not behind you just have more runway. Let's use it."
+    if(netWorth > 200000) return "Serious wealth. Now let\'s make every pound work harder."
+    if(netWorth > 50000)  return "Solid foundations. From here, everything compounds."
+    if(netWorth > 0)      return "You\'re in the green. Every decision from here matters."
+    if(netWorth > -20000) return "Everyone starts somewhere. Yours starts now."
+    return "More runway than you think. Let\'s use it."
   }
 
   return (
@@ -1480,7 +1538,7 @@ function WowScreen({ assets, debts, income, spending, name, onFinish }) {
           {name ? `${name}'s financial picture` : "Your financial picture"}
         </p>
 
-        <div className="ls-countup" style={{ marginBottom:12 }}>
+        <div className="ls-numpop" style={{ marginBottom:12 }}>
           <div style={{ fontSize:"clamp(44px,10vw,68px)",fontWeight:900,lineHeight:1,
             color:nwPos?T.teal:T.red, letterSpacing:-1,
             textShadow:nwPos?`0 0 60px ${T.teal}60`:`0 0 60px ${T.red}40` }}>
@@ -1505,15 +1563,22 @@ function WowScreen({ assets, debts, income, spending, name, onFinish }) {
           {surplus!==null && (
             <div style={{ background:T.card,border:`1px solid ${surplus>=0?T.tealBorder:T.redBorder}`,borderRadius:14,padding:"14px 10px" }}>
               <p style={{ color:surplus>=0?T.teal:T.red,fontWeight:900,fontSize:20 }}>{fmtK(Math.abs(surplus))}</p>
-              <p style={{ color:T.muted,fontSize:11,marginTop:2 }}>{surplus>=0?"Surplus/mo":"Shortfall/mo"}</p>
+              <p style={{ color:T.muted,fontSize:11,marginTop:2 }}>{surplus>=0?"/ month surplus":"/ month shortfall"}</p>
             </div>
           )}
+        </div>
+
+        {/* "What people wish" hook */}
+        <div style={{ background:"rgba(167,139,250,.08)",border:"1px solid rgba(167,139,250,.2)",borderRadius:16,padding:"16px 18px",marginBottom:20,textAlign:"left" }}>
+          <p style={{ color:T.purple,fontSize:11,fontWeight:700,letterSpacing:.5,textTransform:"uppercase",marginBottom:8 }}>The most common thing people say</p>
+          <p style={{ color:T.white,fontWeight:700,fontSize:14,fontStyle:"italic",lineHeight:1.5 }}>"If I had started tracking this 5 years ago, everything would look different."</p>
+          <p style={{ color:T.muted,fontSize:12,marginTop:8 }}>You\'re starting today. That already puts you ahead.</p>
         </div>
 
         <Btn onClick={onFinish} style={{ fontSize:16,padding:"16px 28px",width:"100%" }}>
           Go to my dashboard →
         </Btn>
-        <p style={{ color:"#7A8FA8",fontSize:12,marginTop:12 }}>Your projection, insights and lessons are waiting</p>
+        <p style={{ color:"#7A8FA8",fontSize:12,marginTop:12 }}>Your projection and lessons are ready</p>
       </div>
     </div>
   )
@@ -1678,7 +1743,7 @@ function HomeTab() {
         )}
         {quizResult && arch && (
           <button onClick={()=>setShowResult(true)}
-            style={{ width:"100%",background:`${arch.color}12`,border:`1.5px solid ${arch.color}35`,borderRadius:18,padding:"16px 20px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",marginBottom:20,display:"flex",alignItems:"center",gap:14 }}>
+            style={{ width:"100%",background:`${arch.color}10`,border:`1.5px solid ${arch.color}30`,borderRadius:20,padding:"16px 20px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",marginBottom:20,display:"flex",alignItems:"center",gap:14,boxShadow:`0 4px 20px ${arch.color}15` }}>
             <div style={{ width:48,height:48,borderRadius:14,background:`${arch.color}20`,border:`1.5px solid ${arch.color}50`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0 }}>{arch.emoji}</div>
             <div style={{ flex:1 }}>
               <p style={{ color:arch.color,fontWeight:700,fontSize:11,letterSpacing:.5,textTransform:"uppercase",marginBottom:3 }}>Your money personality</p>
@@ -1766,7 +1831,7 @@ function HomeTab() {
             </div>
           </div>
           <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.6,marginBottom:14 }}>
-            Each lesson changes a real financial decision. The people who complete all five lessons make measurably different choices about debt, pensions and investing.
+            Each lesson changes a real decision. Knowledge earned now is still paying off in 10 years.
           </p>
           {recLesson && !doneSet.has(recLesson.id) ? (
             <button onClick={()=>setTab(1)} style={{ width:"100%",background:T.card,border:`1.5px solid ${recLesson.trackColor||T.purple}40`,borderRadius:14,padding:"14px 16px",cursor:"pointer",textAlign:"left",fontFamily:"inherit",display:"flex",alignItems:"center",gap:12 }}>
@@ -1861,7 +1926,7 @@ function DashboardBuilder({ state, setTab }) {
 /* ── Reusable insight card wrapper ──────────────────────────────── */
 function InsightCard({ icon, title, sub, iconBg, iconBorder, infoText, children }) {
   return (
-    <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:18,padding:"20px 22px" }}>
+    <div className="ls-card-glass" style={{ border:`1px solid ${T.border}`,borderRadius:20,padding:"20px 22px",boxShadow:"0 4px 24px rgba(0,0,0,.25)" }}>
       <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:14 }}>
         <div style={{ width:38,height:38,borderRadius:11,background:iconBg,border:`1px solid ${iconBorder}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0 }}>{icon}</div>
         <div style={{ flex:1 }}>
@@ -1883,7 +1948,7 @@ function ProjectionHeroCard({ nw, surplus, age }) {
   const fmtAx = v => v>=1e6?`£${(v/1e6).toFixed(1)}M`:v>=1000?`£${(v/1000).toFixed(0)}k`:v<0?`-£${Math.abs(Math.round(v/1000))}k`:""
 
   return (
-    <div style={{ background:T.card,border:`1.5px solid ${T.tealBorder}`,borderRadius:20,padding:"20px 22px" }} className="ls-glow">
+    <div className="ls-card-glass ls-glow" style={{ border:`1.5px solid ${T.tealBorder}`,borderRadius:22,padding:"22px 24px",boxShadow:"0 0 40px rgba(15,191,184,.12), 0 8px 32px rgba(0,0,0,.3)" }}>
       <p style={{ color:T.teal,fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:6 }}>LifeSmart Wealth Projection</p>
 
       {atTarget && (
@@ -2436,15 +2501,14 @@ function AnalyticsTab() {
   return (
     <div style={{ flex:1,overflowY:"auto",paddingBottom:100 }}>
       {/* Header */}
-      <div style={{ background:T.surface,padding:"20px 18px 0",borderBottom:`1px solid ${T.border}` }}>
+      <div style={{ background:"rgba(11,20,36,.97)",backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)",padding:"20px 18px 0",borderBottom:"1px solid rgba(255,255,255,.05)" }}>
         <div style={{ maxWidth:900,margin:"0 auto" }}>
           <p style={{ color:T.teal,fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:4 }}>Analytics + Track</p>
           <h2 style={{ color:T.white,fontWeight:900,fontSize:20,marginBottom:6 }}>Your financial control panel</h2>
-          <div style={{ background:`${T.teal}10`,border:`1px solid ${T.tealBorder}`,borderRadius:14,padding:"14px 16px",marginBottom:14 }}>
+          <div className="ls-card-glass" style={{ border:`1px solid ${T.tealBorder}`,borderRadius:16,padding:"14px 16px",marginBottom:14 }}>
             <p style={{ color:T.white,fontWeight:700,fontSize:13,marginBottom:4 }}>Why keeping this updated matters</p>
             <p style={{ color:"#CBD5E1",fontSize:12,lineHeight:1.55,marginBottom:8 }}>
-              Accurate numbers unlock real insights — your FIRE number, wealth projection, and safety net coverage are only meaningful if the figures underneath them are right.
-              Takes <strong style={{ color:T.teal }}>10 minutes once a month</strong>. The habit pays for itself.
+              5–10 minutes a month. Keep your numbers accurate and watch your net worth grow. The people who track it build significantly more wealth — not because they earn more, but because measuring changes decisions.
             </p>
             <div style={{ display:"flex",gap:8,flexWrap:"wrap" }}>
               <span style={{ background:T.tealDim,color:T.teal,fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:99,border:`1px solid ${T.tealBorder}` }}>📊 Real-time net worth</span>
@@ -2537,7 +2601,7 @@ function NetWorthOverviewSection({ state, save, setSection, setSheet, setEditIte
   return (
     <div>
       {/* Big net worth number */}
-      <div style={{ background:T.card,border:`1.5px solid ${netWorth>=0?T.tealBorder:T.redBorder}`,borderRadius:20,padding:"22px 22px",marginBottom:16,textAlign:"center" }}>
+      <div className="ls-card-glass" style={{ border:`1.5px solid ${netWorth>=0?T.tealBorder:T.redBorder}`,borderRadius:22,padding:"22px",marginBottom:16,textAlign:"center",boxShadow:`0 8px 32px rgba(0,0,0,.3)` }}>
         <p style={{ color:"#CBD5E1",fontSize:14,fontWeight:600,marginBottom:4 }}>Your net worth right now</p>
         <p style={{ fontSize:"clamp(36px,8vw,56px)",fontWeight:900,color:netWorth>=0?T.teal:T.red,lineHeight:1,textShadow:`0 0 40px ${netWorth>=0?T.teal:T.red}40` }}>{fmt(netWorth)}</p>
         <p style={{ color:"#7A8FA8",fontSize:12,marginTop:6 }}>Last updated: {new Date().toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}</p>
@@ -3899,10 +3963,10 @@ function LearnTab() {
         <h2 style={{ color:T.white,fontWeight:900,fontSize:22,marginBottom:16 }}>Learn</h2>
 
         {/* Why learning matters */}
-        <div style={{ background:`${T.purple}10`,border:`1px solid ${T.purpleBorder}`,borderRadius:16,padding:"16px",marginBottom:20 }}>
-          <p style={{ color:T.white,fontWeight:800,fontSize:14,marginBottom:6 }}>Why this is worth your time</p>
+        <div className="ls-card-glass" style={{ border:`1px solid ${T.purpleBorder}`,borderRadius:18,padding:"16px",marginBottom:20 }}>
+          <p style={{ color:T.white,fontWeight:800,fontSize:14,marginBottom:6 }}>The knowledge that pays for itself</p>
           <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.6,marginBottom:10 }}>
-            Each lesson changes how you think about a real financial decision — pension contributions, debt payoff, investing. The knowledge compounds just like money does.
+            Every lesson changes a real decision — pensions, debt, investing. People who complete the curriculum look back and say: <em style={{ color:T.white }}>"If I\'d known this 5 years ago."</em> You do know it. Now.
           </p>
           <div style={{ display:"flex",gap:8,flexWrap:"wrap" }}>
             <span style={{ background:T.purpleDim,color:T.purple,fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:99,border:`1px solid ${T.purpleBorder}` }}>⏱ 5 mins per lesson</span>
@@ -4985,7 +5049,7 @@ function BottomNav() {
   ]
 
   return (
-    <nav style={{ background:T.surface,borderTop:`1px solid ${T.border}`,display:"flex",alignItems:"center",height:66,flexShrink:0,paddingBottom:"env(safe-area-inset-bottom,0px)" }}>
+    <nav style={{ background:"rgba(11,20,36,.95)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderTop:`1px solid rgba(255,255,255,.06)`,display:"flex",alignItems:"center",height:66,flexShrink:0,paddingBottom:"env(safe-area-inset-bottom,0px)",boxShadow:"0 -4px 32px rgba(0,0,0,.3)" }}>
       {TABS.map(t=>{
         const active = tab===t.idx
         const Icon = t.icon
@@ -5017,7 +5081,7 @@ function AppShell() {
   return (
     <div style={{ height:"100dvh",display:"flex",flexDirection:"column",background:T.bg,overflow:"hidden" }}>
       {/* Top bar */}
-      <header style={{ background:T.surface,borderBottom:`1px solid ${T.border}`,padding:"0 20px",height:50,display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0,position:"relative",zIndex:10 }}>
+      <header style={{ background:"rgba(11,20,36,.95)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderBottom:"1px solid rgba(255,255,255,.05)",padding:"0 20px",height:50,display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0,position:"relative",zIndex:10,boxShadow:"0 4px 24px rgba(0,0,0,.25)" }}>
         <div style={{ display:"flex",alignItems:"center",gap:8 }}>
           <span style={{ fontSize:18 }}>🚀</span>
           <span style={{ color:T.teal,fontSize:12,fontWeight:800,letterSpacing:2.5 }}>LIFESMART</span>
