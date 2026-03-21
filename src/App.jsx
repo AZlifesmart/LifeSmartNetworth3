@@ -69,7 +69,7 @@ const T = {
   red:"#F87171", redDim:"rgba(248,113,113,.10)", redBorder:"rgba(248,113,113,.28)",
   purple:"#A78BFA", purpleDim:"rgba(167,139,250,.12)", purpleBorder:"rgba(167,139,250,.3)",
   green:"#34D399", greenDim:"rgba(52,211,153,.10)", blue:"#60A5FA", blueDim:"rgba(96,165,250,.1)", blueBorder:"rgba(96,165,250,.3)",
-  white:"#F0F6FF", muted:"#7A8FA8", subtle:"#344D68", faint:"#162038"
+  white:"#F0F6FF", muted:"#8FA3BE", subtle:"#344D68", faint:"#162038"
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -779,10 +779,10 @@ function LockedCard({ icon, title, description, unlock, onUnlock }) {
         <div style={{ width:38,height:38,borderRadius:11,background:T.faint,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,filter:"grayscale(1)",opacity:.5 }}>{icon}</div>
         <div>
           <p style={{ color:T.subtle,fontWeight:700,fontSize:14 }}>{title}</p>
-          <div style={{ display:"flex",alignItems:"center",gap:5 }}><Lock size={11} color={T.subtle}/><span style={{ color:"#7A8FA8",fontSize:12 }}>Locked</span></div>
+          <div style={{ display:"flex",alignItems:"center",gap:5 }}><Lock size={11} color={T.subtle}/><span style={{ color:"#8FA3BE",fontSize:12 }}>Locked</span></div>
         </div>
       </div>
-      <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.6,marginBottom:14 }}>{description}</p>
+      <p style={{ color:"#D8E8F8",fontSize:14,lineHeight:1.65,marginBottom:14 }}>{description}</p>
       {onUnlock && <button onClick={onUnlock} style={{ background:"none",border:`1px solid ${T.border}`,borderRadius:8,padding:"7px 14px",color:T.muted,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>{unlock}</button>}
     </div>
   )
@@ -811,7 +811,7 @@ function InfoTooltip({ text, color=T.teal }) {
       </button>
       {open && (
         <div style={{ position:"absolute",bottom:"calc(100% + 8px)",right:0,width:240,background:T.card,border:`1px solid ${T.tealBorder}`,borderRadius:12,padding:"14px 16px",zIndex:200,boxShadow:"0 8px 32px rgba(0,0,0,.6)",pointerEvents:"auto" }}>
-          <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.6,fontWeight:500 }}>{text}</p>
+          <p style={{ color:"#D8E8F8",fontSize:14,lineHeight:1.65,fontWeight:500 }}>{text}</p>
         </div>
       )}
     </div>
@@ -865,47 +865,47 @@ const WELCOME_STEPS = [
   {
     id: "hook",
     isHook: true,
-    headline: "People in their 30s and 40s say the same thing.",
-    quote: "\"If I\'d known this 10 years ago, everything would be different.\"",
-    sub: "You\'re reading this now. That\'s your advantage. Don\'t waste it.",
+    headline: "The thing people in their 40s wish they knew sooner.",
+    quote: "If I had started this 10 years ago, everything would look different.",
+    sub: "You have that chance right now.",
   },
   {
     id: "what_we_are",
     isManifesto: true,
-    headline: "Finance, finally opened up.",
-    sub: "Canva opened up design. Replit opened up coding. LifeSmart opens up finance — for everyone who was never taught it.",
+    headline: "Finance, opened up.",
+    sub: "Like Canva for design. LifeSmart makes money simple for everyone.",
     bullets: [
-      { icon:"📈", stat:"4×", text:"more wealth built by people who track their numbers. Not higher earners. Just more aware ones." },
-      { icon:"🧠", stat:"5 min", text:"a month is all it takes to keep your picture accurate. The compound effect does the rest." },
-      { icon:"🎯", stat:"Free", text:"No advisor needed. No minimum balance. Just you, your numbers, and the knowledge to act on them." },
+      { icon:"📈", stat:"4×", text:"more wealth built by people who track their numbers" },
+      { icon:"⏱", stat:"5 min", text:"a month keeps your picture accurate" },
+      { icon:"🎯", stat:"Free", text:"No advisor. No minimum balance. Just you." },
     ],
   },
   {
     id: "nw_question",
-    headline: "Quick question.",
-    sub: "Where are you with your finances right now?",
+    headline: "Where are you right now?",
+    sub: "Choose one.",
     choices: [
-      { id:"starting", label:"Just getting started",     response:"Perfect. Earlier is always better." },
-      { id:"building", label:"Some savings, some debt",  response:"The messy middle. Let\'s bring clarity." },
-      { id:"growing",  label:"Investing and building",   response:"Let\'s make sure it\'s optimised." },
-      { id:"sorted",   label:"Fairly sorted, want more", response:"Good. Let\'s find the gaps." },
+      { id:"starting", label:"Just getting started",    response:"Perfect. Earlier is always better." },
+      { id:"building", label:"Some savings, some debt", response:"The messy middle. We will bring clarity." },
+      { id:"growing",  label:"Investing and building",  response:"Good. Let us make sure it is optimised." },
+      { id:"sorted",   label:"Fairly sorted, want more",response:"Good. Let us find the gaps." },
     ],
   },
   {
     id: "mode",
     isModeSelect: true,
-    headline: "What\'s your main focus?",
-    sub: "This shapes what LifeSmart surfaces for you first.",
+    headline: "What matters most right now?",
+    sub: "Pick one.",
   },
   {
     id: "ready",
     isFinal: true,
-    headline: "3 minutes. Your whole financial picture.",
+    headline: "Ready. Takes 3 minutes.",
     sub: null,
     finalCards: [
-      { icon:"📊", title:"Net worth, right now", body:"Assets minus debts. The one number that actually matters." },
-      { icon:"🚀", title:"Your wealth at age 70", body:"A real projection based on what you have today." },
-      { icon:"💡", title:"Lessons that change decisions", body:"Not lectures. Scenarios. Knowledge you\'ll actually use." },
+      { icon:"📊", title:"Your net worth", body:"The real number. Updated whenever you want." },
+      { icon:"🚀", title:"Wealth at age 70", body:"A projection based on what you have today." },
+      { icon:"💡", title:"Lessons that stick", body:"Scenarios, not lectures. Knowledge you will use." },
     ],
   }
 ]
@@ -979,58 +979,67 @@ function WelcomeScreen({ onNext }) {
       <div key={stepIdx} style={{ flex:1,display:"flex",flexDirection:"column",padding:"32px 24px 20px",maxWidth:480,margin:"0 auto",width:"100%" }}>
 
         <div style={{ marginBottom:24 }}>
-          <h1 style={{ color:T.white,fontWeight:900,fontSize:"clamp(22px,5vw,28px)",lineHeight:1.25,marginBottom:10 }}>
+          <h1 style={{ color:"#FFFFFF",fontWeight:900,fontSize:"clamp(26px,6vw,34px)",lineHeight:1.15,marginBottom:step.sub?10:0 }}>
             {getHeadline()}
           </h1>
-          {step.sub && <p style={{ color:"#CBD5E1",fontSize:15,lineHeight:1.65,fontWeight:500 }}>{step.sub}</p>}
+          {step.sub && <p style={{ color:"#94A3B8",fontSize:15,lineHeight:1.5,fontWeight:500,marginTop:6 }}>{step.sub}</p>}
         </div>
 
         {/* Hook slide */}
         {step.isHook && (
-          <div className="ls-fadein" style={{ flex:1,display:"flex",flexDirection:"column",justifyContent:"center",gap:20 }}>
-            <div style={{ background:"linear-gradient(135deg,rgba(167,139,250,.15),rgba(15,191,184,.08))",border:"1px solid rgba(167,139,250,.25)",borderRadius:20,padding:"24px 22px",position:"relative" }}>
-              <p style={{ color:T.purple,fontSize:13,fontWeight:700,letterSpacing:.5,textTransform:"uppercase",marginBottom:12 }}>What people wish they knew earlier</p>
-              <p style={{ color:T.white,fontSize:"clamp(18px,4vw,22px)",fontWeight:800,lineHeight:1.4,marginBottom:0,fontStyle:"italic" }}>{step.quote}</p>
-              <div style={{ position:"absolute",top:16,right:16,fontSize:24,opacity:.4 }}>💬</div>
+          <div className="ls-fadein" style={{ flex:1,display:"flex",flexDirection:"column",justifyContent:"center",gap:28 }}>
+            <div style={{ background:"linear-gradient(160deg,rgba(167,139,250,.18) 0%,rgba(15,191,184,.1) 100%)",borderRadius:24,padding:"32px 26px",position:"relative",overflow:"hidden" }}>
+              <div style={{ position:"absolute",top:-20,right:-20,fontSize:80,opacity:.08,lineHeight:1 }}>💬</div>
+              <p style={{ color:T.purple,fontSize:12,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:16 }}>What people say 10 years later</p>
+              <p style={{ color:"#FFFFFF",fontSize:"clamp(20px,5vw,26px)",fontWeight:800,lineHeight:1.4,fontStyle:"italic" }}>&ldquo;{step.quote}&rdquo;</p>
             </div>
-            <p style={{ color:"#7A8FA8",fontSize:15,lineHeight:1.7,textAlign:"center" }}>{step.sub}</p>
+            <p style={{ color:"#8FA3BE",fontSize:16,lineHeight:1.6,textAlign:"center",fontWeight:500 }}>{step.sub}</p>
           </div>
         )}
 
         {/* Manifesto slide */}
         {step.isManifesto && (
-          <div className="ls-fadein" style={{ flex:1,display:"flex",flexDirection:"column",gap:14 }}>
-            {step.bullets.map((b,i)=>(
-              <div key={i} style={{ background:"linear-gradient(135deg,rgba(15,29,50,.9),rgba(11,20,36,.95))",border:`1px solid ${T.border}`,borderRadius:18,padding:"18px 20px",display:"flex",alignItems:"center",gap:16,boxShadow:"0 1px 0 rgba(255,255,255,.05) inset" }}>
-                <div style={{ width:56,height:56,borderRadius:16,background:i===0?T.tealDim:i===1?T.purpleDim:T.amberDim,border:`1.5px solid ${i===0?T.tealBorder:i===1?T.purpleBorder:T.amberBorder}`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
-                  <span style={{ fontSize:10,marginBottom:1 }}>{b.icon}</span>
-                  <p style={{ color:i===0?T.teal:i===1?T.purple:T.amber,fontWeight:900,fontSize:18,lineHeight:1 }}>{b.stat}</p>
+          <div className="ls-fadein" style={{ flex:1,display:"flex",flexDirection:"column",gap:12 }}>
+            {step.bullets.map((b,i)=>{
+              const colors=[T.teal,T.purple,T.amber], dims=[T.tealDim,T.purpleDim,T.amberDim], borders=[T.tealBorder,T.purpleBorder,T.amberBorder]
+              return (
+                <div key={i} style={{ background:"rgba(255,255,255,.03)",border:`1px solid rgba(255,255,255,.07)`,borderRadius:20,padding:"20px 22px",display:"flex",alignItems:"center",gap:20 }}>
+                  <div style={{ flexShrink:0,textAlign:"center" }}>
+                    <p style={{ color:colors[i],fontWeight:900,fontSize:32,lineHeight:1 }}>{b.stat}</p>
+                    <p style={{ fontSize:18,marginTop:2 }}>{b.icon}</p>
+                  </div>
+                  <p style={{ color:"#FFFFFF",fontSize:15,fontWeight:600,lineHeight:1.45 }}>{b.text}</p>
                 </div>
-                <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.55 }}>{b.text}</p>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
 
-        {/* Choice step */}
+        {/* Choice step — clearly tappable */}
         {step.choices && !step.isModeSelect && (
           <div style={{ display:"flex",flexDirection:"column",gap:10,flex:1 }}>
-            {step.choices.map(c=>{
-              const sel = selected===c.id
+            {step.choices.map((ch,ci)=>{
+              const sel = selected===ch.id
               return (
-                <button key={c.id} onClick={()=>setSelected(c.id)}
+                <button key={ch.id} onClick={()=>setSelected(ch.id)}
                   style={{
-                    background: sel ? `linear-gradient(135deg,${T.tealDim},${T.purpleDim})` : T.card,
-                    border: `2px solid ${sel ? T.teal : T.border}`,
-                    borderRadius:16, padding:"15px 20px",
-                    color: sel ? T.white : "#CBD5E1",
-                    fontWeight: sel ? 700 : 500,
-                    fontSize:15, cursor:"pointer",
-                    textAlign:"left", fontFamily:"inherit",
-                    transition:"all .15s",
-                    boxShadow: sel ? `0 0 20px ${T.teal}25` : "none"
+                    background: sel ? `linear-gradient(135deg,rgba(15,191,184,.18),rgba(167,139,250,.18))` : "rgba(255,255,255,.04)",
+                    border: `2px solid ${sel ? T.teal : "rgba(255,255,255,.1)"}`,
+                    borderRadius:18, padding:"16px 18px",
+                    cursor:"pointer", textAlign:"left", fontFamily:"inherit",
+                    transition:"all .12s",
+                    boxShadow: sel ? `0 0 24px rgba(15,191,184,.2)` : "none",
+                    display:"flex", alignItems:"center", gap:14,
                   }}>
-                  {c.label}
+                  {/* Radio circle */}
+                  <div style={{ width:28,height:28,borderRadius:"50%",flexShrink:0,
+                    background: sel ? T.teal : "transparent",
+                    border: `2px solid ${sel ? T.teal : "rgba(255,255,255,.2)"}`,
+                    display:"flex",alignItems:"center",justifyContent:"center",
+                    transition:"all .12s" }}>
+                    {sel && <div style={{ width:10,height:10,borderRadius:"50%",background:T.bg }}/>}
+                  </div>
+                  <p style={{ color:sel?"#FFFFFF":"#C8D8EC",fontWeight:sel?700:500,fontSize:16,lineHeight:1.3 }}>{ch.label}</p>
                 </button>
               )
             })}
@@ -1045,22 +1054,27 @@ function WelcomeScreen({ onNext }) {
               return (
                 <button key={m.id} onClick={()=>setSelected(m.id)}
                   style={{
-                    background: sel ? `${m.dim}` : T.card,
-                    border: `2px solid ${sel ? m.color : T.border}`,
-                    borderRadius:16, padding:"16px 20px",
+                    background: sel ? `linear-gradient(135deg,${m.color}20,${m.color}08)` : "rgba(255,255,255,.03)",
+                    border: `2px solid ${sel ? m.color : "rgba(255,255,255,.08)"}`,
+                    borderRadius:18, padding:"15px 18px",
                     cursor:"pointer", textAlign:"left", fontFamily:"inherit",
-                    transition:"all .15s",
-                    boxShadow: sel ? `0 0 20px ${m.color}25` : "none",
+                    transition:"all .12s",
+                    boxShadow: sel ? `0 0 28px ${m.color}30` : "none",
                     display:"flex", alignItems:"center", gap:14
                   }}>
-                  <div style={{ width:44,height:44,borderRadius:12,background:sel?`${m.color}25`:`${m.color}12`,border:`1.5px solid ${sel?m.color:m.color+"30"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0 }}>
+                  <div style={{ width:46,height:46,borderRadius:14,background:sel?`${m.color}30`:`${m.color}15`,border:`1.5px solid ${sel?m.color:m.color+"30"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0 }}>
                     {m.icon}
                   </div>
                   <div style={{ flex:1 }}>
-                    <p style={{ color:sel?T.white:"#CBD5E1",fontWeight:700,fontSize:15,marginBottom:3 }}>{m.label}</p>
-                    <p style={{ color:sel?"#CBD5E1":"#7A8FA8",fontSize:13,lineHeight:1.4 }}>{m.sub}</p>
+                    <p style={{ color:sel?"#FFFFFF":"#C8D8EC",fontWeight:700,fontSize:16,marginBottom:2 }}>{m.label}</p>
+                    <p style={{ color:sel?"#B0C4DB":"#7A8FA8",fontSize:13 }}>{m.sub}</p>
                   </div>
-                  {sel && <div style={{ width:20,height:20,borderRadius:"50%",background:m.color,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}><Check size={12} color={T.bg}/></div>}
+                  <div style={{ width:22,height:22,borderRadius:"50%",flexShrink:0,
+                    background: sel ? m.color : "transparent",
+                    border: `2px solid ${sel ? m.color : "rgba(255,255,255,.15)"}`,
+                    display:"flex",alignItems:"center",justifyContent:"center",transition:"all .12s" }}>
+                    {sel && <Check size={11} color={T.bg}/>}
+                  </div>
                 </button>
               )
             })}
@@ -1071,29 +1085,34 @@ function WelcomeScreen({ onNext }) {
         {step.isInfoSlide && (
           <div style={{ display:"flex",flexDirection:"column",gap:12,flex:1 }}>
             {step.bullets.map((b,i)=>(
-              <div key={i} style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:"16px 18px",display:"flex",gap:14,alignItems:"flex-start" }}>
+              <div key={i} style={{ background:"rgba(255,255,255,.03)",borderRadius:18,padding:"16px 18px",display:"flex",gap:14,alignItems:"flex-start" }}>
                 <span style={{ fontSize:26,flexShrink:0,marginTop:2 }}>{b.icon}</span>
                 <div>
-                  <p style={{ color:T.white,fontWeight:700,fontSize:14,marginBottom:4 }}>{b.title}</p>
-                  <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.55 }}>{b.body}</p>
+                  <p style={{ color:"#FFFFFF",fontWeight:700,fontSize:15,marginBottom:4 }}>{b.title}</p>
+                  <p style={{ color:"#8FA3BE",fontSize:13,lineHeight:1.55 }}>{b.body}</p>
                 </div>
               </div>
             ))}
           </div>
         )}
 
-        {/* Final summary cards */}
+        {/* Final summary cards — read-only, clearly not tappable */}
         {step.finalCards && (
           <div style={{ display:"flex",flexDirection:"column",gap:10,flex:1 }}>
-            {step.finalCards.map((c,i)=>(
-              <div key={i} style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:"16px 18px",display:"flex",gap:14,alignItems:"flex-start" }}>
-                <span style={{ fontSize:24,flexShrink:0,marginTop:2 }}>{c.icon}</span>
-                <div>
-                  <p style={{ color:T.white,fontWeight:700,fontSize:14,marginBottom:3 }}>{c.title}</p>
-                  <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.5 }}>{c.body}</p>
+            {step.finalCards.map((fc,i)=>{
+              const colors=[T.teal,T.purple,T.amber]
+              return (
+                <div key={i} style={{ background:"rgba(255,255,255,.03)",borderRadius:18,padding:"16px 20px",display:"flex",gap:16,alignItems:"center" }}>
+                  <div style={{ width:46,height:46,borderRadius:14,background:`${colors[i]}18`,border:`1px solid ${colors[i]}30`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0 }}>
+                    {fc.icon}
+                  </div>
+                  <div>
+                    <p style={{ color:"#FFFFFF",fontWeight:700,fontSize:15,marginBottom:2 }}>{fc.title}</p>
+                    <p style={{ color:"#8FA3BE",fontSize:13 }}>{fc.body}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>
@@ -1115,7 +1134,7 @@ function WelcomeScreen({ onNext }) {
           }}>
           {step.isFinal ? "Build my financial picture" : "Continue"}
         </button>
-        <p style={{ color:"#7A8FA8",fontSize:12,textAlign:"center",marginTop:12 }}>🔒 Private to you. No account needed. Free forever.</p>
+        <p style={{ color:"#8FA3BE",fontSize:12,textAlign:"center",marginTop:12 }}>🔒 Private to you. No account needed. Free forever.</p>
       </div>
     </div>
   )
@@ -1131,9 +1150,9 @@ function AboutScreen({ name, setName, age, setAge, onNext, onBack }) {
           <ChevronLeft size={16}/> Back
         </button>
 
-        <div style={{ fontSize:48,marginBottom:20,textAlign:"center" }}>✋</div>
-        <h2 style={{ color:T.white,fontSize:"clamp(22px,5vw,30px)",fontWeight:900,marginBottom:8,lineHeight:1.2,textAlign:"center" }}>Let's make it personal</h2>
-        <p style={{ color:"#CBD5E1",fontSize:14,marginBottom:32,lineHeight:1.6,textAlign:"center" }}>Just two quick things we use your age to benchmark your journey.</p>
+        <div style={{ fontSize:44,marginBottom:16,textAlign:"center" }}>✋</div>
+        <h2 style={{ color:"#FFFFFF",fontSize:"clamp(24px,5vw,32px)",fontWeight:900,marginBottom:6,lineHeight:1.15,textAlign:"center" }}>Quick — two things.</h2>
+        <p style={{ color:"#8FA3BE",fontSize:14,marginBottom:28,textAlign:"center" }}>Your age lets us benchmark your progress.</p>
 
         <div style={{ display:"flex",flexDirection:"column",gap:18,marginBottom:32 }}>
           <Input label="Your first name" value={name} onChange={setName} placeholder="e.g. Jamie"/>
@@ -1166,19 +1185,19 @@ function GreetingScreen({ name, onNext, onBack }) {
         <h2 style={{ color:T.white,fontSize:"clamp(26px,5vw,34px)",fontWeight:900,marginBottom:6,lineHeight:1.15 }}>
           Hi {name}. 👋
         </h2>
-        <p style={{ color:"#7A8FA8",fontSize:15,marginBottom:28,lineHeight:1.6 }}>
+        <p style={{ color:"#8FA3BE",fontSize:15,marginBottom:28,lineHeight:1.6 }}>
           3 minutes. Your complete financial picture.
         </p>
 
         <div style={{ display:"flex",flexDirection:"column",gap:10,marginBottom:32 }}>
           {GREETING_STEPS.map((s,i)=>(
-            <div key={i} className="ls-fadein ls-card-glass" style={{ border:`1px solid ${T.border}`,borderRadius:16,padding:"14px 16px",display:"flex",alignItems:"center",gap:14,animationDelay:`${i*0.12}s`,opacity:0,animationFillMode:"forwards" }}>
-              <div style={{ width:44,height:44,borderRadius:13,background:`${s.color}18`,border:`1px solid ${s.color}35`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0 }}>
+            <div key={i} className="ls-fadein" style={{ background:"rgba(255,255,255,.04)",borderRadius:18,padding:"15px 18px",display:"flex",alignItems:"center",gap:14,animationDelay:`${i*0.12}s`,opacity:0,animationFillMode:"forwards" }}>
+              <div style={{ width:46,height:46,borderRadius:14,background:`${s.color}20`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0 }}>
                 {s.icon}
               </div>
               <div>
-                <p style={{ color:T.white,fontWeight:700,fontSize:14,marginBottom:1 }}>{s.title}</p>
-                <p style={{ color:T.muted,fontSize:12 }}>{s.sub}</p>
+                <p style={{ color:"#FFFFFF",fontWeight:700,fontSize:15,marginBottom:2 }}>{s.title}</p>
+                <p style={{ color:"#8FA3BE",fontSize:13 }}>{s.sub}</p>
               </div>
             </div>
           ))}
@@ -1221,7 +1240,7 @@ function AssetChecklistScreen({ values, setValues, onNext, onBack }) {
           <h2 style={{ color:T.white,fontSize:"clamp(20px,4vw,26px)",fontWeight:900,lineHeight:1.2 }}>What do you own?</h2>
           {total>0 && <p style={{ color:T.teal,fontWeight:800,fontSize:16 }}>{fmtK(total)}</p>}
         </div>
-        <p style={{ color:"#CBD5E1",fontSize:14,marginBottom:6,lineHeight:1.5 }}>Tap each one. Rough estimates are totally fine.</p>
+        <p style={{ color:"#E2EAF6",fontSize:14,marginBottom:6,lineHeight:1.5 }}>Tap each one. Rough estimates are totally fine.</p>
 
         {/* Helpful hint */}
         <div style={{ background:T.tealDim,border:`1px solid ${T.tealBorder}`,borderRadius:10,padding:"8px 14px",marginBottom:18,display:"flex",gap:8,alignItems:"center" }}>
@@ -1239,7 +1258,7 @@ function AssetChecklistScreen({ values, setValues, onNext, onBack }) {
         <Btn onClick={onNext} disabled={!hasAny} style={{ marginBottom:8 }}>
           {hasAny ? `Continue with ${fmtK(total)} in assets →` : "Tap an asset type above"}
         </Btn>
-        {!hasAny && <button onClick={onNext} style={{ background:"none",border:"none",color:"#CBD5E1",fontSize:13,cursor:"pointer",width:"100%",padding:"8px",fontFamily:"inherit" }}>Skip add later</button>}
+        {!hasAny && <button onClick={onNext} style={{ background:"none",border:"none",color:"#E2EAF6",fontSize:13,cursor:"pointer",width:"100%",padding:"8px",fontFamily:"inherit" }}>Skip add later</button>}
       </div>
     </div>
   )
@@ -1265,7 +1284,7 @@ function AssetTypeCard({ type, value, selected, onChange }) {
       {open && (
         <>
           <div style={{ display:"flex",alignItems:"center",background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,overflow:"hidden" }}>
-            <span style={{ padding:"0 10px",color:"#CBD5E1",fontSize:15,fontWeight:700,userSelect:"none" }}>£</span>
+            <span style={{ padding:"0 10px",color:"#E2EAF6",fontSize:15,fontWeight:700,userSelect:"none" }}>£</span>
             <input type="number" min="0" value={rawVal} placeholder="0" autoFocus
               onChange={e=>handleChange(e.target.value)}
               onBlur={()=>{ if(!value) setOpen(false) }}
@@ -1310,7 +1329,7 @@ function DebtChecklistScreen({ values, setValues, assets, age, onNext, onBack })
           <h2 style={{ color:T.white,fontSize:"clamp(20px,4vw,26px)",fontWeight:900,lineHeight:1.2 }}>What do you owe?</h2>
           {totalDebts>0 && <p style={{ color:T.red,fontWeight:800,fontSize:16 }}>{fmtK(totalDebts)}</p>}
         </div>
-        <p style={{ color:"#CBD5E1",fontSize:14,marginBottom:6,lineHeight:1.5 }}>Tap what applies. No debt? Great just hit Continue.</p>
+        <p style={{ color:"#E2EAF6",fontSize:14,marginBottom:6,lineHeight:1.5 }}>Tap what applies. No debt? Just hit Continue.</p>
 
         <div style={{ background:T.faint,border:`1px solid ${T.border}`,borderRadius:10,padding:"8px 14px",marginBottom:18,display:"flex",gap:8,alignItems:"center" }}>
           <span style={{ fontSize:13,flexShrink:0 }}>💡</span>
@@ -1330,11 +1349,11 @@ function DebtChecklistScreen({ values, setValues, assets, age, onNext, onBack })
           <div style={{ background:T.card,border:`1px solid ${netWorth>=0?T.tealBorder:T.redBorder}`,borderRadius:16,padding:"16px 18px",marginBottom:20 }}>
             <p style={{ color:T.muted,fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1,marginBottom:10 }}>Your picture so far</p>
             <div style={{ display:"flex",gap:20,marginBottom:bench?12:0 }}>
-              <div><p style={{ color:T.green,fontWeight:800,fontSize:16 }}>{fmtK(totalAssets)}</p><p style={{ color:"#7A8FA8",fontSize:12 }}>Assets</p></div>
+              <div><p style={{ color:T.green,fontWeight:800,fontSize:16 }}>{fmtK(totalAssets)}</p><p style={{ color:"#8FA3BE",fontSize:12 }}>Assets</p></div>
               <div style={{ width:1,background:T.border }}/>
-              <div><p style={{ color:totalDebts>0?T.red:T.muted,fontWeight:800,fontSize:16 }}>{fmtK(totalDebts)}</p><p style={{ color:"#7A8FA8",fontSize:12 }}>Debts</p></div>
+              <div><p style={{ color:totalDebts>0?T.red:T.muted,fontWeight:800,fontSize:16 }}>{fmtK(totalDebts)}</p><p style={{ color:"#8FA3BE",fontSize:12 }}>Debts</p></div>
               <div style={{ width:1,background:T.border }}/>
-              <div><p style={{ color:netWorth>=0?T.teal:T.red,fontWeight:800,fontSize:16 }}>{fmtK(netWorth)}</p><p style={{ color:"#7A8FA8",fontSize:12 }}>Net worth</p></div>
+              <div><p style={{ color:netWorth>=0?T.teal:T.red,fontWeight:800,fontSize:16 }}>{fmtK(netWorth)}</p><p style={{ color:"#8FA3BE",fontSize:12 }}>Net worth</p></div>
             </div>
             {bench && (
               <div style={{ background:T.surface,borderRadius:10,padding:"10px 12px" }}>
@@ -1371,7 +1390,7 @@ function DebtTypeCard({ type, value, selected, onChange }) {
       </div>
       {open && (
         <div style={{ display:"flex",alignItems:"center",background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,overflow:"hidden" }}>
-          <span style={{ padding:"0 10px",color:"#CBD5E1",fontSize:15,fontWeight:700,userSelect:"none" }}>£</span>
+          <span style={{ padding:"0 10px",color:"#E2EAF6",fontSize:15,fontWeight:700,userSelect:"none" }}>£</span>
           <input type="number" min="0" value={rawVal} placeholder="0" autoFocus
             onChange={e=>handleChange(e.target.value)}
             onBlur={()=>{ if(!value) setOpen(false) }}
@@ -1404,7 +1423,7 @@ function IncomeOnboardScreen({ income, setIncome, onNext, onBack }) {
 
         <div style={{ fontSize:42,textAlign:"center",marginBottom:16 }}>💼</div>
         <h2 style={{ color:T.white,fontSize:"clamp(20px,4vw,26px)",fontWeight:900,marginBottom:8,lineHeight:1.2,textAlign:"center" }}>What's your monthly take-home?</h2>
-        <p style={{ color:"#CBD5E1",fontSize:15,marginBottom:24,lineHeight:1.6,textAlign:"center" }}>After tax. This powers your surplus and projection calculations.</p>
+        <p style={{ color:"#E2EAF6",fontSize:15,marginBottom:24,lineHeight:1.6,textAlign:"center" }}>After tax. This powers your projections.</p>
 
         <div style={{ marginBottom:20 }}>
           <CurrencyInput label="Monthly take-home pay (after tax)" value={income} onChange={setIncome} placeholder="e.g. 2,800"/>
@@ -1414,14 +1433,14 @@ function IncomeOnboardScreen({ income, setIncome, onNext, onBack }) {
         <div style={{ display:"flex",flexDirection:"column",gap:8,marginBottom:28 }}>
           <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px 16px",display:"flex",gap:10,alignItems:"center" }}>
             <span style={{ fontSize:18 }}>📱</span>
-            <p style={{ color:T.white,fontSize:14,lineHeight:1.4,fontWeight:600 }}>Check your banking app or last payslip it's the amount that lands in your account each month.</p>
+            <p style={{ color:T.white,fontSize:14,lineHeight:1.4,fontWeight:600 }}>Check your banking app or last payslip — the amount that hits your account each month.</p>
           </div>
         </div>
 
         {income > 0 && (
           <div style={{ background:T.tealDim,border:`1px solid ${T.tealBorder}`,borderRadius:12,padding:"12px 16px",marginBottom:20,textAlign:"center" }}>
             <p style={{ color:T.teal,fontWeight:700,fontSize:15 }}>{fmt(income)}/month</p>
-            <p style={{ color:"#CBD5E1",fontSize:13,marginTop:2 }}>{fmt(income*12)}/year take-home</p>
+            <p style={{ color:"#E2EAF6",fontSize:13,marginTop:2 }}>{fmt(income*12)}/year take-home</p>
           </div>
         )}
 
@@ -1464,9 +1483,9 @@ function SpendingOnboardScreen({ spending, setSpending, income, onNext, onBack }
 
         <div style={{ fontSize:42,textAlign:"center",marginBottom:16 }}>🛒</div>
         <h2 style={{ color:T.white,fontSize:"clamp(20px,4vw,26px)",fontWeight:900,marginBottom:8,lineHeight:1.2,textAlign:"center" }}>Monthly spending total</h2>
-        <p style={{ color:"#CBD5E1",fontSize:13,marginBottom:20,lineHeight:1.6,textAlign:"center" }}>Everything that goes out. Rent, food, bills, fun the lot.</p>
+        <p style={{ color:"#E2EAF6",fontSize:13,marginBottom:20,lineHeight:1.6,textAlign:"center" }}>Everything out each month — rent, food, bills, fun.</p>
 
-        <p style={{ color:"#CBD5E1",fontSize:14,marginBottom:10,fontWeight:600 }}>What to include:</p>
+        <p style={{ color:"#E2EAF6",fontSize:14,marginBottom:10,fontWeight:600 }}>What to include:</p>
         {/* Category hints reference only */}
         <div style={{ display:"flex",flexWrap:"wrap",gap:8,marginBottom:20 }}>
           {SPENDING_HINTS.map((h,i)=>(
@@ -1485,7 +1504,7 @@ function SpendingOnboardScreen({ spending, setSpending, income, onNext, onBack }
         {surplus !== null && spending > 0 && (
           <div style={{ background:surplus>0?T.tealDim:T.redDim, border:`1px solid ${surplus>0?T.tealBorder:T.redBorder}`,borderRadius:12,padding:"14px 16px",marginBottom:20 }}>
             <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4 }}>
-              <p style={{ color:"#CBD5E1",fontSize:13 }}>{fmt(income)} income − {fmt(spending)} spending</p>
+              <p style={{ color:"#E2EAF6",fontSize:13 }}>{fmt(income)} income − {fmt(spending)} spending</p>
               <p style={{ color:surplus>0?T.teal:T.red,fontWeight:800,fontSize:16 }}>{fmt(Math.abs(surplus))}</p>
             </div>
             <p style={{ color:surplus>0?T.teal:T.red,fontSize:12,fontWeight:700 }}>
@@ -1497,14 +1516,14 @@ function SpendingOnboardScreen({ spending, setSpending, income, onNext, onBack }
         {income > 0 && spending > 0 && surplus > 0 && (
           <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"12px 14px",marginBottom:20,display:"flex",gap:10 }}>
             <span style={{ fontSize:14 }}>💡</span>
-            <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.5 }}>
+            <p style={{ color:"#E2EAF6",fontSize:13,lineHeight:1.5 }}>
               That surplus of <strong style={{ color:T.teal }}>{fmt(surplus)}/month</strong> is what builds your net worth. Invested at 7%/yr over 20 years, it could grow to <strong style={{ color:T.teal }}>{fmtK(surplus*12*52.7)}</strong>.
             </p>
           </div>
         )}
 
         <Btn onClick={onNext} disabled={spending<=0}>Build my picture →</Btn>
-        {spending<=0 && <button onClick={onNext} style={{ background:"none",border:"none",color:"#CBD5E1",fontSize:13,cursor:"pointer",width:"100%",padding:"8px",fontFamily:"inherit" }}>Skip add later</button>}
+        {spending<=0 && <button onClick={onNext} style={{ background:"none",border:"none",color:"#E2EAF6",fontSize:13,cursor:"pointer",width:"100%",padding:"8px",fontFamily:"inherit" }}>Skip add later</button>}
       </div>
     </div>
   )
@@ -1544,10 +1563,10 @@ function WowScreen({ assets, debts, income, spending, name, onFinish }) {
             textShadow:nwPos?`0 0 60px ${T.teal}60`:`0 0 60px ${T.red}40` }}>
             {fmt(netWorth)}
           </div>
-          <p style={{ color:"#CBD5E1",fontSize:15,marginTop:6,fontWeight:700 }}>Net worth</p>
+          <p style={{ color:"#E2EAF6",fontSize:15,marginTop:6,fontWeight:700 }}>Net worth</p>
         </div>
 
-        <p style={{ color:"#CBD5E1",fontSize:16,lineHeight:1.7,marginBottom:28,maxWidth:340,margin:"0 auto 28px",fontWeight:500 }}>
+        <p style={{ color:"#E2EAF6",fontSize:16,lineHeight:1.7,marginBottom:28,maxWidth:340,margin:"0 auto 28px",fontWeight:500 }}>
           {getMessage()}
         </p>
 
@@ -1569,16 +1588,16 @@ function WowScreen({ assets, debts, income, spending, name, onFinish }) {
         </div>
 
         {/* "What people wish" hook */}
-        <div style={{ background:"rgba(167,139,250,.08)",border:"1px solid rgba(167,139,250,.2)",borderRadius:16,padding:"16px 18px",marginBottom:20,textAlign:"left" }}>
-          <p style={{ color:T.purple,fontSize:11,fontWeight:700,letterSpacing:.5,textTransform:"uppercase",marginBottom:8 }}>The most common thing people say</p>
-          <p style={{ color:T.white,fontWeight:700,fontSize:14,fontStyle:"italic",lineHeight:1.5 }}>"If I had started tracking this 5 years ago, everything would look different."</p>
-          <p style={{ color:T.muted,fontSize:12,marginTop:8 }}>You\'re starting today. That already puts you ahead.</p>
+        <div style={{ background:"linear-gradient(135deg,rgba(167,139,250,.15),rgba(15,191,184,.08))",border:"1px solid rgba(167,139,250,.3)",borderRadius:18,padding:"18px 20px",marginBottom:20 }}>
+          <p style={{ color:"rgba(167,139,250,.8)",fontSize:11,fontWeight:700,letterSpacing:1.2,textTransform:"uppercase",marginBottom:10 }}>What people wish they had done sooner</p>
+          <p style={{ color:"#FFFFFF",fontWeight:700,fontSize:15,fontStyle:"italic",lineHeight:1.5,marginBottom:8 }}>"If I had tracked this 5 years ago, everything would look different now."</p>
+          <p style={{ color:"#8FA3BE",fontSize:13 }}>You are starting today. That already puts you ahead.</p>
         </div>
 
         <Btn onClick={onFinish} style={{ fontSize:16,padding:"16px 28px",width:"100%" }}>
           Go to my dashboard →
         </Btn>
-        <p style={{ color:"#7A8FA8",fontSize:12,marginTop:12 }}>Your projection and lessons are ready</p>
+        <p style={{ color:"#8FA3BE",fontSize:12,marginTop:12 }}>Your projection and lessons are ready</p>
       </div>
     </div>
   )
@@ -1691,7 +1710,7 @@ function HomeTab() {
                 {i>0 && <div style={{ width:1,height:28,background:T.border }}/>}
                 <div style={{ paddingLeft:i>0?6:0 }}>
                   <p style={{ color:item.color,fontWeight:800,fontSize:15 }}>{item.val}</p>
-                  <p style={{ color:"#7A8FA8",fontSize:12 }}>{item.label}</p>
+                  <p style={{ color:"#6B8CB8",fontSize:12,fontWeight:500 }}>{item.label}</p>
                 </div>
               </div>
             ))}
@@ -1699,7 +1718,7 @@ function HomeTab() {
 
           {showEdit && (
             <div className="ls-fadein" style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px 16px",marginTop:14 }}>
-              <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.5,marginBottom:10 }}>
+              <p style={{ color:"#E2EAF6",fontSize:13,lineHeight:1.5,marginBottom:10 }}>
                 Update your numbers in <strong style={{ color:T.white }}>Analytics</strong> — or reset and start fresh.
               </p>
               <div style={{ display:"flex",gap:10 }}>
@@ -1726,18 +1745,36 @@ function HomeTab() {
           )}
         </div>
 
-        {/* ── Personality quiz / result card ─────────────────────────── */}
+        {/* ── Personality quiz — hero discovery card ──────────────────── */}
         {!quizResult && (
           <button onClick={()=>setShowQuiz(true)}
-            style={{ width:"100%",background:`linear-gradient(135deg,${T.purpleDim},${T.tealDim})`,border:`1.5px solid ${T.purpleBorder}`,borderRadius:18,padding:"20px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",marginBottom:20,display:"flex",alignItems:"center",gap:14 }}>
-            <div style={{ width:52,height:52,borderRadius:16,background:`${T.purple}20`,border:`1.5px solid ${T.purpleBorder}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,flexShrink:0 }}>🧠</div>
-            <div style={{ flex:1 }}>
-              <p style={{ color:T.purple,fontWeight:700,fontSize:11,letterSpacing:.5,textTransform:"uppercase",marginBottom:4 }}>4 minute quiz</p>
-              <p style={{ color:T.white,fontWeight:800,fontSize:15,marginBottom:3 }}>Discover your money personality</p>
-              <p style={{ color:"#7A8FA8",fontSize:12 }}>Find out your archetype, blind spots and what they mean for your finances</p>
+            style={{ width:"100%",background:"linear-gradient(145deg,rgba(88,28,252,.22) 0%,rgba(15,191,184,.12) 100%)",border:`1.5px solid rgba(167,139,250,.4)`,borderRadius:22,padding:"22px 20px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",marginBottom:20,overflow:"hidden",position:"relative",boxShadow:"0 8px 40px rgba(88,28,252,.18)" }}>
+            {/* Glow orb */}
+            <div style={{ position:"absolute",top:-30,right:-30,width:120,height:120,borderRadius:"50%",background:"radial-gradient(circle,rgba(167,139,250,.35) 0%,transparent 70%)",pointerEvents:"none" }}/>
+            {/* Top row */}
+            <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14 }}>
+              <div style={{ display:"flex",alignItems:"center",gap:10 }}>
+                <span style={{ fontSize:28 }}>🧠</span>
+                <div>
+                  <p style={{ color:"rgba(167,139,250,.8)",fontSize:11,fontWeight:700,letterSpacing:1.2,textTransform:"uppercase" }}>4 minute quiz</p>
+                  <p style={{ color:"#FFFFFF",fontWeight:900,fontSize:18,lineHeight:1.2,marginTop:2 }}>What type of investor are you?</p>
+                </div>
+              </div>
+              <div style={{ background:T.purple,borderRadius:12,padding:"8px 16px",flexShrink:0 }}>
+                <p style={{ color:"#FFFFFF",fontSize:13,fontWeight:800 }}>Start →</p>
+              </div>
             </div>
-            <div style={{ background:T.purple,borderRadius:99,padding:"6px 14px",flexShrink:0 }}>
-              <p style={{ color:T.bg,fontSize:12,fontWeight:800 }}>Start</p>
+            {/* Archetype emoji teasers */}
+            <p style={{ color:"rgba(167,139,250,.7)",fontSize:12,fontWeight:600,marginBottom:10 }}>8 types. Which one are you?</p>
+            <div style={{ display:"flex",gap:8 }}>
+              {["🛡️","🌱","🚀","🧭","⚡","🏗️","🌊","💡"].map((e,i)=>(
+                <div key={i} style={{ width:36,height:36,borderRadius:10,background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.1)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,filter:i>2?"blur(3px) brightness(.5)":"none",transition:"filter .2s" }}>
+                  {e}
+                </div>
+              ))}
+              <div style={{ display:"flex",alignItems:"center",paddingLeft:4 }}>
+                <p style={{ color:"rgba(167,139,250,.6)",fontSize:11,fontWeight:700 }}>Locked</p>
+              </div>
             </div>
           </button>
         )}
@@ -1748,7 +1785,7 @@ function HomeTab() {
             <div style={{ flex:1 }}>
               <p style={{ color:arch.color,fontWeight:700,fontSize:11,letterSpacing:.5,textTransform:"uppercase",marginBottom:3 }}>Your money personality</p>
               <p style={{ color:T.white,fontWeight:800,fontSize:15,marginBottom:2 }}>{arch.name}</p>
-              <p style={{ color:"#7A8FA8",fontSize:12 }}>{arch.headline}</p>
+              <p style={{ color:"#8FA3BE",fontSize:12 }}>{arch.headline}</p>
             </div>
             <span style={{ color:arch.color,fontSize:12,fontWeight:700 }}>View →</span>
           </button>
@@ -1757,7 +1794,7 @@ function HomeTab() {
         {/* ── Live snapshot: Assets + Debts line items ─────────────── */}
         <div style={{ marginBottom:20 }}>
           <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12 }}>
-            <p style={{ color:T.muted,fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase" }}>Your money right now</p>
+            <p style={{ color:"#6B8CB8",fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase" }}>Your money right now</p>
             <button onClick={()=>setTab(2)} style={{ background:"none",border:"none",cursor:"pointer",color:T.teal,fontSize:12,fontWeight:700,fontFamily:"inherit" }}>Update →</button>
           </div>
 
@@ -1772,7 +1809,7 @@ function HomeTab() {
                 <div key={i} style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"5px 0",borderTop:i>0?`1px solid ${T.border}`:undefined }}>
                   <div style={{ display:"flex",alignItems:"center",gap:8 }}>
                     <div style={{ width:8,height:8,borderRadius:"50%",background:r.color,flexShrink:0 }}/>
-                    <p style={{ color:"#CBD5E1",fontSize:13 }}>{r.label}</p>
+                    <p style={{ color:"#E2EAF6",fontSize:13 }}>{r.label}</p>
                   </div>
                   <p style={{ color:T.white,fontWeight:700,fontSize:13 }}>{fmtK(r.value)}</p>
                 </div>
@@ -1793,7 +1830,7 @@ function HomeTab() {
                 <div key={i} style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"5px 0",borderTop:i>0?`1px solid ${T.border}`:undefined }}>
                   <div style={{ display:"flex",alignItems:"center",gap:8 }}>
                     <div style={{ width:8,height:8,borderRadius:"50%",background:r.color,flexShrink:0 }}/>
-                    <p style={{ color:"#CBD5E1",fontSize:13 }}>{r.label}</p>
+                    <p style={{ color:"#E2EAF6",fontSize:13 }}>{r.label}</p>
                   </div>
                   <p style={{ color:T.white,fontWeight:700,fontSize:13 }}>{fmtK(r.value)}</p>
                 </div>
@@ -1827,10 +1864,10 @@ function HomeTab() {
             <div style={{ width:38,height:38,borderRadius:12,background:`${T.purple}25`,border:`1.5px solid ${T.purpleBorder}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0 }}>💡</div>
             <div>
               <p style={{ color:T.purple,fontWeight:800,fontSize:14 }}>Keep learning. It compounds.</p>
-              <p style={{ color:"#7A8FA8",fontSize:12 }}>{(completedLessons||[]).length}/{LESSONS.length} lessons done</p>
+              <p style={{ color:"#8FA3BE",fontSize:12 }}>{(completedLessons||[]).length}/{LESSONS.length} lessons done</p>
             </div>
           </div>
-          <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.6,marginBottom:14 }}>
+          <p style={{ color:"#D8E8F8",fontSize:14,lineHeight:1.65,marginBottom:14 }}>
             Each lesson changes a real decision. Knowledge earned now is still paying off in 10 years.
           </p>
           {recLesson && !doneSet.has(recLesson.id) ? (
@@ -1898,7 +1935,7 @@ function DashboardBuilder({ state, setTab }) {
           ].map((g,i)=>(
             <div key={i} style={{ display:"flex",gap:10,alignItems:"flex-start" }}>
               <span style={{ fontSize:16,flexShrink:0,marginTop:1 }}>{g.icon}</span>
-              <p style={{ color:"#CBD5E1",fontSize:14,lineHeight:1.5,fontWeight:500 }}>{g.text}</p>
+              <p style={{ color:"#E2EAF6",fontSize:14,lineHeight:1.5,fontWeight:500 }}>{g.text}</p>
             </div>
           ))}
         </div>
@@ -1907,15 +1944,15 @@ function DashboardBuilder({ state, setTab }) {
         </button>
       </div>
 
-      <p style={{ color:"#CBD5E1",fontWeight:700,fontSize:14,marginBottom:12 }}>🔒 Unlock more insights</p>
+      <p style={{ color:"#E2EAF6",fontWeight:700,fontSize:14,marginBottom:12 }}>🔒 Unlock more insights</p>
       <div style={{ display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10 }}>
         {LOCKED.map(t=>(
           <button key={t.label} onClick={()=>setTab(t.tab)}
             style={{ background:T.faint,border:`1px solid ${T.border}`,borderRadius:16,padding:"14px 14px",textAlign:"left",fontFamily:"inherit",cursor:"pointer",opacity:.75,position:"relative",overflow:"hidden" }}>
             <div style={{ position:"absolute",top:8,right:10 }}><Lock size={12} color={T.subtle}/></div>
             <div style={{ width:36,height:36,borderRadius:10,background:t.colorDim,border:`1px solid ${t.colorBorder}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,marginBottom:8 }}>{t.icon}</div>
-            <p style={{ color:"#CBD5E1",fontWeight:700,fontSize:13,marginBottom:4,lineHeight:1.3 }}>{t.label}</p>
-            <p style={{ color:"#7A8FA8",fontSize:12,lineHeight:1.4 }}>{t.req}</p>
+            <p style={{ color:"#E2EAF6",fontWeight:700,fontSize:13,marginBottom:4,lineHeight:1.3 }}>{t.label}</p>
+            <p style={{ color:"#8FA3BE",fontSize:12,lineHeight:1.4 }}>{t.req}</p>
           </button>
         ))}
       </div>
@@ -1956,7 +1993,7 @@ function ProjectionHeroCard({ nw, surplus, age }) {
           <p style={{ fontSize:"clamp(28px,6vw,40px)",fontWeight:900,lineHeight:1,color:T.teal,textShadow:`0 0 30px ${T.teal}50`,marginBottom:8 }}>
             {fmtK(atTarget.conservative)}
           </p>
-          <p style={{ color:"#CBD5E1",fontSize:14,lineHeight:1.6,marginBottom:6 }}>
+          <p style={{ color:"#E2EAF6",fontSize:14,lineHeight:1.6,marginBottom:6 }}>
             Based on your current assets, a conservative growth estimate and your financial profile. As you add more information, complete lessons and build your assets, this number will grow.
           </p>
           {atTarget.optimistic > atTarget.conservative && (
@@ -1983,7 +2020,7 @@ function ProjectionHeroCard({ nw, surplus, age }) {
                 <stop offset="95%" stopColor={T.amber} stopOpacity={0}/>
               </linearGradient>
             </defs>
-            <XAxis dataKey="age" tick={{ fontSize:10,fill:"#7A8FA8" }} axisLine={false} tickLine={false} interval={5}/>
+            <XAxis dataKey="age" tick={{ fontSize:10,fill:"#8FA3BE" }} axisLine={false} tickLine={false} interval={5}/>
             <YAxis tick={{ fontSize:9,fill:"#344D68" }} axisLine={false} tickLine={false} tickFormatter={fmtAx} width={42}/>
             <Tooltip
               formatter={(v,name)=>[fmt(v), name==="conservative"?"Realistic (conservative)":"Optimistic (right decisions)"]}
@@ -1996,8 +2033,8 @@ function ProjectionHeroCard({ nw, surplus, age }) {
       </div>
 
       <div style={{ display:"flex",gap:16,flexWrap:"wrap" }}>
-        <div style={{ display:"flex",alignItems:"center",gap:6 }}><div style={{ width:20,height:3,background:T.teal,borderRadius:2 }}/><span style={{ color:"#CBD5E1",fontSize:12,fontWeight:600 }}>Realistic (conservative)</span></div>
-        <div style={{ display:"flex",alignItems:"center",gap:6 }}><div style={{ width:18,height:0,borderTop:`2px dashed ${T.amber}`,opacity:.7 }}/><span style={{ color:"#CBD5E1",fontSize:12 }}>Optimistic (right decisions)</span></div>
+        <div style={{ display:"flex",alignItems:"center",gap:6 }}><div style={{ width:20,height:3,background:T.teal,borderRadius:2 }}/><span style={{ color:"#E2EAF6",fontSize:12,fontWeight:600 }}>Realistic (conservative)</span></div>
+        <div style={{ display:"flex",alignItems:"center",gap:6 }}><div style={{ width:18,height:0,borderTop:`2px dashed ${T.amber}`,opacity:.7 }}/><span style={{ color:"#E2EAF6",fontSize:12 }}>Optimistic (right decisions)</span></div>
       </div>
     </div>
   )
@@ -2052,7 +2089,7 @@ function WealthBreakdownCard({ bk, totalAssets }) {
             <span style={{ fontSize:18,flexShrink:0 }}>{s.icon}</span>
             <div style={{ flex:1,minWidth:0 }}>
               <p style={{ color:T.white,fontWeight:700,fontSize:13 }}>{s.label}</p>
-              <p style={{ color:"#7A8FA8",fontSize:12,lineHeight:1.4 }}>{s.info.slice(0,60)}…</p>
+              <p style={{ color:"#8FA3BE",fontSize:12,lineHeight:1.4 }}>{s.info.slice(0,60)}…</p>
             </div>
             <div style={{ textAlign:"right",flexShrink:0 }}>
               <p style={{ color:s.color,fontWeight:800,fontSize:14 }}>{fmtK(s.value)}</p>
@@ -2082,7 +2119,7 @@ function GoalPickerSection({ state, save, toast }) {
     <div style={{ marginBottom:24,paddingTop:4 }}>
       <div style={{ marginBottom:14 }}>
         <p style={{ color:T.white,fontWeight:800,fontSize:18,marginBottom:4 }}>What matters most to you?</p>
-        <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.5 }}>Pick your priorities we'll tailor your lessons and goals around them.</p>
+        <p style={{ color:"#E2EAF6",fontSize:13,lineHeight:1.5 }}>Pick your priorities we'll tailor your lessons and goals around them.</p>
       </div>
 
       <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(155px,1fr))",gap:10,marginBottom:16 }}>
@@ -2112,7 +2149,7 @@ function GoalLinkedLessons({ priorityGoals, completedLessons, setTab }) {
   if(linked.length===0) return null
   return (
     <div style={{ marginBottom:22 }}>
-      <p style={{ color:T.muted,fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:12 }}>Lessons for your goals</p>
+      <p style={{ color:"#6B8CB8",fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:12 }}>Lessons for your goals</p>
       <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
         {linked.map(l=>(
           <button key={l.id} onClick={()=>setTab(1)} style={{ background:T.card,border:`1.5px solid ${l.trackColor||T.teal}30`,borderRadius:16,padding:"14px 16px",cursor:"pointer",textAlign:"left",fontFamily:"inherit",display:"flex",alignItems:"center",gap:14 }}>
@@ -2146,7 +2183,7 @@ function HomeGoalsSection({ goals, surplus, setTab, save, state, toast, priority
   return (
     <div style={{ marginBottom:22,paddingTop:8 }}>
       <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12 }}>
-        <p style={{ color:T.muted,fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase" }}>Your goals</p>
+        <p style={{ color:"#6B8CB8",fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase" }}>Your goals</p>
         <div style={{ display:"flex",gap:10 }}>
           {goals.length>0 && <button onClick={()=>setTab(0)} style={{ background:"none",border:"none",color:T.teal,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>See all →</button>}
           <button onClick={()=>setShowSheet(true)} style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:8,padding:"5px 12px",color:T.muted,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:4 }}>
@@ -2182,7 +2219,7 @@ function MiniGoalCard({ goal, surplus }) {
       <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px 16px" }}>
         <div style={{ display:"flex",alignItems:"center",gap:9,marginBottom:10 }}>
           <span style={{ fontSize:18 }}>{cfg.icon}</span>
-          <div><p style={{ color:T.white,fontWeight:700,fontSize:13 }}>{goal.name}</p><p style={{ color:"#7A8FA8",fontSize:12 }}>{checked.size}/{actions.length} steps</p></div>
+          <div><p style={{ color:T.white,fontWeight:700,fontSize:13 }}>{goal.name}</p><p style={{ color:"#8FA3BE",fontSize:12 }}>{checked.size}/{actions.length} steps</p></div>
         </div>
         <div style={{ background:T.surface,borderRadius:99,height:5,overflow:"hidden" }}>
           <div style={{ width:`${pct}%`,height:"100%",background:cfg.color,borderRadius:99 }}/>
@@ -2197,7 +2234,7 @@ function MiniGoalCard({ goal, surplus }) {
         <span style={{ fontSize:18 }}>{cfg.icon}</span>
         <div style={{ flex:1 }}>
           <p style={{ color:T.white,fontWeight:700,fontSize:13 }}>{goal.name}</p>
-          <p style={{ color:"#7A8FA8",fontSize:12 }}>{fmt(current)} of {fmt(goal.targetAmount)}</p>
+          <p style={{ color:"#8FA3BE",fontSize:12 }}>{fmt(current)} of {fmt(goal.targetAmount)}</p>
         </div>
         <span style={{ color:cfg.color,fontWeight:800,fontSize:13 }}>{pct}%</span>
       </div>
@@ -2246,7 +2283,7 @@ function GoalSheet({ goal, onClose, onSave }) {
           <button key={t.id} onClick={()=>{ setType(t.id); setName(t.label) }}
             style={{ padding:"12px 6px",borderRadius:13,border:`2px solid ${sel?t.color:T.border}`,background:sel?t.dim:T.card,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:7,transition:"all .15s" }}>
             <span style={{ fontSize:22 }}>{t.icon}</span>
-            <span style={{ fontSize:10,fontWeight:700,color:sel?t.color:"#CBD5E1",textAlign:"center",lineHeight:1.3 }}>{t.label}</span>
+            <span style={{ fontSize:10,fontWeight:700,color:sel?t.color:"#E2EAF6",textAlign:"center",lineHeight:1.3 }}>{t.label}</span>
           </button>
         )})}
       </div>
@@ -2283,7 +2320,7 @@ function ActionGoalSheet({ goal, onClose, onSave, setLearnTab }) {
 
   return (
     <Sheet title={goal.name} onClose={onClose}>
-      <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.6,marginBottom:20 }}>Tick each step off as you complete it. Each one moves you closer to your goal.</p>
+      <p style={{ color:"#D8E8F8",fontSize:14,lineHeight:1.65,marginBottom:20 }}>Tick each step off as you complete it. Each one moves you closer to your goal.</p>
       <div style={{ display:"flex",flexDirection:"column",gap:10,marginBottom:20 }}>
         {actions.map(a=>{
           const done = checked.has(a.id)
@@ -2294,7 +2331,7 @@ function ActionGoalSheet({ goal, onClose, onSave, setLearnTab }) {
               </button>
               <div style={{ flex:1 }}>
                 <p style={{ color:done?T.teal:T.white,fontWeight:700,fontSize:14,marginBottom:3,textDecoration:done?"line-through":undefined }}>{a.label}</p>
-                <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.5 }}>{a.desc}</p>
+                <p style={{ color:"#E2EAF6",fontSize:13,lineHeight:1.5 }}>{a.desc}</p>
               </div>
             </div>
           )
@@ -2380,7 +2417,7 @@ function GoalsTab() {
     <div style={{ flex:1,overflowY:"auto",paddingBottom:20 }}>
       <div style={{ padding:"0 18px 24px",maxWidth:900,margin:"0 auto",width:"100%" }}>
         <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16 }}>
-          <p style={{ color:"#CBD5E1",fontWeight:700,fontSize:16 }}>Goals</p>
+          <p style={{ color:"#E2EAF6",fontWeight:700,fontSize:16 }}>Goals</p>
           <button onClick={()=>{ setEditGoal(null); setSheet("new") }}
             style={{ background:T.tealDim,border:`1.5px solid ${T.tealBorder}`,borderRadius:10,padding:"8px 14px",color:T.teal,fontWeight:700,fontSize:13,cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontFamily:"inherit" }}>
             <Plus size={13}/>Add goal
@@ -2390,7 +2427,7 @@ function GoalsTab() {
         {active.length===0 && completed.length===0 ? (
           <button onClick={()=>setSheet("new")} style={{ width:"100%",background:T.tealDim,border:`1.5px dashed ${T.tealBorder}`,borderRadius:16,padding:"20px",cursor:"pointer",textAlign:"center",fontFamily:"inherit" }}>
             <p style={{ color:T.teal,fontWeight:700,fontSize:15,marginBottom:4 }}>Set your first goal</p>
-            <p style={{ color:"#CBD5E1",fontSize:13 }}>Holiday, house deposit, clear debt people with written goals build 2x more wealth.</p>
+            <p style={{ color:"#E2EAF6",fontSize:13 }}>Holiday, house deposit, clear debt people with written goals build 2x more wealth.</p>
           </button>
         ) : (
           <div style={{ display:"flex",flexDirection:"column",gap:12,marginBottom:goals.length>0?16:0 }}>
@@ -2404,16 +2441,16 @@ function GoalsTab() {
 
         {completed.length>0 && (
           <>
-            <p style={{ color:"#CBD5E1",fontSize:12,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:10,marginTop:16 }}>Completed</p>
+            <p style={{ color:"#E2EAF6",fontSize:12,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:10,marginTop:16 }}>Completed</p>
             <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
               {completed.map(g=>(
                 <div key={g.id} style={{ background:T.faint,border:`1px solid ${T.border}`,borderRadius:14,padding:"12px 16px",display:"flex",alignItems:"center",gap:12 }}>
                   <span style={{ fontSize:18 }}>✅</span>
                   <div style={{ flex:1 }}>
-                    <p style={{ color:"#CBD5E1",fontWeight:700,fontSize:14 }}>{g.name}</p>
-                    <p style={{ color:"#7A8FA8",fontSize:12 }}>{fmt(g.targetAmount)} reached</p>
+                    <p style={{ color:"#E2EAF6",fontWeight:700,fontSize:14 }}>{g.name}</p>
+                    <p style={{ color:"#8FA3BE",fontSize:12 }}>{fmt(g.targetAmount)} reached</p>
                   </div>
-                  <button onClick={()=>deleteGoal(g)} style={{ background:"none",border:"none",color:"#7A8FA8",cursor:"pointer",padding:4 }}><Trash2 size={13}/></button>
+                  <button onClick={()=>deleteGoal(g)} style={{ background:"none",border:"none",color:"#8FA3BE",cursor:"pointer",padding:4 }}><Trash2 size={13}/></button>
                 </div>
               ))}
             </div>
@@ -2507,7 +2544,7 @@ function AnalyticsTab() {
           <h2 style={{ color:T.white,fontWeight:900,fontSize:20,marginBottom:6 }}>Your financial control panel</h2>
           <div className="ls-card-glass" style={{ border:`1px solid ${T.tealBorder}`,borderRadius:16,padding:"14px 16px",marginBottom:14 }}>
             <p style={{ color:T.white,fontWeight:700,fontSize:13,marginBottom:4 }}>Why keeping this updated matters</p>
-            <p style={{ color:"#CBD5E1",fontSize:12,lineHeight:1.55,marginBottom:8 }}>
+            <p style={{ color:"#E2EAF6",fontSize:12,lineHeight:1.55,marginBottom:8 }}>
               5–10 minutes a month. Keep your numbers accurate and watch your net worth grow. The people who track it build significantly more wealth — not because they earn more, but because measuring changes decisions.
             </p>
             <div style={{ display:"flex",gap:8,flexWrap:"wrap" }}>
@@ -2527,7 +2564,7 @@ function AnalyticsTab() {
             ].map((s,i)=>(
               <div key={i} style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"10px 16px",flexShrink:0 }}>
                 <p style={{ color:s.color,fontWeight:900,fontSize:16,whiteSpace:"nowrap" }}>{s.value}</p>
-                <p style={{ color:"#7A8FA8",fontSize:11,fontWeight:600 }}>{s.label}</p>
+                <p style={{ color:"#8FA3BE",fontSize:11,fontWeight:600 }}>{s.label}</p>
               </div>
             ))}
           </div>
@@ -2538,7 +2575,7 @@ function AnalyticsTab() {
               const active = section===s.id
               return (
                 <button key={s.id} onClick={()=>setSection(s.id)}
-                  style={{ background:"none",border:"none",padding:"12px 16px",color:active?T.teal:"#CBD5E1",fontWeight:active?700:500,fontSize:14,cursor:"pointer",fontFamily:"inherit",position:"relative",flexShrink:0,display:"flex",alignItems:"center",gap:6 }}>
+                  style={{ background:"none",border:"none",padding:"12px 16px",color:active?T.teal:"#E2EAF6",fontWeight:active?700:500,fontSize:14,cursor:"pointer",fontFamily:"inherit",position:"relative",flexShrink:0,display:"flex",alignItems:"center",gap:6 }}>
                   {s.icon} {s.label}
                   {active && <div style={{ position:"absolute",bottom:0,left:"50%",transform:"translateX(-50%)",width:"80%",height:3,borderRadius:"3px 3px 0 0",background:T.teal }}/>}
                 </button>
@@ -2602,22 +2639,22 @@ function NetWorthOverviewSection({ state, save, setSection, setSheet, setEditIte
     <div>
       {/* Big net worth number */}
       <div className="ls-card-glass" style={{ border:`1.5px solid ${netWorth>=0?T.tealBorder:T.redBorder}`,borderRadius:22,padding:"22px",marginBottom:16,textAlign:"center",boxShadow:`0 8px 32px rgba(0,0,0,.3)` }}>
-        <p style={{ color:"#CBD5E1",fontSize:14,fontWeight:600,marginBottom:4 }}>Your net worth right now</p>
+        <p style={{ color:"#E2EAF6",fontSize:14,fontWeight:600,marginBottom:4 }}>Your net worth right now</p>
         <p style={{ fontSize:"clamp(36px,8vw,56px)",fontWeight:900,color:netWorth>=0?T.teal:T.red,lineHeight:1,textShadow:`0 0 40px ${netWorth>=0?T.teal:T.red}40` }}>{fmt(netWorth)}</p>
-        <p style={{ color:"#7A8FA8",fontSize:12,marginTop:6 }}>Last updated: {new Date().toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}</p>
+        <p style={{ color:"#8FA3BE",fontSize:12,marginTop:6 }}>Last updated: {new Date().toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}</p>
         <div style={{ display:"flex",gap:12,justifyContent:"center",marginTop:14 }}>
           <div style={{ textAlign:"center" }}>
             <p style={{ color:T.green,fontWeight:800,fontSize:17 }}>{fmt(totalAssets)}</p>
-            <p style={{ color:"#7A8FA8",fontSize:11 }}>Assets</p>
+            <p style={{ color:"#8FA3BE",fontSize:11 }}>Assets</p>
           </div>
           <div style={{ width:1,background:T.border }}/>
           <div style={{ textAlign:"center" }}>
             <p style={{ color:totalDebts>0?T.red:T.muted,fontWeight:800,fontSize:17 }}>{fmt(totalDebts)}</p>
-            <p style={{ color:"#7A8FA8",fontSize:11 }}>Debts</p>
+            <p style={{ color:"#8FA3BE",fontSize:11 }}>Debts</p>
           </div>
           {surplus!==null && <><div style={{ width:1,background:T.border }}/><div style={{ textAlign:"center" }}>
             <p style={{ color:surplus>=0?T.teal:T.red,fontWeight:800,fontSize:17 }}>{fmt(surplus)}/mo</p>
-            <p style={{ color:"#7A8FA8",fontSize:11 }}>Surplus</p>
+            <p style={{ color:"#8FA3BE",fontSize:11 }}>Surplus</p>
           </div></>}
         </div>
       </div>
@@ -2627,19 +2664,19 @@ function NetWorthOverviewSection({ state, save, setSection, setSheet, setEditIte
         <span style={{ fontSize:20,flexShrink:0 }}>🎯</span>
         <div>
           <p style={{ color:T.amber,fontWeight:700,fontSize:14,marginBottom:4 }}>Keep your figures accurate</p>
-          <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.5 }}>Update your asset values and debt balances monthly — even a rough update takes 2 minutes and keeps your projections meaningful.</p>
+          <p style={{ color:"#E2EAF6",fontSize:13,lineHeight:1.5 }}>Update your asset values and debt balances monthly — even a rough update takes 2 minutes and keeps your projections meaningful.</p>
         </div>
       </div>
 
       {/* ── Analytics Charts ───────────────────────────────────────── */}
-      <p style={{ color:T.muted,fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:12 }}>Analytics</p>
+      <p style={{ color:"#6B8CB8",fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:12 }}>Analytics</p>
 
       <AssetBreakdownChart assets={state.assets} totalAssets={totalAssets} onConfirmAssets={()=>{}}/>
       <SpendingBreakdownChart state={state} save={saveFromOverview}/>
       <NetWorthMomentumChart state={state}/>
 
       <div style={{ height:1,background:T.border,marginBottom:20 }}/>
-      <p style={{ color:T.muted,fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:14 }}>Your assets & liabilities</p>
+      <p style={{ color:"#6B8CB8",fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:14 }}>Your assets & liabilities</p>
 
       {/* Asset breakdown */}
       {assetGroups.length>0 && (
@@ -2653,7 +2690,7 @@ function NetWorthOverviewSection({ state, save, setSection, setSheet, setEditIte
               <span style={{ fontSize:18,width:26,textAlign:"center" }}>{g.icon}</span>
               <div style={{ flex:1 }}>
                 <div style={{ display:"flex",justifyContent:"space-between",marginBottom:4 }}>
-                  <p style={{ color:"#CBD5E1",fontSize:13,fontWeight:600 }}>{g.label}</p>
+                  <p style={{ color:"#E2EAF6",fontSize:13,fontWeight:600 }}>{g.label}</p>
                   <p style={{ color:g.color,fontWeight:800,fontSize:13 }}>{fmt(g.value)}</p>
                 </div>
                 <div style={{ background:T.surface,borderRadius:99,height:6,overflow:"hidden" }}>
@@ -2679,8 +2716,8 @@ function NetWorthOverviewSection({ state, save, setSection, setSheet, setEditIte
               <div key={d.id} style={{ display:"flex",alignItems:"center",gap:12,marginBottom:i<state.debts.length-1?12:0,paddingBottom:i<state.debts.length-1?12:0,borderBottom:i<state.debts.length-1?`1px solid ${T.border}`:"none" }}>
                 <span style={{ fontSize:18 }}>{t?.icon||"💳"}</span>
                 <div style={{ flex:1 }}>
-                  <p style={{ color:"#CBD5E1",fontSize:13,fontWeight:600 }}>{d.name}</p>
-                  <p style={{ color:"#7A8FA8",fontSize:12 }}>{d.interestRate||t?.assumedRate}% APR {fmt(Math.round(interest/12))}/mo interest</p>
+                  <p style={{ color:"#E2EAF6",fontSize:13,fontWeight:600 }}>{d.name}</p>
+                  <p style={{ color:"#8FA3BE",fontSize:12 }}>{d.interestRate||t?.assumedRate}% APR {fmt(Math.round(interest/12))}/mo interest</p>
                 </div>
                 <p style={{ color:T.red,fontWeight:800,fontSize:14 }}>{fmt(d.balance)}</p>
               </div>
@@ -2794,7 +2831,7 @@ function AssetBreakdownChart({ assets, totalAssets, onConfirmAssets }) {
                     <div style={{ display:"flex",justifyContent:"space-between",marginBottom:4 }}>
                       <div style={{ display:"flex",alignItems:"center",gap:6 }}>
                         <div style={{ width:8,height:8,borderRadius:"50%",background:s.color }}/>
-                        <p style={{ color:"#CBD5E1",fontSize:12 }}>{s.label}</p>
+                        <p style={{ color:"#E2EAF6",fontSize:12 }}>{s.label}</p>
                       </div>
                       <p style={{ color:s.color,fontWeight:700,fontSize:12 }}>{s.pct}%</p>
                     </div>
@@ -2836,7 +2873,7 @@ function AssetBreakdownChart({ assets, totalAssets, onConfirmAssets }) {
                   <div style={{ display:"flex",justifyContent:"space-between",marginBottom:4 }}>
                     <div style={{ display:"flex",alignItems:"center",gap:6 }}>
                       <div style={{ width:8,height:8,borderRadius:"50%",background:s.color,flexShrink:0 }}/>
-                      <p style={{ color:"#CBD5E1",fontSize:12 }}>{s.label}</p>
+                      <p style={{ color:"#E2EAF6",fontSize:12 }}>{s.label}</p>
                     </div>
                     <p style={{ color:s.color,fontWeight:800,fontSize:12 }}>{Math.round(s.value/totalAssets*100)}%</p>
                   </div>
@@ -2850,7 +2887,7 @@ function AssetBreakdownChart({ assets, totalAssets, onConfirmAssets }) {
           </div>
           {productive>0 && lifestyle>0 && (
             <div style={{ background:T.surface,borderRadius:12,padding:"10px 14px",marginTop:12 }}>
-              <p style={{ color:"#CBD5E1",fontSize:12,lineHeight:1.5 }}>
+              <p style={{ color:"#E2EAF6",fontSize:12,lineHeight:1.5 }}>
                 <strong style={{ color:T.teal }}>{Math.round(productive/totalAssets*100)}%</strong> of your wealth is actively working for you.{" "}
                 {productive/totalAssets<0.4
                   ? <span>Building your productive assets — savings, investments, pension — is the fastest route to financial freedom.</span>
@@ -2867,13 +2904,13 @@ function AssetBreakdownChart({ assets, totalAssets, onConfirmAssets }) {
         <div style={{ position:"fixed",inset:0,background:"rgba(7,13,26,.85)",zIndex:200,display:"flex",alignItems:"flex-end",padding:20 }}>
           <div className="ls-fadein" style={{ background:T.surface,border:`1px solid ${T.border}`,borderRadius:20,padding:"24px 20px",width:"100%",maxWidth:480,margin:"0 auto" }}>
             <p style={{ color:T.white,fontWeight:900,fontSize:17,marginBottom:6 }}>Confirm your assets are correct</p>
-            <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.6,marginBottom:16 }}>
+            <p style={{ color:"#D8E8F8",fontSize:14,lineHeight:1.65,marginBottom:16 }}>
               This breakdown is most useful when your figures are up to date. Are your current asset values roughly accurate?
             </p>
             <div style={{ display:"flex",flexDirection:"column",gap:8,marginBottom:18 }}>
               {assets.map(a=>(
                 <div key={a.id} style={{ display:"flex",justifyContent:"space-between",padding:"8px 12px",background:T.card,borderRadius:10 }}>
-                  <p style={{ color:"#CBD5E1",fontSize:13 }}>{a.name}</p>
+                  <p style={{ color:"#E2EAF6",fontSize:13 }}>{a.name}</p>
                   <p style={{ color:T.teal,fontWeight:700,fontSize:13 }}>{fmt(a.value)}</p>
                 </div>
               ))}
@@ -2968,7 +3005,7 @@ function SpendingBreakdownChart({ state, save }) {
             <div style={{ flex:1 }}>
               {demoSegs.map(s=>(
                 <div key={s.label} style={{ display:"flex",justifyContent:"space-between",marginBottom:6 }}>
-                  <p style={{ color:"#CBD5E1",fontSize:12 }}>{s.label}</p>
+                  <p style={{ color:"#E2EAF6",fontSize:12 }}>{s.label}</p>
                   <p style={{ color:s.color,fontWeight:700,fontSize:12 }}>{s.value}%</p>
                 </div>
               ))}
@@ -2987,7 +3024,7 @@ function SpendingBreakdownChart({ state, save }) {
       {/* DEMO — show example chart, explain, then offer to start */}
       {phase==="demo" && (
         <div className="ls-fadein" style={{ padding:"0 20px 20px" }}>
-          <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.6,marginBottom:16 }}>
+          <p style={{ color:"#D8E8F8",fontSize:14,lineHeight:1.65,marginBottom:16 }}>
             The 50/30/20 rule is a simple way to see if your money is working well. Here's what a healthy split looks like:
           </p>
           <div style={{ display:"flex",alignItems:"center",gap:20,marginBottom:16 }}>
@@ -3010,7 +3047,7 @@ function SpendingBreakdownChart({ state, save }) {
               ))}
             </div>
           </div>
-          <p style={{ color:"#7A8FA8",fontSize:12,marginBottom:14 }}>Takes 2 minutes. You only need rough numbers.</p>
+          <p style={{ color:"#8FA3BE",fontSize:12,marginBottom:14 }}>Takes 2 minutes. You only need rough numbers.</p>
           <div style={{ display:"flex",gap:10 }}>
             <button onClick={()=>setPhase("input")}
               style={{ flex:1,background:T.purple,border:"none",borderRadius:12,padding:"11px",color:T.bg,fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit" }}>
@@ -3027,13 +3064,13 @@ function SpendingBreakdownChart({ state, save }) {
       {/* INPUT — category entry */}
       {phase==="input" && (
         <div className="ls-fadein" style={{ padding:"0 20px 20px" }}>
-          <p style={{ color:"#CBD5E1",fontSize:13,marginBottom:4 }}>Enter your rough monthly amounts. Estimates are fine.</p>
+          <p style={{ color:"#E2EAF6",fontSize:13,marginBottom:4 }}>Enter your rough monthly amounts. Estimates are fine.</p>
           {monthly>0 && <p style={{ color:T.teal,fontSize:12,fontWeight:700,marginBottom:14 }}>Your total monthly spend: {fmt(monthly)}</p>}
           <div style={{ display:"flex",flexDirection:"column",gap:8,marginBottom:16 }}>
             {SPEND_CATS.map(cat=>(
               <div key={cat.id} style={{ display:"flex",alignItems:"center",gap:12,background:T.surface,borderRadius:12,padding:"10px 14px" }}>
                 <span style={{ fontSize:16,width:22,textAlign:"center" }}>{cat.icon}</span>
-                <p style={{ flex:1,color:"#CBD5E1",fontSize:13 }}>{cat.label}</p>
+                <p style={{ flex:1,color:"#E2EAF6",fontSize:13 }}>{cat.label}</p>
                 <div style={{ display:"flex",alignItems:"center",gap:4 }}>
                   <span style={{ color:T.muted,fontSize:14 }}>£</span>
                   <input type="number" min="0" placeholder="0"
@@ -3047,7 +3084,7 @@ function SpendingBreakdownChart({ state, save }) {
           </div>
           {totalInput>0 && (
             <div style={{ background:T.surface,borderRadius:12,padding:"10px 14px",marginBottom:14 }}>
-              <p style={{ color:"#CBD5E1",fontSize:12 }}>Total entered: <strong style={{ color:T.white }}>{fmt(totalInput)}/mo</strong></p>
+              <p style={{ color:"#E2EAF6",fontSize:12 }}>Total entered: <strong style={{ color:T.white }}>{fmt(totalInput)}/mo</strong></p>
             </div>
           )}
           <div style={{ display:"flex",gap:10 }}>
@@ -3080,7 +3117,7 @@ function SpendingBreakdownChart({ state, save }) {
                   <div style={{ display:"flex",justifyContent:"space-between",marginBottom:3 }}>
                     <div style={{ display:"flex",alignItems:"center",gap:6 }}>
                       <div style={{ width:8,height:8,borderRadius:"50%",background:s.color,flexShrink:0 }}/>
-                      <p style={{ color:"#CBD5E1",fontSize:12 }}>{s.label}</p>
+                      <p style={{ color:"#E2EAF6",fontSize:12 }}>{s.label}</p>
                     </div>
                     <p style={{ color:s.color,fontWeight:800,fontSize:12 }}>{Math.round(s.value/totalInput*100)}%</p>
                   </div>
@@ -3103,7 +3140,7 @@ function SpendingBreakdownChart({ state, save }) {
             if(savePct<10)  msgs.push("Less than 10% going to savings. Aim for 20% as a long-term goal.")
             if(msgs.length===0) msgs.push("Your split looks healthy. Keep it up.")
             return <div style={{ background:T.surface,borderRadius:12,padding:"10px 14px" }}>
-              <p style={{ color:"#CBD5E1",fontSize:12,lineHeight:1.55 }}>{msgs[0]}</p>
+              <p style={{ color:"#E2EAF6",fontSize:12,lineHeight:1.55 }}>{msgs[0]}</p>
             </div>
           })()}
         </div>
@@ -3196,7 +3233,7 @@ function NetWorthMomentumChart({ state }) {
                 <stop offset="95%" stopColor={change>=0?T.blue:T.red} stopOpacity={0}/>
               </linearGradient>
             </defs>
-            <XAxis dataKey="month" tick={{fontSize:10,fill:"#7A8FA8"}} axisLine={false} tickLine={false}/>
+            <XAxis dataKey="month" tick={{fontSize:10,fill:"#8FA3BE"}} axisLine={false} tickLine={false}/>
             <YAxis hide/>
             <Tooltip
               formatter={v=>[fmt(v),"Net worth"]}
@@ -3231,7 +3268,7 @@ function AssetsSection({ assets, totalAssets, onAdd, onEdit, onDelete }) {
       <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16 }}>
         <div>
           <p style={{ color:T.green,fontWeight:900,fontSize:22 }}>{fmt(totalAssets)}</p>
-          <p style={{ color:"#CBD5E1",fontSize:13,fontWeight:600 }}>Total assets</p>
+          <p style={{ color:"#E2EAF6",fontSize:13,fontWeight:600 }}>Total assets</p>
         </div>
         <button onClick={onAdd} style={{ background:T.tealDim,border:`1.5px solid ${T.tealBorder}`,borderRadius:11,padding:"10px 18px",color:T.teal,fontWeight:700,fontSize:14,cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontFamily:"inherit" }}>
           <Plus size={15}/>Add asset
@@ -3244,9 +3281,9 @@ function AssetsSection({ assets, totalAssets, onAdd, onEdit, onDelete }) {
         <>
           {/* Table header */}
           <div style={{ display:"grid",gridTemplateColumns:"1fr auto auto auto",gap:8,padding:"8px 14px",marginBottom:4 }}>
-            <p style={{ color:"#7A8FA8",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8 }}>Asset</p>
-            <p style={{ color:"#7A8FA8",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8,textAlign:"right",minWidth:70 }}>Rate/Rtn</p>
-            <p style={{ color:"#7A8FA8",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8,textAlign:"right",minWidth:80 }}>Value</p>
+            <p style={{ color:"#8FA3BE",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8 }}>Asset</p>
+            <p style={{ color:"#8FA3BE",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8,textAlign:"right",minWidth:70 }}>Rate/Rtn</p>
+            <p style={{ color:"#8FA3BE",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8,textAlign:"right",minWidth:80 }}>Value</p>
             <p style={{ color:"transparent",fontSize:11,minWidth:54 }}>...</p>
           </div>
 
@@ -3267,15 +3304,15 @@ function AssetsSection({ assets, totalAssets, onAdd, onEdit, onDelete }) {
                     <div key={a.id} style={{ display:"grid",gridTemplateColumns:"1fr auto auto auto",gap:8,alignItems:"center",padding:"12px 14px",background:T.card,border:`1px solid ${T.border}`,borderRadius:12,marginBottom:6 }}>
                       <div style={{ minWidth:0 }}>
                         <p style={{ color:T.white,fontWeight:700,fontSize:14,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{a.name}</p>
-                        <p style={{ color:"#7A8FA8",fontSize:12 }}>{t?.label}{a.monthlyIncome>0?` ${fmt(a.monthlyIncome)}/mo income`:""}</p>
+                        <p style={{ color:"#8FA3BE",fontSize:12 }}>{t?.label}{a.monthlyIncome>0?` ${fmt(a.monthlyIncome)}/mo income`:""}</p>
                       </div>
-                      <p style={{ color:a.annualReturn?T.purple:"#7A8FA8",fontWeight:700,fontSize:13,textAlign:"right",minWidth:70 }}>
+                      <p style={{ color:a.annualReturn?T.purple:"#8FA3BE",fontWeight:700,fontSize:13,textAlign:"right",minWidth:70 }}>
                         {a.annualReturn?`${a.annualReturn}%/yr`:" "}
                       </p>
                       <p style={{ color:T.green,fontWeight:800,fontSize:14,textAlign:"right",minWidth:80 }}>{fmt(a.value)}</p>
                       <div style={{ display:"flex",gap:4,minWidth:54,justifyContent:"flex-end" }}>
                         <button onClick={()=>onEdit(a)} style={{ background:"none",border:"none",color:T.teal,cursor:"pointer",padding:6,borderRadius:8 }}><Pencil size={14}/></button>
-                        <button onClick={()=>onDelete(a)} style={{ background:"none",border:"none",color:"#7A8FA8",cursor:"pointer",padding:6,borderRadius:8 }}><Trash2 size={14}/></button>
+                        <button onClick={()=>onDelete(a)} style={{ background:"none",border:"none",color:"#8FA3BE",cursor:"pointer",padding:6,borderRadius:8 }}><Trash2 size={14}/></button>
                       </div>
                     </div>
                   )
@@ -3295,7 +3332,7 @@ function DebtsSection({ debts, totalDebts, drag, onAdd, onEdit, onDelete }) {
       <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:drag>0?8:16 }}>
         <div>
           <p style={{ color:totalDebts>0?T.red:T.muted,fontWeight:900,fontSize:22 }}>{fmt(totalDebts)}</p>
-          <p style={{ color:"#CBD5E1",fontSize:13,fontWeight:600 }}>Total debts</p>
+          <p style={{ color:"#E2EAF6",fontSize:13,fontWeight:600 }}>Total debts</p>
         </div>
         <button onClick={onAdd} style={{ background:T.redDim,border:`1.5px solid ${T.redBorder}`,borderRadius:11,padding:"10px 18px",color:T.red,fontWeight:700,fontSize:14,cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontFamily:"inherit" }}>
           <Plus size={15}/>Add debt
@@ -3305,7 +3342,7 @@ function DebtsSection({ debts, totalDebts, drag, onAdd, onEdit, onDelete }) {
       {drag>0 && (
         <div style={{ background:T.redDim,border:`1px solid ${T.redBorder}`,borderRadius:12,padding:"12px 16px",marginBottom:16 }}>
           <p style={{ color:T.red,fontSize:14,fontWeight:700 }}>💸 {fmt(Math.round(drag/12))}/month ({fmt(Math.round(drag))}/yr) lost to interest</p>
-          <p style={{ color:"#CBD5E1",fontSize:13,marginTop:4 }}>Paying off highest-rate debt first (avalanche method) is a guaranteed return equal to the rate you eliminate.</p>
+          <p style={{ color:"#E2EAF6",fontSize:13,marginTop:4 }}>Paying off highest-rate debt first (avalanche method) is a guaranteed return equal to the rate you eliminate.</p>
         </div>
       )}
 
@@ -3315,10 +3352,10 @@ function DebtsSection({ debts, totalDebts, drag, onAdd, onEdit, onDelete }) {
         <>
           {/* Table header */}
           <div style={{ display:"grid",gridTemplateColumns:"1fr auto auto auto auto",gap:8,padding:"8px 14px",marginBottom:4 }}>
-            <p style={{ color:"#7A8FA8",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8 }}>Debt</p>
-            <p style={{ color:"#7A8FA8",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8,textAlign:"right",minWidth:55 }}>APR</p>
-            <p style={{ color:"#7A8FA8",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8,textAlign:"right",minWidth:70 }}>Interest/mo</p>
-            <p style={{ color:"#7A8FA8",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8,textAlign:"right",minWidth:80 }}>Balance</p>
+            <p style={{ color:"#8FA3BE",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8 }}>Debt</p>
+            <p style={{ color:"#8FA3BE",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8,textAlign:"right",minWidth:55 }}>APR</p>
+            <p style={{ color:"#8FA3BE",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8,textAlign:"right",minWidth:70 }}>Interest/mo</p>
+            <p style={{ color:"#8FA3BE",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8,textAlign:"right",minWidth:80 }}>Balance</p>
             <p style={{ color:"transparent",fontSize:11,minWidth:54 }}>...</p>
           </div>
 
@@ -3331,7 +3368,7 @@ function DebtsSection({ debts, totalDebts, drag, onAdd, onEdit, onDelete }) {
               <div key={d.id} style={{ display:"grid",gridTemplateColumns:"1fr auto auto auto auto",gap:8,alignItems:"center",padding:"12px 14px",background:T.card,border:`1px solid ${T.border}`,borderRadius:12,marginBottom:8 }}>
                 <div style={{ minWidth:0 }}>
                   <p style={{ color:T.white,fontWeight:700,fontSize:14,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{d.name}</p>
-                  <p style={{ color:"#7A8FA8",fontSize:12 }}>{t?.label}{d.minPayment>0?` min ${fmt(d.minPayment)}/mo`:""}</p>
+                  <p style={{ color:"#8FA3BE",fontSize:12 }}>{t?.label}{d.minPayment>0?` min ${fmt(d.minPayment)}/mo`:""}</p>
                 </div>
                 <div style={{ background:`${rateColor}20`,border:`1px solid ${rateColor}40`,borderRadius:8,padding:"3px 8px",minWidth:55,textAlign:"center" }}>
                   <p style={{ color:rateColor,fontWeight:800,fontSize:12 }}>{rate}%</p>
@@ -3340,7 +3377,7 @@ function DebtsSection({ debts, totalDebts, drag, onAdd, onEdit, onDelete }) {
                 <p style={{ color:T.red,fontWeight:800,fontSize:14,textAlign:"right",minWidth:80 }}>{fmt(d.balance)}</p>
                 <div style={{ display:"flex",gap:4,minWidth:54,justifyContent:"flex-end" }}>
                   <button onClick={()=>onEdit(d)} style={{ background:"none",border:"none",color:T.teal,cursor:"pointer",padding:6,borderRadius:8 }}><Pencil size={14}/></button>
-                  {!d.isAutoCreated && <button onClick={()=>onDelete(d)} style={{ background:"none",border:"none",color:"#7A8FA8",cursor:"pointer",padding:6,borderRadius:8 }}><Trash2 size={14}/></button>}
+                  {!d.isAutoCreated && <button onClick={()=>onDelete(d)} style={{ background:"none",border:"none",color:"#8FA3BE",cursor:"pointer",padding:6,borderRadius:8 }}><Trash2 size={14}/></button>}
                 </div>
               </div>
             )
@@ -3383,7 +3420,7 @@ function AssetSheet({ item, onClose, onSave }) {
             <span style={{ fontSize:22,flexShrink:0 }}>{x.icon}</span>
             <div>
               <p style={{ color:sel?T.teal:T.white,fontWeight:700,fontSize:13 }}>{x.label}</p>
-              <p style={{ color:"#7A8FA8",fontSize:11 }}>{x.hint}</p>
+              <p style={{ color:"#8FA3BE",fontSize:11 }}>{x.hint}</p>
             </div>
           </button>
         )})}
@@ -3393,14 +3430,14 @@ function AssetSheet({ item, onClose, onSave }) {
         <Input label="Name / label" value={name} onChange={setName} placeholder={t?.label||"e.g. Vanguard ISA"}/>
         <CurrencyInput label="Current value" value={val} onChange={setVal}/>
         <div>
-          <p style={{ color:"#CBD5E1",fontSize:13,fontWeight:600,marginBottom:6 }}>Annual return / interest rate (optional)</p>
+          <p style={{ color:"#E2EAF6",fontSize:13,fontWeight:600,marginBottom:6 }}>Annual return / interest rate (optional)</p>
           <div style={{ display:"flex",alignItems:"center",background:T.card,border:`1px solid ${T.border}`,borderRadius:12,overflow:"hidden" }}>
             <input type="number" min="0" max="30" step="0.1" value={ret} onChange={e=>setRet(e.target.value)}
               placeholder="e.g. 7"
               style={{ flex:1,background:"transparent",border:"none",outline:"none",color:T.white,fontSize:15,fontWeight:600,padding:"14px 16px",fontFamily:"inherit" }}/>
-            <span style={{ padding:"0 16px",color:"#7A8FA8",fontWeight:700 }}>%/yr</span>
+            <span style={{ padding:"0 16px",color:"#8FA3BE",fontWeight:700 }}>%/yr</span>
           </div>
-          <p style={{ color:"#7A8FA8",fontSize:12,marginTop:4 }}>Helps unlock better growth projections</p>
+          <p style={{ color:"#8FA3BE",fontSize:12,marginTop:4 }}>Helps unlock better growth projections</p>
         </div>
         {["investment_property","rental"].includes(cat) && (
           <CurrencyInput label="Monthly rental income" value={income} onChange={setIncome}/>
@@ -3409,7 +3446,7 @@ function AssetSheet({ item, onClose, onSave }) {
           <div>
             <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:hasLoan?10:0 }}>
               <Toggle value={hasLoan} onChange={setHasLoan}/>
-              <p style={{ color:"#CBD5E1",fontSize:14,fontWeight:600 }}>Has a mortgage / loan</p>
+              <p style={{ color:"#E2EAF6",fontSize:14,fontWeight:600 }}>Has a mortgage / loan</p>
             </div>
             {hasLoan && <CurrencyInput label="Outstanding loan balance" value={loanBal} onChange={setLoanBal}/>}
           </div>
@@ -3449,7 +3486,7 @@ function DebtSheet({ item, onClose, onSave }) {
             <span style={{ fontSize:22,flexShrink:0 }}>{x.icon}</span>
             <div>
               <p style={{ color:sel?T.red:T.white,fontWeight:700,fontSize:13 }}>{x.label}</p>
-              <p style={{ color:"#7A8FA8",fontSize:11 }}>~{x.assumedRate}% typical</p>
+              <p style={{ color:"#8FA3BE",fontSize:11 }}>~{x.assumedRate}% typical</p>
             </div>
           </button>
         )})}
@@ -3459,14 +3496,14 @@ function DebtSheet({ item, onClose, onSave }) {
         <Input label="Name / label" value={name} onChange={setName} placeholder={t?.label||"e.g. HSBC credit card"}/>
         <CurrencyInput label="Current balance owed" value={bal} onChange={setBal}/>
         <div>
-          <p style={{ color:"#CBD5E1",fontSize:13,fontWeight:600,marginBottom:6 }}>Interest rate (APR)</p>
+          <p style={{ color:"#E2EAF6",fontSize:13,fontWeight:600,marginBottom:6 }}>Interest rate (APR)</p>
           <div style={{ display:"flex",alignItems:"center",background:T.card,border:`1px solid ${T.border}`,borderRadius:12,overflow:"hidden" }}>
             <input type="number" min="0" max="100" step="0.1" value={rate} onChange={e=>setRate(e.target.value)}
               placeholder={t?String(t.assumedRate):"10"}
               style={{ flex:1,background:"transparent",border:"none",outline:"none",color:T.white,fontSize:15,fontWeight:600,padding:"14px 16px",fontFamily:"inherit" }}/>
-            <span style={{ padding:"0 16px",color:"#7A8FA8",fontWeight:700 }}>% APR</span>
+            <span style={{ padding:"0 16px",color:"#8FA3BE",fontWeight:700 }}>% APR</span>
           </div>
-          <p style={{ color:"#7A8FA8",fontSize:12,marginTop:4 }}>Check your statement or account online</p>
+          <p style={{ color:"#8FA3BE",fontSize:12,marginTop:4 }}>Check your statement or account online</p>
         </div>
         <CurrencyInput label="Minimum monthly payment (optional)" value={min} onChange={setMin}/>
       </div>
@@ -3507,7 +3544,7 @@ function IncomeSection({ income, assets, onSave }) {
   return (
     <div style={{ display:"flex",flexDirection:"column",gap:16 }}>
       <div style={{ background:T.card,border:`1px solid ${T.tealBorder}`,borderRadius:18,padding:"18px 20px",textAlign:"center" }}>
-        <p style={{ color:"#CBD5E1",fontSize:14,fontWeight:600,marginBottom:4 }}>Total monthly income</p>
+        <p style={{ color:"#E2EAF6",fontSize:14,fontWeight:600,marginBottom:4 }}>Total monthly income</p>
         <p style={{ color:T.teal,fontWeight:900,fontSize:32 }}>{fmt(totalIncome)}</p>
       </div>
 
@@ -3523,12 +3560,12 @@ function IncomeSection({ income, assets, onSave }) {
           )})}
         </div>
         <CurrencyInput label="Monthly take-home pay" value={primary} onChange={setPrimary}/>
-        <p style={{ color:"#CBD5E1",fontSize:13,marginTop:8,fontWeight:500 }}>📱 Check your banking app or last payslip</p>
+        <p style={{ color:"#E2EAF6",fontSize:13,marginTop:8,fontWeight:500 }}>📱 Check your banking app or last payslip</p>
       </div>
 
       {rentalIncome>0 && (
         <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px 16px",display:"flex",justifyContent:"space-between",alignItems:"center" }}>
-          <p style={{ color:"#CBD5E1",fontSize:14,fontWeight:600 }}>🏠 Rental income (from assets)</p>
+          <p style={{ color:"#E2EAF6",fontSize:14,fontWeight:600 }}>🏠 Rental income (from assets)</p>
           <p style={{ color:T.green,fontWeight:800,fontSize:15 }}>{fmt(rentalIncome)}/mo</p>
         </div>
       )}
@@ -3538,10 +3575,10 @@ function IncomeSection({ income, assets, onSave }) {
           <p style={{ color:T.white,fontWeight:700,fontSize:15,marginBottom:12 }}>Other income</p>
           {extras.map((e,i)=>(
             <div key={e.id} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10 }}>
-              <p style={{ color:"#CBD5E1",fontSize:14 }}>{e.label}</p>
+              <p style={{ color:"#E2EAF6",fontSize:14 }}>{e.label}</p>
               <div style={{ display:"flex",alignItems:"center",gap:10 }}>
                 <p style={{ color:T.green,fontWeight:700 }}>{fmt(e.amount)}/mo</p>
-                <button onClick={()=>setExtras(prev=>prev.filter(x=>x.id!==e.id))} style={{ background:"none",border:"none",color:"#7A8FA8",cursor:"pointer",padding:4 }}><Trash2 size={14}/></button>
+                <button onClick={()=>setExtras(prev=>prev.filter(x=>x.id!==e.id))} style={{ background:"none",border:"none",color:"#8FA3BE",cursor:"pointer",padding:4 }}><Trash2 size={14}/></button>
               </div>
             </div>
           ))}
@@ -3965,7 +4002,7 @@ function LearnTab() {
         {/* Why learning matters */}
         <div className="ls-card-glass" style={{ border:`1px solid ${T.purpleBorder}`,borderRadius:18,padding:"16px",marginBottom:20 }}>
           <p style={{ color:T.white,fontWeight:800,fontSize:14,marginBottom:6 }}>The knowledge that pays for itself</p>
-          <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.6,marginBottom:10 }}>
+          <p style={{ color:"#D8E8F8",fontSize:14,lineHeight:1.65,marginBottom:10 }}>
             Every lesson changes a real decision — pensions, debt, investing. People who complete the curriculum look back and say: <em style={{ color:T.white }}>"If I\'d known this 5 years ago."</em> You do know it. Now.
           </p>
           <div style={{ display:"flex",gap:8,flexWrap:"wrap" }}>
@@ -4035,7 +4072,7 @@ function LearnTab() {
 
         {/* Coming soon greyed lessons */}
         <div style={{ marginTop:24 }}>
-          <p style={{ color:"#7A8FA8",fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:14 }}>Coming soon</p>
+          <p style={{ color:"#8FA3BE",fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:14 }}>Coming soon</p>
           <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
             {COMING_SOON_LESSONS.map((l,i)=>(
               <div key={i} style={{ background:T.faint,border:`1px solid ${T.border}`,borderRadius:16,padding:"16px 18px",display:"flex",gap:12,alignItems:"center",opacity:0.5 }}>
@@ -4046,11 +4083,11 @@ function LearnTab() {
                   <p style={{ color:T.white,fontWeight:700,fontSize:13,marginBottom:3 }}>{l.title}</p>
                   <div style={{ display:"flex",gap:8,alignItems:"center" }}>
                     <span style={{ background:`${l.trackColor}15`,color:l.trackColor,fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:6 }}>{l.track}</span>
-                    <span style={{ color:"#7A8FA8",fontSize:11 }}>{l.desc}</span>
+                    <span style={{ color:"#8FA3BE",fontSize:11 }}>{l.desc}</span>
                   </div>
                 </div>
                 <div style={{ background:T.surface,borderRadius:8,padding:"4px 10px" }}>
-                  <span style={{ color:"#7A8FA8",fontSize:11,fontWeight:700 }}>Soon</span>
+                  <span style={{ color:"#8FA3BE",fontSize:11,fontWeight:700 }}>Soon</span>
                 </div>
               </div>
             ))}
@@ -4140,7 +4177,7 @@ function LessonPlayer({ lesson, onComplete, onBack }) {
           </Btn>
         ) : (
           <div style={{ background:T.faint,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px",textAlign:"center" }}>
-            <p style={{ color:"#CBD5E1",fontSize:13 }}>
+            <p style={{ color:"#E2EAF6",fontSize:13 }}>
               {card.type==="quiz"||card.type==="scenario" ? "Choose an answer to continue" : "Complete the exercise to continue"}
             </p>
           </div>
@@ -4164,7 +4201,7 @@ function FactCard({ card, color }) {
       )}
 
       <h2 style={{ color:T.white,fontSize:"clamp(18px,4vw,24px)",fontWeight:900,lineHeight:1.3,marginBottom:14 }}>{card.headline}</h2>
-      <p style={{ color:"#CBD5E1",fontSize:15,lineHeight:1.8,marginBottom:card.highlight||card.facts?18:0 }}>{card.body}</p>
+      <p style={{ color:"#E2EAF6",fontSize:15,lineHeight:1.8,marginBottom:card.highlight||card.facts?18:0 }}>{card.body}</p>
 
       {/* Equation visual */}
       {card.visual==="equation" && (
@@ -4191,7 +4228,7 @@ function FactCard({ card, color }) {
         </div>
       )}
       {card.sub && (
-        <p style={{ color:"#CBD5E1",fontSize:14,lineHeight:1.65,marginBottom:card.facts?18:0 }}>{card.sub}</p>
+        <p style={{ color:"#E2EAF6",fontSize:14,lineHeight:1.65,marginBottom:card.facts?18:0 }}>{card.sub}</p>
       )}
 
       {card.facts && (
@@ -4206,7 +4243,7 @@ function FactCard({ card, color }) {
                   <p style={{ color:open?T.white:T.muted,fontWeight:700,fontSize:14,flex:1 }}>{f.label}</p>
                   <ChevronRight size={14} color={T.subtle} style={{ transform:open?"rotate(90deg)":"none",transition:"transform .2s",flexShrink:0 }}/>
                 </div>
-                {open && <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.7,marginTop:12,paddingTop:10,borderTop:`1px solid ${T.border}` }}>{f.text}</p>}
+                {open && <p style={{ color:"#E2EAF6",fontSize:13,lineHeight:1.7,marginTop:12,paddingTop:10,borderTop:`1px solid ${T.border}` }}>{f.text}</p>}
               </div>
             )
           })}
@@ -4222,7 +4259,7 @@ function ScenarioCard({ card, color, answered, onAnswer }) {
       <div style={{ background:`${color}12`,border:`1.5px solid ${color}35`,borderRadius:14,padding:"16px 18px",marginBottom:20 }}>
         <p style={{ color:T.muted,fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1,marginBottom:8 }}>Scenario</p>
         <p style={{ color:T.white,fontWeight:700,fontSize:16,lineHeight:1.4,marginBottom:8 }}>{card.prompt}</p>
-        <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.6 }}>{card.context}</p>
+        <p style={{ color:"#D8E8F8",fontSize:14,lineHeight:1.65 }}>{card.context}</p>
       </div>
 
       <p style={{ color:T.muted,fontSize:12,marginBottom:12,fontWeight:600 }}>What would you do?</p>
@@ -4256,7 +4293,7 @@ function ScenarioCard({ card, color, answered, onAnswer }) {
       {answered!==null && card.explanation && (
         <div className="ls-fadein" style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px 16px" }}>
           <p style={{ color:T.muted,fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8,marginBottom:6 }}>The takeaway</p>
-          <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.7 }}>{card.explanation}</p>
+          <p style={{ color:"#E2EAF6",fontSize:13,lineHeight:1.7 }}>{card.explanation}</p>
         </div>
       )}
     </div>
@@ -4293,7 +4330,7 @@ function QuizCard({ card, color, answered, onAnswer }) {
       {answered!==null && card.explanation && (
         <div className="ls-fadein" style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px 16px" }}>
           <p style={{ color:T.muted,fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8,marginBottom:6 }}>Why</p>
-          <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.7 }}>{card.explanation}</p>
+          <p style={{ color:"#E2EAF6",fontSize:13,lineHeight:1.7 }}>{card.explanation}</p>
         </div>
       )}
     </div>
@@ -4322,7 +4359,7 @@ function MatchCard({ card, color, shuffledDefs, matchSel, setMatchSel, matchDone
   return (
     <div>
       <h2 style={{ color:T.white,fontSize:"clamp(17px,3.5vw,22px)",fontWeight:900,marginBottom:6 }}>{card.prompt}</h2>
-      <p style={{ color:"#CBD5E1",fontSize:13,marginBottom:20 }}>Tap a term, then its matching definition.</p>
+      <p style={{ color:"#E2EAF6",fontSize:13,marginBottom:20 }}>Tap a term, then its matching definition.</p>
       <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14 }}>
         <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
           <p style={{ color:T.muted,fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1,marginBottom:2 }}>Terms</p>
@@ -4346,7 +4383,7 @@ function MatchCard({ card, color, shuffledDefs, matchSel, setMatchSel, matchDone
       {allDone && (
         <div className="ls-fadein" style={{ background:"rgba(52,211,153,.1)",border:"1px solid rgba(52,211,153,.3)",borderRadius:14,padding:"14px 18px" }}>
           <p style={{ color:"#34D399",fontWeight:700,fontSize:14,marginBottom:4 }}>All matched! 🎉</p>
-          {card.explanation && <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.6 }}>{card.explanation}</p>}
+          {card.explanation && <p style={{ color:"#D8E8F8",fontSize:14,lineHeight:1.65 }}>{card.explanation}</p>}
         </div>
       )}
     </div>
@@ -4359,7 +4396,7 @@ function RankCard({ card, color, ranked, setRanked }) {
   return (
     <div>
       <h2 style={{ color:T.white,fontSize:"clamp(17px,3.5vw,22px)",fontWeight:900,marginBottom:6 }}>{card.prompt}</h2>
-      <p style={{ color:"#CBD5E1",fontSize:13,marginBottom:20 }}>Tap in your preferred order.</p>
+      <p style={{ color:"#E2EAF6",fontSize:13,marginBottom:20 }}>Tap in your preferred order.</p>
       {ranked.length>0 && (
         <div style={{ marginBottom:14 }}>
           <p style={{ color:T.muted,fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1,marginBottom:8 }}>Your ranking</p>
@@ -4377,7 +4414,7 @@ function RankCard({ card, color, ranked, setRanked }) {
           <p style={{ color:T.muted,fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1,marginBottom:8 }}>Options</p>
           {remaining.map(item=>(
             <div key={item} onClick={()=>setRanked(r=>[...r,item])} style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:11,padding:"10px 14px",marginBottom:6,cursor:"pointer" }}>
-              <p style={{ color:"#CBD5E1",fontSize:13,fontWeight:600 }}>{item}</p>
+              <p style={{ color:"#E2EAF6",fontSize:13,fontWeight:600 }}>{item}</p>
             </div>
           ))}
         </div>
@@ -4410,19 +4447,19 @@ function GrowthChartCard({ color, hint }) {
   return (
     <div>
       <h2 style={{ color:T.white,fontSize:"clamp(17px,3.5vw,22px)",fontWeight:900,marginBottom:6 }}>See compound interest in action</h2>
-      <p style={{ color:"#CBD5E1",fontSize:13,marginBottom:20,lineHeight:1.5 }}>Adjust your monthly investment to see what compound interest does over 30 years.</p>
+      <p style={{ color:"#E2EAF6",fontSize:13,marginBottom:20,lineHeight:1.5 }}>Adjust your monthly investment to see what compound interest does over 30 years.</p>
 
       {/* Slider */}
       <div style={{ marginBottom:20 }}>
         <div style={{ display:"flex",justifyContent:"space-between",marginBottom:8 }}>
-          <p style={{ color:"#CBD5E1",fontSize:13 }}>Monthly investment</p>
+          <p style={{ color:"#E2EAF6",fontSize:13 }}>Monthly investment</p>
           <p style={{ color,fontWeight:800,fontSize:16 }}>£{monthly.toLocaleString("en-GB")}</p>
         </div>
         <input type="range" min="50" max="2000" step="50" value={monthly} onChange={e=>setMonthly(Number(e.target.value))}
           style={{ width:"100%",accentColor:color,height:6,cursor:"pointer" }}/>
         <div style={{ display:"flex",justifyContent:"space-between",marginTop:4 }}>
-          <span style={{ color:"#7A8FA8",fontSize:12 }}>£50</span>
-          <span style={{ color:"#7A8FA8",fontSize:12 }}>£2,000</span>
+          <span style={{ color:"#8FA3BE",fontSize:12 }}>£50</span>
+          <span style={{ color:"#8FA3BE",fontSize:12 }}>£2,000</span>
         </div>
       </div>
 
@@ -4558,7 +4595,7 @@ function PersonalityQuiz({ state, save, onClose }) {
             <h1 style={{ color:T.white,fontWeight:900,fontSize:26,textAlign:"center",marginBottom:12,lineHeight:1.2 }}>
               Find out your money personality
             </h1>
-            <p style={{ color:"#CBD5E1",fontSize:15,textAlign:"center",lineHeight:1.7,marginBottom:32 }}>
+            <p style={{ color:"#E2EAF6",fontSize:15,textAlign:"center",lineHeight:1.7,marginBottom:32 }}>
               12 scenario questions. No right answers. Takes about 4 minutes.
             </p>
             <div style={{ display:"flex",flexDirection:"column",gap:10,marginBottom:32 }}>
@@ -4570,7 +4607,7 @@ function PersonalityQuiz({ state, save, onClose }) {
               ].map((item,i)=>(
                 <div key={i} style={{ display:"flex",alignItems:"center",gap:12,background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"12px 14px" }}>
                   <span style={{ fontSize:20 }}>{item.icon}</span>
-                  <p style={{ color:"#CBD5E1",fontSize:13,fontWeight:500 }}>{item.text}</p>
+                  <p style={{ color:"#E2EAF6",fontSize:13,fontWeight:500 }}>{item.text}</p>
                 </div>
               ))}
             </div>
@@ -4589,7 +4626,7 @@ function PersonalityQuiz({ state, save, onClose }) {
               </span>
             </div>
             <h2 style={{ color:T.white,fontWeight:900,fontSize:21,lineHeight:1.25,marginBottom:6,marginTop:14 }}>{q.headline}</h2>
-            <p style={{ color:"#7A8FA8",fontSize:14,marginBottom:28 }}>{q.sub}</p>
+            <p style={{ color:"#8FA3BE",fontSize:14,marginBottom:28 }}>{q.sub}</p>
 
             <div style={{ display:"flex",flexDirection:"column",gap:10,marginBottom:32 }}>
               {q.options.map((opt, oi) => {
@@ -4601,7 +4638,7 @@ function PersonalityQuiz({ state, save, onClose }) {
                       border: `2px solid ${sel ? T.teal : T.border}`,
                       borderRadius:14, padding:"15px 18px",
                       cursor:"pointer", textAlign:"left", fontFamily:"inherit",
-                      color: sel ? T.white : "#CBD5E1",
+                      color: sel ? T.white : "#E2EAF6",
                       fontWeight: sel ? 700 : 500, fontSize:14, lineHeight:1.4,
                       transition:"all .15s",
                       boxShadow: sel ? `0 0 20px ${T.teal}20` : "none",
@@ -4674,7 +4711,7 @@ function PersonalityResult({ result, onClose }) {
         <p style={{ color:arch.color,fontWeight:700,fontSize:11,letterSpacing:1.5,textTransform:"uppercase",marginBottom:8 }}>Your money personality</p>
         <h2 style={{ color:T.white,fontWeight:900,fontSize:28,marginBottom:8 }}>{arch.name}</h2>
         <p style={{ color:arch.headline?arch.color:T.muted,fontWeight:700,fontSize:15,marginBottom:14 }}>{arch.headline}</p>
-        <p style={{ color:"#CBD5E1",fontSize:14,lineHeight:1.7 }}>{arch.summary}</p>
+        <p style={{ color:"#E2EAF6",fontSize:14,lineHeight:1.7 }}>{arch.summary}</p>
       </div>
 
       {/* Tab switcher */}
@@ -4696,14 +4733,14 @@ function PersonalityResult({ result, onClose }) {
               <div key={d.key} style={{ background:T.card,border:`1px solid ${activeTip===d.key?arch.color+"50":T.border}`,borderRadius:10,padding:"10px 14px",transition:"border .15s" }}>
                 <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
                   <div style={{ display:"flex",alignItems:"center",gap:6 }}>
-                    <p style={{ color:"#7A8FA8",fontSize:13 }}>{d.key}</p>
+                    <p style={{ color:"#8FA3BE",fontSize:13 }}>{d.key}</p>
                     <button onClick={()=>setActiveTip(activeTip===d.key?null:d.key)}
                       style={{ background:`${arch.color}20`,border:`1px solid ${arch.color}30`,borderRadius:"50%",width:16,height:16,cursor:"pointer",fontFamily:"inherit",fontSize:9,fontWeight:800,color:arch.color,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>?</button>
                   </div>
                   <p style={{ color:d.color,fontWeight:700,fontSize:13 }}>{d.val}</p>
                 </div>
                 {activeTip===d.key && (
-                  <p className="ls-fadein" style={{ color:"#CBD5E1",fontSize:12,lineHeight:1.55,marginTop:8,paddingTop:8,borderTop:`1px solid ${T.border}` }}>{DIM_TIPS[d.key]}</p>
+                  <p className="ls-fadein" style={{ color:"#E2EAF6",fontSize:12,lineHeight:1.55,marginTop:8,paddingTop:8,borderTop:`1px solid ${T.border}` }}>{DIM_TIPS[d.key]}</p>
                 )}
               </div>
             ))}
@@ -4713,7 +4750,7 @@ function PersonalityResult({ result, onClose }) {
             {(arch.traits||[]).map((t,i)=>(
               <div key={i} style={{ display:"flex",alignItems:"flex-start",gap:10 }}>
                 <span style={{ color:arch.color,fontSize:14,marginTop:1 }}>✓</span>
-                <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.5 }}>{t}</p>
+                <p style={{ color:"#E2EAF6",fontSize:13,lineHeight:1.5 }}>{t}</p>
               </div>
             ))}
           </div>
@@ -4723,12 +4760,12 @@ function PersonalityResult({ result, onClose }) {
       {/* Scenarios tab */}
       {tab==="scenarios" && (
         <div style={{ animation:"quizIn .2s ease" }}>
-          <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.6,marginBottom:16 }}>Based on your profile, here is how you are likely to think and act with money:</p>
+          <p style={{ color:"#D8E8F8",fontSize:14,lineHeight:1.65,marginBottom:16 }}>Based on your profile, here is how you are likely to think and act with money:</p>
           <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
             {(arch.scenarios||[]).map((s,i)=>(
               <div key={i} style={{ background:T.card,border:`1px solid ${arch.color}25`,borderRadius:12,padding:"13px 15px",display:"flex",gap:10,alignItems:"flex-start" }}>
                 <span style={{ fontSize:15,marginTop:1 }}>→</span>
-                <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.55 }}>{s}</p>
+                <p style={{ color:"#E2EAF6",fontSize:13,lineHeight:1.55 }}>{s}</p>
               </div>
             ))}
           </div>
@@ -4740,11 +4777,11 @@ function PersonalityResult({ result, onClose }) {
         <div style={{ animation:"quizIn .2s ease" }}>
           <div style={{ background:T.amberDim,border:`1.5px solid ${T.amberBorder}`,borderRadius:16,padding:"18px",marginBottom:20 }}>
             <p style={{ color:T.amber,fontWeight:700,fontSize:13,marginBottom:8 }}>⚠ Your main blind spot</p>
-            <p style={{ color:"#CBD5E1",fontSize:14,lineHeight:1.65 }}>{arch.blind_spot}</p>
+            <p style={{ color:"#E2EAF6",fontSize:14,lineHeight:1.65 }}>{arch.blind_spot}</p>
           </div>
           <div style={{ background:`${arch.color}12`,border:`1.5px solid ${arch.color}30`,borderRadius:16,padding:"18px" }}>
             <p style={{ color:arch.color,fontWeight:700,fontSize:13,marginBottom:8 }}>→ Your next move</p>
-            <p style={{ color:"#CBD5E1",fontSize:14,lineHeight:1.65 }}>{arch.next_step}</p>
+            <p style={{ color:"#E2EAF6",fontSize:14,lineHeight:1.65 }}>{arch.next_step}</p>
           </div>
         </div>
       )}
@@ -4780,9 +4817,9 @@ function MoneyPersonalityCard({ state, save, onOpenQuiz }) {
             {arch.emoji}
           </div>
           <div style={{ flex:1 }}>
-            <p style={{ color:"#7A8FA8",fontSize:11,fontWeight:700,letterSpacing:1.2,textTransform:"uppercase",marginBottom:4 }}>Your money personality</p>
+            <p style={{ color:"#8FA3BE",fontSize:11,fontWeight:700,letterSpacing:1.2,textTransform:"uppercase",marginBottom:4 }}>Your money personality</p>
             <p style={{ color:T.white,fontWeight:900,fontSize:20,marginBottom:4 }}>{arch.name}</p>
-            <p style={{ color:"#CBD5E1",fontSize:13,lineHeight:1.55 }}>{arch.summary}</p>
+            <p style={{ color:"#E2EAF6",fontSize:13,lineHeight:1.55 }}>{arch.summary}</p>
           </div>
         </div>
 
@@ -4794,7 +4831,7 @@ function MoneyPersonalityCard({ state, save, onOpenQuiz }) {
             { label:"Risk",     val:DIM_LABELS.risk[p.risk],          color:T.amber },
           ].map(d=>(
             <div key={d.label} style={{ background:T.surface,borderRadius:12,padding:"10px 10px" }}>
-              <p style={{ color:"#7A8FA8",fontSize:10,fontWeight:700,letterSpacing:.8,textTransform:"uppercase",marginBottom:3 }}>{d.label}</p>
+              <p style={{ color:"#8FA3BE",fontSize:10,fontWeight:700,letterSpacing:.8,textTransform:"uppercase",marginBottom:3 }}>{d.label}</p>
               <p style={{ color:d.color,fontWeight:800,fontSize:12 }}>{d.val}</p>
             </div>
           ))}
@@ -4802,17 +4839,17 @@ function MoneyPersonalityCard({ state, save, onOpenQuiz }) {
 
         {/* Locked insights */}
         <div style={{ borderTop:`1px solid ${T.border}`,paddingTop:14 }}>
-          <p style={{ color:"#7A8FA8",fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:10 }}>Deeper insights</p>
+          <p style={{ color:"#8FA3BE",fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:10 }}>Deeper insights</p>
           <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
             {PERSONALITY_LOCKED.map(l=>{
               const done = l.check(state)
               return (
                 <div key={l.id} style={{ display:"flex",alignItems:"center",gap:10,background:done?`${arch.color}10`:T.faint,borderRadius:10,padding:"10px 12px",border:`1px solid ${done?arch.color+"30":T.border}` }}>
                   <span style={{ fontSize:16,flexShrink:0 }}>{l.icon}</span>
-                  <p style={{ color:done?T.white:"#7A8FA8",fontWeight:done?700:500,fontSize:13,flex:1 }}>{l.label}</p>
+                  <p style={{ color:done?T.white:"#8FA3BE",fontWeight:done?700:500,fontSize:13,flex:1 }}>{l.label}</p>
                   {done
                     ? <span style={{ color:arch.color,fontSize:11,fontWeight:700 }}>Unlocked ✓</span>
-                    : <span style={{ color:"#7A8FA8",fontSize:11 }}>{l.unlock}</span>
+                    : <span style={{ color:"#8FA3BE",fontSize:11 }}>{l.unlock}</span>
                   }
                 </div>
               )
@@ -4836,7 +4873,7 @@ function MoneyPersonalityCard({ state, save, onOpenQuiz }) {
           <div style={{ display:"flex",alignItems:"center",gap:10 }}>
             <span style={{ fontSize:18 }}>{mode.icon}</span>
             <div style={{ textAlign:"left" }}>
-              <p style={{ color:"#7A8FA8",fontSize:11,fontWeight:700,letterSpacing:.8,textTransform:"uppercase",marginBottom:1 }}>Your focus mode</p>
+              <p style={{ color:"#8FA3BE",fontSize:11,fontWeight:700,letterSpacing:.8,textTransform:"uppercase",marginBottom:1 }}>Your focus mode</p>
               <p style={{ color:T.white,fontWeight:700,fontSize:13 }}>{mode.label}</p>
             </div>
           </div>
@@ -4845,7 +4882,7 @@ function MoneyPersonalityCard({ state, save, onOpenQuiz }) {
 
         {showMode && (
           <div className="ls-fadein" style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:"14px",marginTop:8 }}>
-            <p style={{ color:"#CBD5E1",fontSize:13,marginBottom:12,fontWeight:500 }}>What do you want LifeSmart to focus on?</p>
+            <p style={{ color:"#E2EAF6",fontSize:13,marginBottom:12,fontWeight:500 }}>What do you want LifeSmart to focus on?</p>
             <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
               {PRIORITY_MODES.map(m=>{
                 const sel = m.id===(state.profile?.mode||"grow")
@@ -4854,8 +4891,8 @@ function MoneyPersonalityCard({ state, save, onOpenQuiz }) {
                     style={{ background:sel?m.dim:T.faint,border:`1.5px solid ${sel?m.color:T.border}`,borderRadius:12,padding:"12px 14px",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:12,textAlign:"left" }}>
                     <span style={{ fontSize:20 }}>{m.icon}</span>
                     <div style={{ flex:1 }}>
-                      <p style={{ color:sel?T.white:"#CBD5E1",fontWeight:700,fontSize:14 }}>{m.label}</p>
-                      <p style={{ color:sel?"#CBD5E1":"#7A8FA8",fontSize:12 }}>{m.sub}</p>
+                      <p style={{ color:sel?T.white:"#E2EAF6",fontWeight:700,fontSize:14 }}>{m.label}</p>
+                      <p style={{ color:sel?"#E2EAF6":"#8FA3BE",fontSize:12 }}>{m.sub}</p>
                     </div>
                     {sel && <Check size={16} color={m.color}/>}
                   </button>
@@ -4906,15 +4943,15 @@ function MeTab() {
             )})()}
             <div style={{ flex:1 }}>
               <p style={{ color:T.white,fontWeight:900,fontSize:20,marginBottom:2 }}>{state.profile.name||"Your profile"}</p>
-              {state.profile.age && <p style={{ color:"#CBD5E1",fontSize:13,marginBottom:4 }}>Age {state.profile.age}</p>}
+              {state.profile.age && <p style={{ color:"#E2EAF6",fontSize:13,marginBottom:4 }}>Age {state.profile.age}</p>}
               <div style={{ display:"flex",alignItems:"center",gap:6 }}>
                 <span style={{ fontSize:14 }}>{lvl.emoji}</span>
-                <span style={{ color:"#CBD5E1",fontSize:13 }}>Level {lvl.level} {lvl.label}</span>
+                <span style={{ color:"#E2EAF6",fontSize:13 }}>Level {lvl.level} {lvl.label}</span>
               </div>
             </div>
             <div style={{ textAlign:"right" }}>
               <p style={{ color:T.teal,fontWeight:900,fontSize:24 }}>{xp}</p>
-              <p style={{ color:"#7A8FA8",fontSize:12 }}>XP</p>
+              <p style={{ color:"#8FA3BE",fontSize:12 }}>XP</p>
             </div>
           </div>
           {nextLvl && (
@@ -4923,8 +4960,8 @@ function MeTab() {
                 <div style={{ width:`${pctToNext}%`,height:"100%",background:`linear-gradient(90deg,${T.teal},${T.tealMid})`,borderRadius:99,transition:"width .8s ease" }}/>
               </div>
               <div style={{ display:"flex",justifyContent:"space-between" }}>
-                <span style={{ color:"#7A8FA8",fontSize:12 }}>{xp} XP</span>
-                <span style={{ color:"#7A8FA8",fontSize:12 }}>{nextLvl.emoji} {nextLvl.label} at {nextLvl.min} XP</span>
+                <span style={{ color:"#8FA3BE",fontSize:12 }}>{xp} XP</span>
+                <span style={{ color:"#8FA3BE",fontSize:12 }}>{nextLvl.emoji} {nextLvl.label} at {nextLvl.min} XP</span>
               </div>
             </div>
           )}
@@ -4951,7 +4988,7 @@ function MeTab() {
         {/* Priorities */}
         {priorityGoals.length > 0 && (
           <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:"18px",marginBottom:16 }}>
-            <p style={{ color:T.muted,fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:12 }}>Your priorities</p>
+            <p style={{ color:"#6B8CB8",fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:12 }}>Your priorities</p>
             <div style={{ display:"flex",flexWrap:"wrap",gap:8 }}>
               {priorityGoals.map(g=>(
                 <div key={g.id} style={{ background:`${g.color}15`,border:`1px solid ${g.color}40`,borderRadius:99,padding:"5px 12px",display:"flex",alignItems:"center",gap:6 }}>
@@ -4965,7 +5002,7 @@ function MeTab() {
 
         {/* Level roadmap */}
         <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:18,padding:"20px",marginBottom:16 }}>
-          <p style={{ color:T.muted,fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:14 }}>Level roadmap</p>
+          <p style={{ color:"#6B8CB8",fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:14 }}>Level roadmap</p>
           <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
             {XP_LEVELS.map(l=>{
               const curr = getLevelInfo(xp).level===l.level
@@ -4977,7 +5014,7 @@ function MeTab() {
                   </div>
                   <div style={{ flex:1 }}>
                     <p style={{ color:done?T.white:T.subtle,fontWeight:700,fontSize:13 }}>Level {l.level}: {l.label}</p>
-                    <p style={{ color:"#7A8FA8",fontSize:12 }}>{l.min} XP</p>
+                    <p style={{ color:"#8FA3BE",fontSize:12 }}>{l.min} XP</p>
                   </div>
                   {curr&&<span style={{ background:T.tealDim,color:T.teal,fontSize:10,fontWeight:700,padding:"2px 9px",borderRadius:99,border:`1px solid ${T.tealBorder}` }}>You</span>}
                   {done&&!curr&&<Check size={14} color="#34D399"/>}
@@ -4990,7 +5027,7 @@ function MeTab() {
         {/* Badges */}
         {earned.length>0 && (
           <div style={{ marginBottom:16 }}>
-            <p style={{ color:T.muted,fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:12 }}>Badges earned</p>
+            <p style={{ color:"#6B8CB8",fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:12 }}>Badges earned</p>
             <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))",gap:10 }}>
               {earned.map(b=>(
                 <div key={b.id} style={{ background:T.card,border:`1px solid ${T.tealBorder}`,borderRadius:14,padding:"14px",textAlign:"center" }}>
@@ -5005,7 +5042,7 @@ function MeTab() {
 
         {locked.length>0 && (
           <div style={{ marginBottom:20 }}>
-            <p style={{ color:T.muted,fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:12 }}>Locked</p>
+            <p style={{ color:"#6B8CB8",fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:12 }}>Locked</p>
             <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))",gap:10 }}>
               {locked.map(b=>(
                 <div key={b.id} style={{ background:T.faint,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px",textAlign:"center",opacity:.6 }}>
@@ -5027,7 +5064,7 @@ function MeTab() {
           </button>
         </div>
 
-        <p style={{ color:"#7A8FA8",fontSize:12,textAlign:"center",marginTop:16 }}>🔒 Your data stays on your device LifeSmart</p>
+        <p style={{ color:"#8FA3BE",fontSize:12,textAlign:"center",marginTop:16 }}>🔒 Your data stays on your device LifeSmart</p>
       </div>
     </div>
   )
@@ -5083,8 +5120,8 @@ function AppShell() {
       {/* Top bar */}
       <header style={{ background:"rgba(11,20,36,.95)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderBottom:"1px solid rgba(255,255,255,.05)",padding:"0 20px",height:50,display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0,position:"relative",zIndex:10,boxShadow:"0 4px 24px rgba(0,0,0,.25)" }}>
         <div style={{ display:"flex",alignItems:"center",gap:8 }}>
-          <span style={{ fontSize:18 }}>🚀</span>
-          <span style={{ color:T.teal,fontSize:12,fontWeight:800,letterSpacing:2.5 }}>LIFESMART</span>
+          <div style={{ width:28,height:28,borderRadius:8,background:"linear-gradient(135deg,rgba(15,191,184,.3),rgba(167,139,250,.3))",border:"1px solid rgba(15,191,184,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:15 }}>🚀</div>
+          <span style={{ color:"#FFFFFF",fontSize:13,fontWeight:800,letterSpacing:2 }}>LIFESMART</span>
         </div>
         <div style={{ display:"flex",alignItems:"center",gap:8 }}>
           <XPBadge/>
