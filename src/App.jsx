@@ -849,10 +849,8 @@ function Onboarding() {
     })
   }
 
-  if(screen==="welcome")   return <WelcomeScreen  onNext={(mode)=>{ save({...state,profile:{...state.profile,mode:mode||"grow"}}); setScreen("about") }} />
-  if(screen==="about")     return <AboutScreen    name={name} setName={setName} age={age} setAge={setAge} onNext={()=>setScreen("greeting")} onBack={()=>setScreen("welcome")} />
-  if(screen==="greeting")  return <GreetingScreen name={name} onNext={()=>setScreen("assets")} onBack={()=>setScreen("about")} />
-  if(screen==="assets")    return <AssetChecklistScreen values={assets} setValues={setAssets} onNext={()=>setScreen("debts")} onBack={()=>setScreen("greeting")} />
+  if(screen==="welcome")   return <WelcomeScreen  onNext={({mode,name:n,age:a})=>{ save({...state,profile:{...state.profile,mode:mode||"grow"}}); if(n) setName(n); if(a) setAge(a); setScreen("assets") }} />
+  if(screen==="assets")    return <AssetChecklistScreen values={assets} setValues={setAssets} onNext={()=>setScreen("debts")} onBack={()=>setScreen("welcome")} />
   if(screen==="debts")     return <DebtChecklistScreen values={debts} setValues={setDebts} assets={assets} age={age} onNext={()=>setScreen("income")} onBack={()=>setScreen("assets")} />
   if(screen==="income")    return <IncomeOnboardScreen income={income} setIncome={setIncome} onNext={()=>setScreen("spending")} onBack={()=>setScreen("debts")} />
   if(screen==="spending")  return <SpendingOnboardScreen spending={spending} setSpending={setSpending} income={income} onNext={()=>setScreen("wow")} onBack={()=>setScreen("income")} />
@@ -861,356 +859,404 @@ function Onboarding() {
 }
 
 /* ── Welcome Brilliant-inspired witty onboarding flow ─────────── */
-const WELCOME_STEPS = [
-  {
-    id: "hook",
-    isHook: true,
-    headline: "The thing people in their 40s wish they knew sooner.",
-    quote: "If I had started this 10 years ago, everything would look different.",
-    sub: "You have that chance right now.",
-  },
-  {
-    id: "what_we_are",
-    isManifesto: true,
-    headline: "Finance, opened up.",
-    sub: "Like Canva for design. LifeSmart makes money simple for everyone.",
-    bullets: [
-      { icon:"📈", stat:"4×", text:"more wealth built by people who track their numbers" },
-      { icon:"⏱", stat:"5 min", text:"a month keeps your picture accurate" },
-      { icon:"🎯", stat:"Free", text:"No advisor. No minimum balance. Just you." },
-    ],
-  },
-  {
-    id: "nw_question",
-    headline: "Where are you right now?",
-    sub: "Choose one.",
-    choices: [
-      { id:"starting", label:"Just getting started",    response:"Perfect. Earlier is always better." },
-      { id:"building", label:"Some savings, some debt", response:"The messy middle. We will bring clarity." },
-      { id:"growing",  label:"Investing and building",  response:"Good. Let us make sure it is optimised." },
-      { id:"sorted",   label:"Fairly sorted, want more",response:"Good. Let us find the gaps." },
-    ],
-  },
-  {
-    id: "mode",
-    isModeSelect: true,
-    headline: "What matters most right now?",
-    sub: "Pick one.",
-  },
-  {
-    id: "ready",
-    isFinal: true,
-    headline: "Ready. Takes 3 minutes.",
-    sub: null,
-    finalCards: [
-      { icon:"📊", title:"Your net worth", body:"The real number. Updated whenever you want." },
-      { icon:"🚀", title:"Wealth at age 70", body:"A projection based on what you have today." },
-      { icon:"💡", title:"Lessons that stick", body:"Scenarios, not lectures. Knowledge you will use." },
-    ],
-  }
-]
+/* ════════════════════════════════════════════════════════════════════
+   WELCOME — 6 distinct screens, rebuilt from scratch
+   ════════════════════════════════════════════════════════════════════ */
 
-const SITUATION_RESPONSES = {
-  starting: "Perfect time to start. The earlier, the better.",
-  building: "The messy middle. We will bring total clarity.",
-  growing:  "Let's make sure that growth is optimised.",
-  sorted:   "Good. Let's find the gaps you might be missing.",
-}
+/*
+  SCREEN 1: SPLASH      — full-bleed, no cards, big rocket + tagline
+  SCREEN 2: HOOK        — just the quote, dramatic, no clutter
+  SCREEN 3: PROOF       — horizontal stat banner + learn emphasis
+  SCREEN 4: NAME        — "What's your name?" inline, warm
+  SCREEN 5: SITUATION   — clearly interactive large buttons (no icons)
+  SCREEN 6: LAUNCH      — personalised hi, no repeating tiles, 1 CTA
+*/
 
 function WelcomeScreen({ onNext }) {
-  const [stepIdx, setStepIdx] = useState(0)
-  const [selected, setSelected] = useState(null)
-  const [responses, setResponses] = useState({})
-  const [exiting, setExiting] = useState(false)
+  const [screen, setScreen] = useState("splash")
+  const [name,   setNameLocal]  = useState("")
+  const [age,    setAgeLocal]   = useState("")
+  const [situation, setSituation] = useState(null)
 
-  const step = WELCOME_STEPS[stepIdx]
-  const totalSteps = WELCOME_STEPS.length
-  const progress = (stepIdx / (totalSteps - 1)) * 100
+  const SITUATIONS = [
+    { id:"starting", emoji:"🌱", label:"Just getting started",     sub:"Haven't thought much about money yet" },
+    { id:"building", emoji:"🏗️", label:"Building — some savings, some debt", sub:"In the middle, want more clarity"    },
+    { id:"growing",  emoji:"📈", label:"Investing and growing",    sub:"Want to make sure I'm optimised"     },
+    { id:"sorted",   emoji:"🚀", label:"Pretty sorted, want more", sub:"Looking for next-level insights"     },
+  ]
 
-  function getHeadline() {
-    if(step.headline) return step.headline
-    if(step.id === "situation") {
-      const nwChoice = WELCOME_STEPS[0].choices.find(c=>c.id===responses.nw_question)
-      return nwChoice?.response || "Good."
-    }
-    if(step.id === "ready") {
-      const selMode = PRIORITY_MODES.find(m=>m.id===responses.mode)
-      return selMode ? selMode.tagline("") || "Let's build your picture." : "Let's build your picture."
-    }
-    return ""
+  function goNext(from) {
+    const order = ["splash","hook","proof","name","situation","launch"]
+    const next = order[order.indexOf(from)+1]
+    if(next) setScreen(next)
+  }
+  function goBack(from) {
+    const order = ["splash","hook","proof","name","situation","launch"]
+    const prev = order[order.indexOf(from)-1]
+    if(prev) setScreen(prev)
   }
 
-  function advance() {
-    if(step.isFinal) { onNext(responses.mode||"grow"); return }
-    const needsChoice = step.choices && !step.isModeSelect
-    if(needsChoice && !selected) return
-    if(step.isModeSelect && !selected) return
-    const newResponses = { ...responses, [step.id]: selected }
-    setResponses(newResponses)
-    setExiting(true)
-    setTimeout(()=>{
-      setStepIdx(i=>i+1)
-      setSelected(null)
-      setExiting(false)
-    }, 160)
-  }
+  // ── SCREEN 1: SPLASH ─────────────────────────────────────────────
+  if(screen === "splash") return (
+    <div style={{ minHeight:"100vh", background:T.bg, display:"flex", flexDirection:"column",
+      position:"relative", overflow:"hidden", alignItems:"center", justifyContent:"center" }}>
+      <StarField count={60} showRocket/>
+      {/* Big radial glow */}
+      <div style={{ position:"absolute", top:"30%", left:"50%", transform:"translateX(-50%)",
+        width:320, height:320, borderRadius:"50%",
+        background:"radial-gradient(circle, rgba(15,191,184,.2) 0%, transparent 70%)",
+        pointerEvents:"none" }}/>
 
-  const canContinue = step.isFinal || step.isInfoSlide || step.isHook || step.isManifesto || !!selected
+      <div className="ls-fadein" style={{ position:"relative", zIndex:1, textAlign:"center", padding:"0 32px", maxWidth:440 }}>
+        <div className="ls-float" style={{ fontSize:72, marginBottom:28, lineHeight:1,
+          filter:"drop-shadow(0 0 30px rgba(15,191,184,.5))" }}>🚀</div>
 
-  return (
-    <div style={{ minHeight:"100vh",background:T.bg,display:"flex",flexDirection:"column",position:"relative",overflow:"hidden" }}>
-      <StarField count={50} showRocket={step.isHook}/>
+        <p style={{ color:T.teal, fontSize:12, fontWeight:700, letterSpacing:3,
+          textTransform:"uppercase", marginBottom:16 }}>LifeSmart</p>
 
-      {/* Top bar */}
-      <div style={{ position:"relative",display:"flex",alignItems:"center",gap:12,padding:"44px 20px 0",zIndex:1 }}>
-        {stepIdx > 0 && (
-          <button onClick={()=>{ setStepIdx(i=>i-1); setSelected(null) }}
-            style={{ background:"none",border:"none",cursor:"pointer",padding:4,display:"flex",alignItems:"center",flexShrink:0 }}>
-            <ChevronLeft size={20} color={T.white}/>
-          </button>
-        )}
-        <div style={{ flex:1,height:4,background:T.surface,borderRadius:99,overflow:"hidden" }}>
-          <div style={{ width:`${progress}%`,height:"100%",background:`linear-gradient(90deg,${T.teal},${T.purple})`,borderRadius:99,transition:"width .4s ease" }}/>
-        </div>
-        <span style={{ color:T.teal,fontSize:11,fontWeight:700,flexShrink:0 }}>🚀 LifeSmart</span>
-      </div>
+        <h1 style={{ color:"#FFFFFF", fontWeight:900, fontSize:"clamp(32px,8vw,44px)",
+          lineHeight:1.1, marginBottom:16 }}>
+          Finance.<br/>For everyone.
+        </h1>
 
-      {/* Content */}
-      <div key={stepIdx} style={{ flex:1,display:"flex",flexDirection:"column",padding:"32px 24px 20px",maxWidth:480,margin:"0 auto",width:"100%" }}>
+        <p style={{ color:"#8FA3BE", fontSize:16, lineHeight:1.55, marginBottom:48 }}>
+          The financial knowledge you were never taught — now in your pocket.
+        </p>
 
-        <div style={{ marginBottom:24 }}>
-          <h1 style={{ color:"#FFFFFF",fontWeight:900,fontSize:"clamp(26px,6vw,34px)",lineHeight:1.15,marginBottom:step.sub?10:0 }}>
-            {getHeadline()}
-          </h1>
-          {step.sub && <p style={{ color:"#94A3B8",fontSize:15,lineHeight:1.5,fontWeight:500,marginTop:6 }}>{step.sub}</p>}
-        </div>
-
-        {/* Hook slide */}
-        {step.isHook && (
-          <div className="ls-fadein" style={{ flex:1,display:"flex",flexDirection:"column",justifyContent:"center",gap:28 }}>
-            <div style={{ background:"linear-gradient(160deg,rgba(167,139,250,.18) 0%,rgba(15,191,184,.1) 100%)",borderRadius:24,padding:"32px 26px",position:"relative",overflow:"hidden" }}>
-              <div style={{ position:"absolute",top:-20,right:-20,fontSize:80,opacity:.08,lineHeight:1 }}>💬</div>
-              <p style={{ color:T.purple,fontSize:12,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:16 }}>What people say 10 years later</p>
-              <p style={{ color:"#FFFFFF",fontSize:"clamp(20px,5vw,26px)",fontWeight:800,lineHeight:1.4,fontStyle:"italic" }}>&ldquo;{step.quote}&rdquo;</p>
-            </div>
-            <p style={{ color:"#8FA3BE",fontSize:16,lineHeight:1.6,textAlign:"center",fontWeight:500 }}>{step.sub}</p>
-          </div>
-        )}
-
-        {/* Manifesto slide */}
-        {step.isManifesto && (
-          <div className="ls-fadein" style={{ flex:1,display:"flex",flexDirection:"column",gap:12 }}>
-            {step.bullets.map((b,i)=>{
-              const colors=[T.teal,T.purple,T.amber], dims=[T.tealDim,T.purpleDim,T.amberDim], borders=[T.tealBorder,T.purpleBorder,T.amberBorder]
-              return (
-                <div key={i} style={{ background:"rgba(255,255,255,.03)",border:`1px solid rgba(255,255,255,.07)`,borderRadius:20,padding:"20px 22px",display:"flex",alignItems:"center",gap:20 }}>
-                  <div style={{ flexShrink:0,textAlign:"center" }}>
-                    <p style={{ color:colors[i],fontWeight:900,fontSize:32,lineHeight:1 }}>{b.stat}</p>
-                    <p style={{ fontSize:18,marginTop:2 }}>{b.icon}</p>
-                  </div>
-                  <p style={{ color:"#FFFFFF",fontSize:15,fontWeight:600,lineHeight:1.45 }}>{b.text}</p>
-                </div>
-              )
-            })}
-          </div>
-        )}
-
-        {/* Choice step — clearly tappable */}
-        {step.choices && !step.isModeSelect && (
-          <div style={{ display:"flex",flexDirection:"column",gap:10,flex:1 }}>
-            {step.choices.map((ch,ci)=>{
-              const sel = selected===ch.id
-              return (
-                <button key={ch.id} onClick={()=>setSelected(ch.id)}
-                  style={{
-                    background: sel ? `linear-gradient(135deg,rgba(15,191,184,.18),rgba(167,139,250,.18))` : "rgba(255,255,255,.04)",
-                    border: `2px solid ${sel ? T.teal : "rgba(255,255,255,.1)"}`,
-                    borderRadius:18, padding:"16px 18px",
-                    cursor:"pointer", textAlign:"left", fontFamily:"inherit",
-                    transition:"all .12s",
-                    boxShadow: sel ? `0 0 24px rgba(15,191,184,.2)` : "none",
-                    display:"flex", alignItems:"center", gap:14,
-                  }}>
-                  {/* Radio circle */}
-                  <div style={{ width:28,height:28,borderRadius:"50%",flexShrink:0,
-                    background: sel ? T.teal : "transparent",
-                    border: `2px solid ${sel ? T.teal : "rgba(255,255,255,.2)"}`,
-                    display:"flex",alignItems:"center",justifyContent:"center",
-                    transition:"all .12s" }}>
-                    {sel && <div style={{ width:10,height:10,borderRadius:"50%",background:T.bg }}/>}
-                  </div>
-                  <p style={{ color:sel?"#FFFFFF":"#C8D8EC",fontWeight:sel?700:500,fontSize:16,lineHeight:1.3 }}>{ch.label}</p>
-                </button>
-              )
-            })}
-          </div>
-        )}
-
-        {/* Mode select step */}
-        {step.isModeSelect && (
-          <div style={{ display:"flex",flexDirection:"column",gap:10,flex:1 }}>
-            {PRIORITY_MODES.map(m=>{
-              const sel = selected===m.id
-              return (
-                <button key={m.id} onClick={()=>setSelected(m.id)}
-                  style={{
-                    background: sel ? `linear-gradient(135deg,${m.color}20,${m.color}08)` : "rgba(255,255,255,.03)",
-                    border: `2px solid ${sel ? m.color : "rgba(255,255,255,.08)"}`,
-                    borderRadius:18, padding:"15px 18px",
-                    cursor:"pointer", textAlign:"left", fontFamily:"inherit",
-                    transition:"all .12s",
-                    boxShadow: sel ? `0 0 28px ${m.color}30` : "none",
-                    display:"flex", alignItems:"center", gap:14
-                  }}>
-                  <div style={{ width:46,height:46,borderRadius:14,background:sel?`${m.color}30`:`${m.color}15`,border:`1.5px solid ${sel?m.color:m.color+"30"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0 }}>
-                    {m.icon}
-                  </div>
-                  <div style={{ flex:1 }}>
-                    <p style={{ color:sel?"#FFFFFF":"#C8D8EC",fontWeight:700,fontSize:16,marginBottom:2 }}>{m.label}</p>
-                    <p style={{ color:sel?"#B0C4DB":"#7A8FA8",fontSize:13 }}>{m.sub}</p>
-                  </div>
-                  <div style={{ width:22,height:22,borderRadius:"50%",flexShrink:0,
-                    background: sel ? m.color : "transparent",
-                    border: `2px solid ${sel ? m.color : "rgba(255,255,255,.15)"}`,
-                    display:"flex",alignItems:"center",justifyContent:"center",transition:"all .12s" }}>
-                    {sel && <Check size={11} color={T.bg}/>}
-                  </div>
-                </button>
-              )
-            })}
-          </div>
-        )}
-
-        {/* Info slide */}
-        {step.isInfoSlide && (
-          <div style={{ display:"flex",flexDirection:"column",gap:12,flex:1 }}>
-            {step.bullets.map((b,i)=>(
-              <div key={i} style={{ background:"rgba(255,255,255,.03)",borderRadius:18,padding:"16px 18px",display:"flex",gap:14,alignItems:"flex-start" }}>
-                <span style={{ fontSize:26,flexShrink:0,marginTop:2 }}>{b.icon}</span>
-                <div>
-                  <p style={{ color:"#FFFFFF",fontWeight:700,fontSize:15,marginBottom:4 }}>{b.title}</p>
-                  <p style={{ color:"#8FA3BE",fontSize:13,lineHeight:1.55 }}>{b.body}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Final summary cards — read-only, clearly not tappable */}
-        {step.finalCards && (
-          <div style={{ display:"flex",flexDirection:"column",gap:10,flex:1 }}>
-            {step.finalCards.map((fc,i)=>{
-              const colors=[T.teal,T.purple,T.amber]
-              return (
-                <div key={i} style={{ background:"rgba(255,255,255,.03)",borderRadius:18,padding:"16px 20px",display:"flex",gap:16,alignItems:"center" }}>
-                  <div style={{ width:46,height:46,borderRadius:14,background:`${colors[i]}18`,border:`1px solid ${colors[i]}30`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0 }}>
-                    {fc.icon}
-                  </div>
-                  <div>
-                    <p style={{ color:"#FFFFFF",fontWeight:700,fontSize:15,marginBottom:2 }}>{fc.title}</p>
-                    <p style={{ color:"#8FA3BE",fontSize:13 }}>{fc.body}</p>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* Continue */}
-      <div style={{ position:"relative",padding:"0 24px 48px",maxWidth:480,margin:"0 auto",width:"100%",zIndex:1 }}>
-        <button onClick={advance}
-          style={{
-            width:"100%", padding:"17px",
-            background: canContinue ? `linear-gradient(135deg,${T.teal},${T.purple})` : T.surface,
-            border:"none", borderRadius:18,
-            color: canContinue ? T.bg : T.muted,
-            fontWeight:900, fontSize:17,
-            cursor: canContinue ? "pointer" : "default",
-            fontFamily:"inherit",
-            transition:"all .2s",
-            opacity: canContinue ? 1 : 0.5,
-            boxShadow: canContinue ? "0 4px 24px rgba(15,191,184,.35)" : "none",
-          }}>
-          {step.isFinal ? "Build my financial picture" : "Continue"}
+        <button onClick={()=>goNext("splash")} style={{ background:`linear-gradient(135deg,${T.teal},${T.purple})`,
+          border:"none", borderRadius:20, padding:"18px 48px", color:"#FFFFFF",
+          fontWeight:900, fontSize:18, cursor:"pointer", fontFamily:"inherit",
+          boxShadow:"0 8px 32px rgba(15,191,184,.4)", letterSpacing:.5 }}>
+          Let's go →
         </button>
-        <p style={{ color:"#8FA3BE",fontSize:12,textAlign:"center",marginTop:12 }}>🔒 Private to you. No account needed. Free forever.</p>
+
+        <p style={{ color:"#4A6080", fontSize:12, marginTop:20 }}>Free. Private. No account needed.</p>
       </div>
     </div>
   )
-}
 
+  // ── SCREEN 2: HOOK ───────────────────────────────────────────────
+  if(screen === "hook") return (
+    <div style={{ minHeight:"100vh", background:T.bg, display:"flex", flexDirection:"column",
+      position:"relative", overflow:"hidden" }}>
+      <StarField count={40}/>
 
-function AboutScreen({ name, setName, age, setAge, onNext, onBack }) {
-  return (
-    <div style={{ minHeight:"100vh",background:T.bg,display:"flex",flexDirection:"column" }}>
+      <div className="ls-fadein" style={{ position:"relative", zIndex:1, flex:1, display:"flex",
+        flexDirection:"column", justifyContent:"center", padding:"60px 28px 32px", maxWidth:480, margin:"0 auto", width:"100%" }}>
+
+        {/* Oversize quote */}
+        <div style={{ marginBottom:40 }}>
+          <p style={{ color:"rgba(167,139,250,.7)", fontSize:13, fontWeight:700,
+            letterSpacing:1.5, textTransform:"uppercase", marginBottom:24 }}>
+            What people wish they'd done sooner
+          </p>
+          <p style={{ color:"#FFFFFF", fontSize:"clamp(22px,5vw,30px)", fontWeight:800,
+            lineHeight:1.35, fontStyle:"italic", marginBottom:0 }}>
+            &ldquo;If I had started tracking my money 10 years ago, everything would look completely different now.&rdquo;
+          </p>
+          <p style={{ color:"#6B8CB8", fontSize:14, marginTop:16 }}>
+            — said by almost everyone who discovers this in their 30s and 40s
+          </p>
+        </div>
+
+        {/* The bridge */}
+        <div style={{ background:"rgba(15,191,184,.08)", borderRadius:18, padding:"18px 20px",
+          borderLeft:`3px solid ${T.teal}` }}>
+          <p style={{ color:"#FFFFFF", fontSize:17, fontWeight:700, lineHeight:1.45 }}>
+            You're reading this now. That's the advantage they didn't have.
+          </p>
+        </div>
+      </div>
+
+      <div style={{ position:"relative", zIndex:1, padding:"0 28px 48px", maxWidth:480, margin:"0 auto", width:"100%" }}>
+        <button onClick={()=>goNext("hook")} style={{ width:"100%", padding:"17px",
+          background:`linear-gradient(135deg,${T.teal},${T.purple})`, border:"none", borderRadius:18,
+          color:"#FFFFFF", fontWeight:900, fontSize:17, cursor:"pointer", fontFamily:"inherit",
+          boxShadow:"0 4px 24px rgba(15,191,184,.3)" }}>
+          I want that advantage →
+        </button>
+        <button onClick={()=>goBack("hook")} style={{ background:"none", border:"none", color:"#4A6080",
+          fontSize:13, cursor:"pointer", fontFamily:"inherit", width:"100%", marginTop:12, padding:8 }}>
+          ← Back
+        </button>
+      </div>
+    </div>
+  )
+
+  // ── SCREEN 3: PROOF ──────────────────────────────────────────────
+  if(screen === "proof") return (
+    <div style={{ minHeight:"100vh", background:T.bg, display:"flex", flexDirection:"column",
+      position:"relative", overflow:"hidden" }}>
+      <StarField count={30}/>
+
+      <div className="ls-fadein" style={{ position:"relative", zIndex:1, flex:1, overflowY:"auto",
+        padding:"60px 24px 20px", maxWidth:480, margin:"0 auto", width:"100%" }}>
+
+        <h1 style={{ color:"#FFFFFF", fontWeight:900, fontSize:"clamp(26px,6vw,34px)",
+          lineHeight:1.15, marginBottom:8 }}>
+          Here's what the evidence says.
+        </h1>
+        <p style={{ color:"#6B8CB8", fontSize:15, marginBottom:36 }}>
+          About money, wealth, and the two habits that change everything.
+        </p>
+
+        {/* Big horizontal stat — TRACK */}
+        <div style={{ background:"linear-gradient(135deg,rgba(15,191,184,.12),rgba(15,191,184,.04))",
+          border:"1px solid rgba(15,191,184,.25)", borderRadius:22, padding:"26px 24px", marginBottom:14 }}>
+          <p style={{ color:T.teal, fontWeight:900, fontSize:52, lineHeight:1, marginBottom:8 }}>4×</p>
+          <p style={{ color:"#FFFFFF", fontWeight:700, fontSize:17, marginBottom:6 }}>
+            more wealth. Same income.
+          </p>
+          <p style={{ color:"#8FA3BE", fontSize:14, lineHeight:1.5 }}>
+            People who track their net worth build 4× more wealth than those who don't. Not because they earn more — because measuring creates better decisions.
+          </p>
+        </div>
+
+        {/* Big stat — LEARN */}
+        <div style={{ background:"linear-gradient(135deg,rgba(167,139,250,.12),rgba(167,139,250,.04))",
+          border:"1px solid rgba(167,139,250,.25)", borderRadius:22, padding:"26px 24px", marginBottom:14 }}>
+          <p style={{ color:T.purple, fontWeight:900, fontSize:52, lineHeight:1, marginBottom:8 }}>💡</p>
+          <p style={{ color:"#FFFFFF", fontWeight:700, fontSize:17, marginBottom:6 }}>
+            Knowledge that actually changes decisions.
+          </p>
+          <p style={{ color:"#8FA3BE", fontSize:14, lineHeight:1.5 }}>
+            Most people were never taught how money works. LifeSmart lessons are 5 minutes each — scenario-based, not lectures. Every one changes how you make a real financial decision.
+          </p>
+        </div>
+
+        {/* Small stat — TIME */}
+        <div style={{ background:"rgba(255,255,255,.03)", border:"1px solid rgba(255,255,255,.07)",
+          borderRadius:18, padding:"18px 20px", display:"flex", gap:16, alignItems:"center", marginBottom:36 }}>
+          <p style={{ color:T.amber, fontWeight:900, fontSize:36, lineHeight:1, flexShrink:0 }}>5 min</p>
+          <p style={{ color:"#8FA3BE", fontSize:14, lineHeight:1.45 }}>
+            a month to keep your numbers accurate. The habit that separates people who build wealth from everyone else.
+          </p>
+        </div>
+      </div>
+
+      <div style={{ position:"relative", zIndex:1, padding:"0 24px 48px", maxWidth:480, margin:"0 auto", width:"100%" }}>
+        <button onClick={()=>goNext("proof")} style={{ width:"100%", padding:"17px",
+          background:`linear-gradient(135deg,${T.teal},${T.purple})`, border:"none", borderRadius:18,
+          color:"#FFFFFF", fontWeight:900, fontSize:17, cursor:"pointer", fontFamily:"inherit",
+          boxShadow:"0 4px 24px rgba(15,191,184,.3)" }}>
+          I'm in. Let's start →
+        </button>
+        <button onClick={()=>goBack("proof")} style={{ background:"none", border:"none", color:"#4A6080",
+          fontSize:13, cursor:"pointer", fontFamily:"inherit", width:"100%", marginTop:12, padding:8 }}>
+          ← Back
+        </button>
+      </div>
+    </div>
+  )
+
+  // ── SCREEN 4: NAME ───────────────────────────────────────────────
+  if(screen === "name") return (
+    <div style={{ minHeight:"100vh", background:T.bg, display:"flex", flexDirection:"column",
+      position:"relative", overflow:"hidden" }}>
       <StarField count={20}/>
-      <div className="ls-fadein" style={{ position:"relative",flex:1,overflowY:"auto",padding:"52px 24px 32px",maxWidth:480,margin:"0 auto",width:"100%" }}>
-        <button onClick={onBack} style={{ background:"none",border:"none",color:T.muted,cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontSize:14,fontWeight:600,marginBottom:36,padding:0 }}>
-          <ChevronLeft size={16}/> Back
-        </button>
 
-        <div style={{ fontSize:44,marginBottom:16,textAlign:"center" }}>✋</div>
-        <h2 style={{ color:"#FFFFFF",fontSize:"clamp(24px,5vw,32px)",fontWeight:900,marginBottom:6,lineHeight:1.15,textAlign:"center" }}>Quick — two things.</h2>
-        <p style={{ color:"#8FA3BE",fontSize:14,marginBottom:28,textAlign:"center" }}>Your age lets us benchmark your progress.</p>
+      <div className="ls-fadein" style={{ position:"relative", zIndex:1, flex:1,
+        padding:"80px 28px 32px", maxWidth:480, margin:"0 auto", width:"100%" }}>
 
-        <div style={{ display:"flex",flexDirection:"column",gap:18,marginBottom:32 }}>
-          <Input label="Your first name" value={name} onChange={setName} placeholder="e.g. Jamie"/>
-          <Input label="Your age" type="number" value={age} onChange={setAge} placeholder="e.g. 29" min="16" max="80"
-            helper="We use this to show you how your numbers compare never judgemental, always useful."/>
+        <h1 style={{ color:"#FFFFFF", fontWeight:900, fontSize:"clamp(28px,6vw,36px)",
+          lineHeight:1.15, marginBottom:10 }}>
+          What's your name?
+        </h1>
+        <p style={{ color:"#6B8CB8", fontSize:15, marginBottom:40 }}>
+          We'll personalise everything to you.
+        </p>
+
+        <div style={{ marginBottom:20 }}>
+          <input
+            type="text"
+            value={name}
+            onChange={e=>setNameLocal(e.target.value)}
+            placeholder="First name"
+            autoFocus
+            style={{
+              width:"100%", background:"rgba(255,255,255,.05)",
+              border:`2px solid ${name ? T.teal : "rgba(255,255,255,.1)"}`,
+              borderRadius:18, padding:"20px 22px", color:"#FFFFFF",
+              fontSize:22, fontWeight:700, fontFamily:"inherit",
+              outline:"none", transition:"border .15s"
+            }}/>
         </div>
 
-        <Btn onClick={onNext} disabled={!name||!age}>Let's go, {name||"..."}! →</Btn>
+        {name && (
+          <div style={{ marginBottom:20 }}>
+            <input
+              type="number"
+              value={age}
+              onChange={e=>setAgeLocal(e.target.value)}
+              placeholder="Your age"
+              min="16" max="80"
+              style={{
+                width:"100%", background:"rgba(255,255,255,.05)",
+                border:`2px solid ${age ? T.teal : "rgba(255,255,255,.1)"}`,
+                borderRadius:18, padding:"20px 22px", color:"#FFFFFF",
+                fontSize:22, fontWeight:700, fontFamily:"inherit",
+                outline:"none", transition:"border .15s"
+              }}/>
+            <p style={{ color:"#4A6080", fontSize:12, marginTop:8, paddingLeft:4 }}>
+              Used to benchmark your progress against your age group.
+            </p>
+          </div>
+        )}
+      </div>
+
+      <div style={{ position:"relative", zIndex:1, padding:"0 28px 48px", maxWidth:480, margin:"0 auto", width:"100%" }}>
+        <button onClick={()=>{ if(name && age) goNext("name") }}
+          disabled={!name || !age}
+          style={{ width:"100%", padding:"17px",
+            background: (name && age) ? `linear-gradient(135deg,${T.teal},${T.purple})` : "rgba(255,255,255,.06)",
+            border:"none", borderRadius:18,
+            color: (name && age) ? "#FFFFFF" : "#4A6080",
+            fontWeight:900, fontSize:17,
+            cursor: (name && age) ? "pointer" : "default",
+            fontFamily:"inherit",
+            boxShadow: (name && age) ? "0 4px 24px rgba(15,191,184,.3)" : "none",
+            transition:"all .2s" }}>
+          {name ? `Let's go, ${name} →` : "Enter your name to continue"}
+        </button>
+        <button onClick={()=>goBack("name")} style={{ background:"none", border:"none", color:"#4A6080",
+          fontSize:13, cursor:"pointer", fontFamily:"inherit", width:"100%", marginTop:12, padding:8 }}>
+          ← Back
+        </button>
       </div>
     </div>
   )
-}
 
-/* ── Greeting personalised bridge ──────────────────────────────── */
-const GREETING_STEPS = [
-  { icon:"📊", title:"Your net worth picture", sub:"A single number that tells the real story", color:T.teal },
-  { icon:"🔮", title:"Where you could be at 70", sub:"Based on what you already have and earn", color:T.purple },
-  { icon:"🎯", title:"Your personal priorities", sub:"Goals and lessons built around what matters to you", color:T.amber },
-]
-
-function GreetingScreen({ name, onNext, onBack }) {
-  return (
-    <div style={{ minHeight:"100vh",background:T.bg,display:"flex",flexDirection:"column" }}>
+  // ── SCREEN 5: SITUATION ──────────────────────────────────────────
+  if(screen === "situation") return (
+    <div style={{ minHeight:"100vh", background:T.bg, display:"flex", flexDirection:"column",
+      position:"relative", overflow:"hidden" }}>
       <StarField count={25}/>
-      <div className="ls-fadein" style={{ position:"relative",flex:1,overflowY:"auto",padding:"52px 24px 32px",maxWidth:480,margin:"0 auto",width:"100%" }}>
-        <button onClick={onBack} style={{ background:"none",border:"none",color:T.muted,cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontSize:14,fontWeight:600,marginBottom:32,padding:0 }}>
-          <ChevronLeft size={16}/> Back
-        </button>
 
-        <h2 style={{ color:T.white,fontSize:"clamp(26px,5vw,34px)",fontWeight:900,marginBottom:6,lineHeight:1.15 }}>
-          Hi {name}. 👋
-        </h2>
-        <p style={{ color:"#8FA3BE",fontSize:15,marginBottom:28,lineHeight:1.6 }}>
-          3 minutes. Your complete financial picture.
-        </p>
+      <div className="ls-fadein" style={{ position:"relative", zIndex:1, flex:1,
+        padding:"70px 24px 20px", maxWidth:480, margin:"0 auto", width:"100%" }}>
 
-        <div style={{ display:"flex",flexDirection:"column",gap:10,marginBottom:32 }}>
-          {GREETING_STEPS.map((s,i)=>(
-            <div key={i} className="ls-fadein" style={{ background:"rgba(255,255,255,.04)",borderRadius:18,padding:"15px 18px",display:"flex",alignItems:"center",gap:14,animationDelay:`${i*0.12}s`,opacity:0,animationFillMode:"forwards" }}>
-              <div style={{ width:46,height:46,borderRadius:14,background:`${s.color}20`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0 }}>
-                {s.icon}
-              </div>
-              <div>
-                <p style={{ color:"#FFFFFF",fontWeight:700,fontSize:15,marginBottom:2 }}>{s.title}</p>
-                <p style={{ color:"#8FA3BE",fontSize:13 }}>{s.sub}</p>
-              </div>
-            </div>
-          ))}
+        <h1 style={{ color:"#FFFFFF", fontWeight:900, fontSize:"clamp(26px,6vw,34px)",
+          lineHeight:1.15, marginBottom:6 }}>
+          Hi {name}. Where are you with money?
+        </h1>
+        <p style={{ color:"#6B8CB8", fontSize:15, marginBottom:28 }}>Tap one.</p>
+
+        <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+          {SITUATIONS.map(s=>{
+            const sel = situation === s.id
+            return (
+              <button key={s.id} onClick={()=>setSituation(s.id)}
+                style={{
+                  background: sel
+                    ? `linear-gradient(135deg,rgba(15,191,184,.2),rgba(167,139,250,.15))`
+                    : "rgba(255,255,255,.04)",
+                  border: `2px solid ${sel ? T.teal : "rgba(255,255,255,.1)"}`,
+                  borderRadius:20, padding:"18px 20px",
+                  cursor:"pointer", textAlign:"left", fontFamily:"inherit",
+                  transition:"all .15s",
+                  boxShadow: sel ? `0 0 28px rgba(15,191,184,.2)` : "none",
+                  display:"flex", alignItems:"center", gap:16
+                }}>
+                <span style={{ fontSize:28, flexShrink:0 }}>{s.emoji}</span>
+                <div style={{ flex:1 }}>
+                  <p style={{ color:"#FFFFFF", fontWeight:700, fontSize:16, marginBottom:3, lineHeight:1.2 }}>
+                    {s.label}
+                  </p>
+                  <p style={{ color: sel ? "#8FA3BE" : "#4A6080", fontSize:13 }}>{s.sub}</p>
+                </div>
+                <div style={{ width:24, height:24, borderRadius:"50%", flexShrink:0,
+                  background: sel ? T.teal : "transparent",
+                  border: `2px solid ${sel ? T.teal : "rgba(255,255,255,.15)"}`,
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                  transition:"all .15s" }}>
+                  {sel && <div style={{ width:9, height:9, borderRadius:"50%", background:T.bg }}/>}
+                </div>
+              </button>
+            )
+          })}
         </div>
+      </div>
 
-        <p style={{ color:T.subtle,fontSize:12,marginBottom:20,textAlign:"center" }}>
-          Estimates are fine — you can refine everything later.
-        </p>
-
-        <Btn onClick={onNext} style={{ fontSize:16 }}>Let's build it →</Btn>
+      <div style={{ position:"relative", zIndex:1, padding:"0 24px 48px", maxWidth:480, margin:"0 auto", width:"100%" }}>
+        <button onClick={()=>{ if(situation) goNext("situation") }}
+          disabled={!situation}
+          style={{ width:"100%", padding:"17px",
+            background: situation ? `linear-gradient(135deg,${T.teal},${T.purple})` : "rgba(255,255,255,.06)",
+            border:"none", borderRadius:18,
+            color: situation ? "#FFFFFF" : "#4A6080",
+            fontWeight:900, fontSize:17, cursor: situation ? "pointer" : "default",
+            fontFamily:"inherit",
+            boxShadow: situation ? "0 4px 24px rgba(15,191,184,.3)" : "none",
+            transition:"all .2s" }}>
+          Continue →
+        </button>
+        <button onClick={()=>goBack("situation")} style={{ background:"none", border:"none", color:"#4A6080",
+          fontSize:13, cursor:"pointer", fontFamily:"inherit", width:"100%", marginTop:12, padding:8 }}>
+          ← Back
+        </button>
       </div>
     </div>
   )
+
+  // ── SCREEN 6: LAUNCH ─────────────────────────────────────────────
+  if(screen === "launch") return (
+    <div style={{ minHeight:"100vh", background:T.bg, display:"flex", flexDirection:"column",
+      position:"relative", overflow:"hidden", alignItems:"center", justifyContent:"center" }}>
+      <StarField count={50}/>
+      <div style={{ position:"absolute", top:"25%", left:"50%", transform:"translateX(-50%)",
+        width:280, height:280, borderRadius:"50%",
+        background:"radial-gradient(circle, rgba(167,139,250,.18) 0%, transparent 70%)",
+        pointerEvents:"none" }}/>
+
+      <div className="ls-fadein" style={{ position:"relative", zIndex:1, textAlign:"center",
+        padding:"32px 28px", maxWidth:440, width:"100%" }}>
+
+        <p style={{ color:T.teal, fontSize:12, fontWeight:700, letterSpacing:2,
+          textTransform:"uppercase", marginBottom:20 }}>All set</p>
+
+        <h1 style={{ color:"#FFFFFF", fontWeight:900, fontSize:"clamp(30px,7vw,42px)",
+          lineHeight:1.1, marginBottom:10 }}>
+          {name}, let's build<br/>your picture.
+        </h1>
+
+        <p style={{ color:"#8FA3BE", fontSize:16, lineHeight:1.55, marginBottom:40, maxWidth:320, margin:"0 auto 40px" }}>
+          3 minutes to see your net worth, your projection to age 70, and the lessons that will change how you think about money.
+        </p>
+
+        {/* Two pillars — track + learn — shown as two simple badges */}
+        <div style={{ display:"flex", gap:12, justifyContent:"center", marginBottom:44 }}>
+          <div style={{ background:"rgba(15,191,184,.1)", border:"1px solid rgba(15,191,184,.25)",
+            borderRadius:14, padding:"10px 18px", display:"flex", alignItems:"center", gap:8 }}>
+            <span style={{ fontSize:16 }}>📊</span>
+            <p style={{ color:T.teal, fontWeight:700, fontSize:13 }}>Track</p>
+          </div>
+          <div style={{ background:"rgba(167,139,250,.1)", border:"1px solid rgba(167,139,250,.25)",
+            borderRadius:14, padding:"10px 18px", display:"flex", alignItems:"center", gap:8 }}>
+            <span style={{ fontSize:16 }}>💡</span>
+            <p style={{ color:T.purple, fontWeight:700, fontSize:13 }}>Learn</p>
+          </div>
+          <div style={{ background:"rgba(245,158,11,.1)", border:"1px solid rgba(245,158,11,.25)",
+            borderRadius:14, padding:"10px 18px", display:"flex", alignItems:"center", gap:8 }}>
+            <span style={{ fontSize:16 }}>🚀</span>
+            <p style={{ color:T.amber, fontWeight:700, fontSize:13 }}>Grow</p>
+          </div>
+        </div>
+
+        <button onClick={()=>onNext({ mode:situation==="sorted"?"grow":situation==="growing"?"grow":situation==="building"?"action":"learn", name, age })}
+          style={{ width:"100%", padding:"18px",
+            background:`linear-gradient(135deg,${T.teal},${T.purple})`,
+            border:"none", borderRadius:20, color:"#FFFFFF",
+            fontWeight:900, fontSize:18, cursor:"pointer", fontFamily:"inherit",
+            boxShadow:"0 8px 36px rgba(15,191,184,.4)", marginBottom:16 }}>
+          Build my picture →
+        </button>
+
+        <p style={{ color:"#4A6080", fontSize:12 }}>🔒 Private. No account. Free.</p>
+      </div>
+    </div>
+  )
+
+  return null
 }
 
 /* ── Asset Checklist ──────────────────────────────────────────────── */
