@@ -859,18 +859,17 @@ function Onboarding() {
 
 function WelcomeScreen({ onNext }) {
   const [screen, setScreen] = useState("splash")
-  const [name,   setNameLocal]  = useState("")
-  const [age,    setAgeLocal]   = useState("")
-  const [situation, setSituation] = useState(null)
+  const [name, setNameLocal] = useState("")
+  const [age, setAgeLocal] = useState("")
+  const [mode, setMode] = useState(null)
 
-  const SITUATIONS = [
-    { id:"starting", emoji:"🌱", label:"Just getting started" },
-    { id:"building", emoji:"🏗️", label:"Building, some savings, some debt" },
-    { id:"growing",  emoji:"📈", label:"Investing and growing" },
-    { id:"sorted",   emoji:"🚀", label:"Pretty sorted, want more" },
+  const MODES = [
+    { id:"grow",   icon:"📈", label:"Grow my wealth",              sub:"Track everything, grow your net worth, beat the numbers", color:T.teal },
+    { id:"safety", icon:"🛡️", label:"Feel financially secure",     sub:"Understand your safety net, reduce money stress, sleep better", color:T.green },
+    { id:"learn",  icon:"💡", label:"Learn about money",           sub:"Build real financial knowledge from scratch, no jargon", color:T.purple },
+    { id:"action", icon:"🎯", label:"Take action on my finances",  sub:"Invest, buy a home, clear debt, get a clear plan", color:T.amber },
   ]
 
-  // ── SCREEN 1: SPLASH ─────────────────────────────────────────────
   if(screen === "splash") return (
     <div style={{ minHeight:"100dvh", background:T.bg, display:"flex", flexDirection:"column",
       position:"relative", overflow:"hidden", alignItems:"center", justifyContent:"center" }}>
@@ -879,66 +878,115 @@ function WelcomeScreen({ onNext }) {
         width:300, height:300, borderRadius:"50%",
         background:"radial-gradient(circle, rgba(15,191,184,.15) 0%, transparent 70%)",
         pointerEvents:"none" }}/>
-
       <div className="ls-fadein" style={{ position:"relative", zIndex:1, textAlign:"center", padding:"0 36px", maxWidth:420 }}>
         <div className="ls-float" style={{ fontSize:72, marginBottom:24, lineHeight:1,
           filter:"drop-shadow(0 0 40px rgba(15,191,184,.5))" }}>🚀</div>
-
         <p style={{ color:T.teal, fontSize:12, fontWeight:800, letterSpacing:5,
           textTransform:"uppercase", marginBottom:16 }}>LifeSmart</p>
-
         <h1 style={{ color:"#FFFFFF", fontWeight:900, fontSize:"clamp(34px,9vw,48px)",
           lineHeight:1.05, marginBottom:14, letterSpacing:-1 }}>
           Finance.<br/>For everyone.
         </h1>
-
-        <p style={{ color:"#8FA3BE", fontSize:16, lineHeight:1.5, marginBottom:44, fontWeight:400 }}>
+        <p style={{ color:"#8FA3BE", fontSize:16, lineHeight:1.5, marginBottom:48, fontWeight:400 }}>
           The financial knowledge you were never taught.
         </p>
-
-        <button onClick={()=>setScreen("about")} style={{ background:`linear-gradient(135deg,${T.teal},${T.purple})`,
+        <button onClick={()=>setScreen("priority")} style={{ background:`linear-gradient(135deg,${T.teal},${T.purple})`,
           border:"none", borderRadius:20, padding:"18px 52px", color:"#FFFFFF",
           fontWeight:900, fontSize:17, cursor:"pointer", fontFamily:"inherit",
           boxShadow:"0 8px 40px rgba(15,191,184,.35)", letterSpacing:.3 }}>
           Get started
         </button>
-
-        <p style={{ color:"#344D68", fontSize:12, marginTop:20, fontWeight:500 }}>Free · Private · No account needed</p>
       </div>
     </div>
   )
 
-  // ── SCREEN 2: ABOUT (brief) + NAME + SITUATION (all in one) ───────
-  if(screen === "about") return (
+  if(screen === "priority") return (
     <div style={{ minHeight:"100dvh", background:T.bg, display:"flex", flexDirection:"column",
       position:"relative", overflow:"hidden" }}>
       <StarField count={18}/>
       <div className="ls-fadein" style={{ position:"relative", zIndex:1, flex:1, overflowY:"auto",
         padding:"50px 28px 20px", maxWidth:460, margin:"0 auto", width:"100%" }}>
-
-        {/* Brief value prop */}
-        <div style={{ display:"flex", gap:14, marginBottom:28 }}>
-          <div style={{ display:"flex", gap:14, alignItems:"center", background:"rgba(15,191,184,.06)",
-            border:"1px solid rgba(15,191,184,.18)", borderRadius:16, padding:"14px 16px", flex:1 }}>
-            <p style={{ color:T.teal, fontWeight:900, fontSize:28, lineHeight:1, flexShrink:0 }}>4×</p>
-            <p style={{ color:"#C8D8EC", fontSize:12, lineHeight:1.35, fontWeight:500 }}>People who track build 4× more wealth</p>
-          </div>
-          <div style={{ display:"flex", gap:14, alignItems:"center", background:"rgba(167,139,250,.06)",
-            border:"1px solid rgba(167,139,250,.18)", borderRadius:16, padding:"14px 16px", flex:1 }}>
-            <p style={{ fontSize:24, lineHeight:1, flexShrink:0 }}>💡</p>
-            <p style={{ color:"#C8D8EC", fontSize:12, lineHeight:1.35, fontWeight:500 }}>5 min lessons that change decisions</p>
-          </div>
+        <h1 style={{ color:"#FFFFFF", fontWeight:900, fontSize:"clamp(26px,6vw,34px)",
+          lineHeight:1.1, marginBottom:10, letterSpacing:-.5 }}>
+          Take control of your money
+        </h1>
+        <p style={{ color:"#8FA3BE", fontSize:15, lineHeight:1.55, marginBottom:8 }}>
+          People who track their finances build <strong style={{ color:T.teal }}>4× more wealth</strong>. Not because they earn more, because they make better decisions.
+        </p>
+        <p style={{ color:"#8FA3BE", fontSize:15, lineHeight:1.55, marginBottom:28 }}>
+          We will teach you the key concepts and give you the tools to act on them.
+        </p>
+        <p style={{ color:"#FFFFFF", fontWeight:800, fontSize:15, marginBottom:14 }}>
+          What matters most to you right now?
+        </p>
+        <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+          {MODES.map(m=>{
+            const sel = mode === m.id
+            return (
+              <button key={m.id} onClick={()=>setMode(m.id)}
+                style={{
+                  background: sel ? `linear-gradient(135deg,${m.color}15,${m.color}08)` : "rgba(255,255,255,.03)",
+                  border: `2px solid ${sel ? m.color : "rgba(255,255,255,.06)"}`,
+                  borderRadius:18, padding:"16px 18px",
+                  cursor:"pointer", textAlign:"left", fontFamily:"inherit",
+                  transition:"all .15s",
+                  display:"flex", alignItems:"center", gap:16 }}>
+                <div style={{ width:44,height:44,borderRadius:13,background:sel?`${m.color}20`:"rgba(255,255,255,.04)",
+                  border:`1px solid ${sel?`${m.color}40`:"rgba(255,255,255,.06)"}`,
+                  display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0,
+                  transition:"all .15s" }}>
+                  {m.icon}
+                </div>
+                <div style={{ flex:1 }}>
+                  <p style={{ color:sel?"#FFFFFF":"#C8D8EC", fontWeight:700, fontSize:15, marginBottom:2 }}>
+                    {m.label}
+                  </p>
+                  <p style={{ color:sel?"#8FA3BE":"#4A6080", fontSize:12, lineHeight:1.35 }}>{m.sub}</p>
+                </div>
+                {sel && <div style={{ width:22,height:22,borderRadius:"50%",background:m.color,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
+                  <Check size={13} color="#060C18"/>
+                </div>}
+              </button>
+            )
+          })}
         </div>
+      </div>
+      <div style={{ position:"relative", zIndex:1, padding:"0 28px 48px", maxWidth:460, margin:"0 auto", width:"100%" }}>
+        <button onClick={()=>{ if(mode) setScreen("name") }}
+          disabled={!mode}
+          style={{ width:"100%", padding:"17px",
+            background: mode ? `linear-gradient(135deg,${T.teal},${T.purple})` : "rgba(255,255,255,.05)",
+            border:"none", borderRadius:18,
+            color: mode ? "#FFFFFF" : "#344D68",
+            fontWeight:900, fontSize:17,
+            cursor: mode ? "pointer" : "default",
+            fontFamily:"inherit",
+            boxShadow: mode ? "0 4px 24px rgba(15,191,184,.3)" : "none",
+            transition:"all .2s" }}>
+          Continue
+        </button>
+        <button onClick={()=>setScreen("splash")} style={{ background:"none", border:"none", color:"#344D68",
+          fontSize:13, cursor:"pointer", fontFamily:"inherit", width:"100%", marginTop:12, padding:8, fontWeight:500 }}>
+          Back
+        </button>
+      </div>
+    </div>
+  )
 
-        <h1 style={{ color:"#FFFFFF", fontWeight:900, fontSize:"clamp(24px,6vw,32px)",
+  if(screen === "name") return (
+    <div style={{ minHeight:"100dvh", background:T.bg, display:"flex", flexDirection:"column",
+      position:"relative", overflow:"hidden" }}>
+      <StarField count={16}/>
+      <div className="ls-fadein" style={{ position:"relative", zIndex:1, flex:1, display:"flex", flexDirection:"column", justifyContent:"center",
+        padding:"50px 28px 20px", maxWidth:460, margin:"0 auto", width:"100%" }}>
+        <h1 style={{ color:"#FFFFFF", fontWeight:900, fontSize:"clamp(26px,6vw,34px)",
           lineHeight:1.1, marginBottom:6, letterSpacing:-.5 }}>
           About you
         </h1>
-        <p style={{ color:"#5A7A9A", fontSize:14, marginBottom:24, fontWeight:500 }}>
-          We will personalise everything.
+        <p style={{ color:"#5A7A9A", fontSize:14, marginBottom:28, fontWeight:500 }}>
+          We will personalise everything to you.
         </p>
-
-        <div style={{ display:"flex",flexDirection:"column",gap:12,marginBottom:24 }}>
+        <div style={{ display:"flex",flexDirection:"column",gap:12 }}>
           <input type="text" value={name} onChange={e=>setNameLocal(e.target.value)}
             placeholder="First name" autoFocus
             style={{ width:"100%", background:"rgba(255,255,255,.04)",
@@ -953,55 +1001,24 @@ function WelcomeScreen({ onNext }) {
               borderRadius:16, padding:"17px 20px", color:"#FFFFFF",
               fontSize:19, fontWeight:700, fontFamily:"inherit",
               outline:"none", transition:"border .15s" }}/>
+          <p style={{ color:"#3A5575", fontSize:12, paddingLeft:4 }}>Used to compare you against your age group.</p>
         </div>
-
-        {name && age && (
-          <>
-            <p style={{ color:"#FFFFFF", fontWeight:800, fontSize:15, marginBottom:12 }}>
-              Where are you with money?
-            </p>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-              {SITUATIONS.map(s=>{
-                const sel = situation === s.id
-                return (
-                  <button key={s.id} onClick={()=>setSituation(s.id)}
-                    style={{
-                      background: sel ? `linear-gradient(135deg,rgba(15,191,184,.12),rgba(167,139,250,.08))` : "rgba(255,255,255,.03)",
-                      border: `2px solid ${sel ? T.teal : "rgba(255,255,255,.06)"}`,
-                      borderRadius:16, padding:"16px 14px",
-                      cursor:"pointer", textAlign:"center", fontFamily:"inherit",
-                      transition:"all .15s" }}>
-                    <span style={{ fontSize:26, display:"block", marginBottom:6 }}>{s.emoji}</span>
-                    <p style={{ color:sel?"#FFFFFF":"#8FA3BE", fontWeight:700, fontSize:12, lineHeight:1.3 }}>
-                      {s.label}
-                    </p>
-                  </button>
-                )
-              })}
-            </div>
-          </>
-        )}
       </div>
-
       <div style={{ position:"relative", zIndex:1, padding:"0 28px 48px", maxWidth:460, margin:"0 auto", width:"100%" }}>
-        <button onClick={()=>{
-          if(name && age && situation) {
-            onNext({ mode:situation==="sorted"||situation==="growing"?"grow":situation==="building"?"action":"learn", name, age })
-          }
-        }}
-          disabled={!name || !age || !situation}
+        <button onClick={()=>{ if(name && age) onNext({ mode:mode||"grow", name, age }) }}
+          disabled={!name || !age}
           style={{ width:"100%", padding:"17px",
-            background: (name && age && situation) ? `linear-gradient(135deg,${T.teal},${T.purple})` : "rgba(255,255,255,.05)",
+            background: (name && age) ? `linear-gradient(135deg,${T.teal},${T.purple})` : "rgba(255,255,255,.05)",
             border:"none", borderRadius:18,
-            color: (name && age && situation) ? "#FFFFFF" : "#344D68",
+            color: (name && age) ? "#FFFFFF" : "#344D68",
             fontWeight:900, fontSize:17,
-            cursor: (name && age && situation) ? "pointer" : "default",
+            cursor: (name && age) ? "pointer" : "default",
             fontFamily:"inherit",
-            boxShadow: (name && age && situation) ? "0 4px 24px rgba(15,191,184,.3)" : "none",
+            boxShadow: (name && age) ? "0 4px 24px rgba(15,191,184,.3)" : "none",
             transition:"all .2s" }}>
           {name ? `Let's go, ${name}` : "Enter your details"}
         </button>
-        <button onClick={()=>setScreen("splash")} style={{ background:"none", border:"none", color:"#344D68",
+        <button onClick={()=>setScreen("priority")} style={{ background:"none", border:"none", color:"#344D68",
           fontSize:13, cursor:"pointer", fontFamily:"inherit", width:"100%", marginTop:12, padding:8, fontWeight:500 }}>
           Back
         </button>
@@ -1411,6 +1428,7 @@ function HomeTab() {
   const { assets, debts, income, spending, goals, profile, completedLessons, priorityGoals } = state
   const { netWorth, totalAssets, totalDebts } = calcTotals(assets, debts)
   const surplus    = calcSurplus(income, assets, spending)
+  const drag       = totalInterestDrag(debts)
   const bk         = buckets(assets)
   const hasSpending= (spending?.monthly||0) > 0
   const hasIncome  = (income?.primary||0) > 0
@@ -1642,26 +1660,60 @@ function HomeTab() {
         </div>
 
         {/* ── Key financial metrics ─────────────────────────────── */}
-        <div style={{ display:"flex",flexDirection:"column",gap:10,marginBottom:24 }}>
-          <button onClick={()=>setTab(2)} style={{ background:T.card,border:`1px solid ${T.amberBorder}`,borderRadius:18,padding:"18px 20px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",display:"flex",alignItems:"center",gap:16 }}>
-            <div style={{ width:48,height:48,borderRadius:14,background:T.amberDim,border:`1px solid ${T.amberBorder}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0 }}>🔥</div>
-            <div style={{ flex:1 }}>
-              <p style={{ color:"#C8D8EC",fontSize:13,fontWeight:700,marginBottom:3 }}>Financial Freedom Number</p>
-              <p style={{ color:T.amber,fontWeight:900,fontSize:24,lineHeight:1 }}>{fireNumber ? fmtK(fireNumber) : "Add spending to see"}</p>
-              <p style={{ color:T.muted,fontSize:11,marginTop:4 }}>25x annual spending. The amount invested to live off your investments.</p>
+        <div style={{ display:"flex",flexDirection:"column",gap:12,marginBottom:24 }}>
+          {/* Financial Freedom Number */}
+          <div style={{ background:`linear-gradient(145deg,${T.amberDim},rgba(245,158,11,.02))`,border:`1.5px solid ${T.amberBorder}`,borderRadius:20,padding:"20px 22px",position:"relative",overflow:"hidden" }}>
+            <div style={{ position:"absolute",top:-30,right:-30,width:100,height:100,borderRadius:"50%",background:"rgba(245,158,11,.06)",pointerEvents:"none" }}/>
+            <div style={{ display:"flex",alignItems:"center",gap:14,position:"relative" }}>
+              <div style={{ width:52,height:52,borderRadius:15,background:"rgba(245,158,11,.12)",border:`1px solid ${T.amberBorder}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,flexShrink:0 }}>🔥</div>
+              <div style={{ flex:1 }}>
+                <p style={{ color:"#C8D8EC",fontSize:14,fontWeight:700,marginBottom:6 }}>Financial Freedom Number</p>
+                <p style={{ color:T.amber,fontWeight:900,fontSize:28,lineHeight:1 }}>{fireNumber ? fmt(fireNumber) : "?"}</p>
+              </div>
             </div>
-          </button>
-          <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10 }}>
-            <button onClick={()=>setTab(2)} style={{ background:T.card,border:`1px solid ${T.tealBorder}`,borderRadius:18,padding:"16px",cursor:"pointer",fontFamily:"inherit",textAlign:"left" }}>
-              <p style={{ color:"#C8D8EC",fontSize:12,fontWeight:700,marginBottom:4 }}>🛡️ Safety Net</p>
-              <p style={{ color:T.teal,fontWeight:900,fontSize:22,lineHeight:1 }}>{safetyMonths!=null ? `${safetyMonths} months` : "?"}</p>
-              <p style={{ color:T.muted,fontSize:10,marginTop:4 }}>Savings cover your expenses</p>
-            </button>
-            <button onClick={()=>setTab(2)} style={{ background:T.card,border:`1px solid ${surplus>0?T.tealBorder:T.redBorder}`,borderRadius:18,padding:"16px",cursor:"pointer",fontFamily:"inherit",textAlign:"left" }}>
-              <p style={{ color:"#C8D8EC",fontSize:12,fontWeight:700,marginBottom:4 }}>💰 Monthly Surplus</p>
-              <p style={{ color:surplus>0?T.green:T.red,fontWeight:900,fontSize:22,lineHeight:1 }}>{surplus!==0 ? fmtK(Math.abs(surplus)) : "?"}</p>
-              <p style={{ color:T.muted,fontSize:10,marginTop:4 }}>{surplus>0?"Available to save or invest":"Spending exceeds income"}</p>
-            </button>
+            <div style={{ background:"rgba(0,0,0,.2)",borderRadius:12,padding:"12px 14px",marginTop:14 }}>
+              <p style={{ color:"#C8D8EC",fontSize:13,lineHeight:1.5 }}>
+                {fireNumber
+                  ? `This is 25× your annual spending (${fmt(spending.monthly * 12)}/yr). Once you have ${fmt(fireNumber)} invested, your money can cover your lifestyle indefinitely.`
+                  : "Add your monthly spending to calculate this. It shows the total amount you would need invested to be financially independent."}
+              </p>
+            </div>
+          </div>
+
+          <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:12 }}>
+            {/* Safety Net */}
+            <div style={{ background:T.card,border:`1.5px solid ${T.tealBorder}`,borderRadius:20,padding:"18px" }}>
+              <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:10 }}>
+                <span style={{ fontSize:20 }}>🛡️</span>
+                <p style={{ color:"#C8D8EC",fontSize:13,fontWeight:700 }}>Safety Net</p>
+              </div>
+              <p style={{ color:T.teal,fontWeight:900,fontSize:26,lineHeight:1,marginBottom:6 }}>
+                {safetyMonths!=null ? `${safetyMonths} mo` : "?"}
+              </p>
+              <p style={{ color:T.muted,fontSize:12,lineHeight:1.4 }}>
+                {safetyMonths!=null
+                  ? safetyMonths >= 6 ? "Solid safety net. Well above the 3 month minimum."
+                    : safetyMonths >= 3 ? "Meets the minimum 3 month recommendation."
+                    : "Below the 3 month recommended minimum. Building this should be a priority."
+                  : "How many months your savings would cover your expenses."}
+              </p>
+            </div>
+
+            {/* Interest Drag */}
+            <div style={{ background:T.card,border:`1.5px solid ${drag>0?T.redBorder:T.border}`,borderRadius:20,padding:"18px" }}>
+              <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:10 }}>
+                <span style={{ fontSize:20 }}>💸</span>
+                <p style={{ color:"#C8D8EC",fontSize:13,fontWeight:700 }}>Interest Drag</p>
+              </div>
+              <p style={{ color:drag>0?T.red:T.green,fontWeight:900,fontSize:26,lineHeight:1,marginBottom:6 }}>
+                {drag>0 ? `${fmt(Math.round(drag))}/yr` : "£0"}
+              </p>
+              <p style={{ color:T.muted,fontSize:12,lineHeight:1.4 }}>
+                {drag>0
+                  ? `That is ${fmt(Math.round(drag/12))}/month leaving your wealth in interest payments.`
+                  : "No interest leaving your pocket. Any debt you have is interest free."}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -1759,12 +1811,14 @@ function HomeTab() {
           </div>
         </div>
 
+        {/* ── Goals (always visible, prominent) ───────────────────── */}
+        <DashboardGoals goals={goals} surplus={surplus} save={save} state={state} toast={toast} setTab={setTab}/>
+
         {/* ── Priority goals ──────────────────────────────────────── */}
         {!hasPriorities && <GoalPickerSection state={state} save={save} toast={toast}/>}
         {hasPriorities && (
           <>
             <GoalLinkedLessons priorityGoals={priorityGoals} completedLessons={state.completedLessons||[]} setTab={setTab}/>
-            <HomeGoalsSection goals={goals} surplus={surplus} setTab={setTab} save={save} state={state} toast={toast} priorityGoals={priorityGoals}/>
           </>
         )}
       </div>
@@ -1968,6 +2022,269 @@ function WealthBreakdownCard({ bk, totalAssets }) {
           </div>
         ))}
       </div>
+    </div>
+  )
+}
+
+/* ── Dashboard Goals (prominent, 3 types) ────────────────────────── */
+function DashboardGoals({ goals, surplus, save, state, toast, setTab }) {
+  const [showSheet, setShowSheet] = useState(null) // "save"|"action"|"learn"|"edit"
+  const [editGoal, setEditGoal] = useState(null)
+  const [saveName, setSaveName] = useState("")
+  const [saveTarget, setSaveTarget] = useState(0)
+  const [saveSaved, setSaveSaved] = useState(0)
+  const [saveMonthly, setSaveMonthly] = useState(0)
+  const [saveType, setSaveType] = useState(null)
+  const [actionType, setActionType] = useState(null)
+
+  const SAVE_OPTIONS = [
+    { id:"emergency", icon:"🛡️", label:"Emergency fund" },
+    { id:"holiday",   icon:"✈️", label:"Holiday" },
+    { id:"home",      icon:"🏠", label:"Buy a home" },
+    { id:"education", icon:"📚", label:"Education" },
+    { id:"other_goal",icon:"⭐", label:"Something else" },
+  ]
+
+  const ACTION_OPTIONS = [
+    { id:"invest",     icon:"📈", label:"Start investing", steps:[
+      "Open a Stocks & Shares ISA",
+      "Choose a low cost global index fund",
+      "Set up a monthly direct debit",
+      "Keep it going for 3 months",
+      "Review and increase when you can",
+    ]},
+    { id:"pension",    icon:"🏛️", label:"Sort my pension", steps:[
+      "Find your current pension value",
+      "Check your employer match limit",
+      "Increase your contribution by 1%",
+      "Consolidate any old pensions",
+    ]},
+    { id:"debt_clear", icon:"💳", label:"Clear my debt", steps:[
+      "List all debts with interest rates",
+      "Pay minimums on everything",
+      "Put extra money into the highest rate debt",
+      "Once cleared, move to the next highest rate",
+    ]},
+    { id:"account",    icon:"🏦", label:"Open an account", steps:[
+      "Research the best accounts for your needs",
+      "Gather your ID and proof of address",
+      "Apply online or in branch",
+      "Set up your direct debits and standing orders",
+    ]},
+  ]
+
+  const LEARN_OPTIONS = [
+    { id:"budgeting",   icon:"🥧", label:"I want to budget better" },
+    { id:"investing",   icon:"📈", label:"I want to understand investing" },
+    { id:"pensions",    icon:"🏛️", label:"I want to understand pensions" },
+    { id:"debt_learn",  icon:"💳", label:"I want to manage debt better" },
+    { id:"tax",         icon:"📋", label:"I want to understand tax wrappers" },
+    { id:"property",    icon:"🏠", label:"I want to learn about property" },
+  ]
+
+  const activeGoals = goals.filter(g=>!ACTION_GOALS.has(g.type)?calcGoalProgress(g,surplus).pct<100:true)
+
+  function saveNewGoal() {
+    if(!saveType || saveTarget<=0) return
+    const cfg = SAVE_OPTIONS.find(o=>o.id===saveType) || SAVE_OPTIONS[4]
+    const newGoal = {
+      id:`goal_${Date.now()}`, type:saveType, name:saveName||cfg.label,
+      targetAmount:saveTarget, startAmount:saveSaved, monthlyAmount:saveMonthly,
+      createdAt:new Date().toISOString(), checkedActions:[]
+    }
+    save({ ...state, goals:[...goals, newGoal] })
+    toast("✓ Goal created")
+    setShowSheet(null); setSaveName(""); setSaveTarget(0); setSaveSaved(0); setSaveMonthly(0); setSaveType(null)
+  }
+
+  function saveActionGoal() {
+    if(!actionType) return
+    const cfg = ACTION_OPTIONS.find(o=>o.id===actionType)
+    const newGoal = {
+      id:`goal_${Date.now()}`, type:actionType, name:cfg?.label||"Action",
+      targetAmount:0, startAmount:0, monthlyAmount:0,
+      createdAt:new Date().toISOString(), checkedActions:[]
+    }
+    save({ ...state, goals:[...goals, newGoal] })
+    toast("✓ Action plan created")
+    setShowSheet(null); setActionType(null)
+  }
+
+  // Dynamic time calculation
+  const monthsNeeded = saveMonthly > 0 && saveTarget > saveSaved ? Math.ceil((saveTarget - saveSaved) / saveMonthly) : null
+  const etaDate = monthsNeeded ? (()=>{ const d = new Date(); d.setMonth(d.getMonth()+monthsNeeded); return d.toLocaleDateString("en-GB",{month:"short",year:"numeric"}) })() : null
+
+  return (
+    <div style={{ marginBottom:24 }}>
+      <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14 }}>
+        <p style={{ color:"#FFFFFF",fontWeight:800,fontSize:17 }}>Your Goals</p>
+      </div>
+
+      {/* Existing goals */}
+      {activeGoals.length > 0 && (
+        <div style={{ display:"flex",flexDirection:"column",gap:10,marginBottom:14 }}>
+          {activeGoals.slice(0,3).map(g=>{
+            const cfg = GOAL_TYPES.find(t=>t.id===g.type) || GOAL_TYPES[GOAL_TYPES.length-1]
+            const isAction = ACTION_GOALS.has(g.type) || ACTION_OPTIONS.some(a=>a.id===g.type)
+            const actions = GOAL_ACTIONS[g.type] || ACTION_OPTIONS.find(a=>a.id===g.type)?.steps?.map((s,i)=>({id:`step_${i}`,label:s})) || []
+            const checked = new Set(g.checkedActions||[])
+            const { pct, current, eta } = isAction ? { pct:actions.length>0?Math.round(checked.size/actions.length*100):0, current:0, eta:null } : calcGoalProgress(g, surplus)
+            return (
+              <div key={g.id} style={{ background:T.card,border:`1.5px solid ${cfg.border||T.border}`,borderRadius:18,padding:"16px 18px" }}>
+                <div style={{ display:"flex",alignItems:"center",gap:12,marginBottom:10 }}>
+                  <span style={{ fontSize:20 }}>{cfg.icon}</span>
+                  <div style={{ flex:1 }}>
+                    <p style={{ color:T.white,fontWeight:700,fontSize:14 }}>{g.name}</p>
+                    {!isAction && <p style={{ color:T.muted,fontSize:12 }}>{fmt(current)} of {fmt(g.targetAmount)}{eta?` · on track for ${eta}`:""}</p>}
+                    {isAction && <p style={{ color:T.muted,fontSize:12 }}>{checked.size}/{actions.length} steps done</p>}
+                  </div>
+                  <span style={{ color:cfg.color||T.teal,fontWeight:900,fontSize:14 }}>{pct}%</span>
+                </div>
+                <div style={{ background:T.surface,borderRadius:99,height:6,overflow:"hidden" }}>
+                  <div style={{ width:`${pct}%`,height:"100%",background:cfg.color||T.teal,borderRadius:99,transition:"width .6s ease" }}/>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Add goal buttons (3 types) */}
+      <div style={{ display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10 }}>
+        <button onClick={()=>setShowSheet("save")}
+          style={{ background:`linear-gradient(145deg,${T.tealDim},rgba(15,191,184,.02))`,border:`1.5px solid ${T.tealBorder}`,borderRadius:18,padding:"18px 12px",cursor:"pointer",fontFamily:"inherit",textAlign:"center" }}>
+          <span style={{ fontSize:24,display:"block",marginBottom:6 }}>🎯</span>
+          <p style={{ color:T.teal,fontWeight:800,fontSize:13 }}>Save for</p>
+          <p style={{ color:T.teal,fontWeight:800,fontSize:13 }}>something</p>
+        </button>
+        <button onClick={()=>setShowSheet("action")}
+          style={{ background:`linear-gradient(145deg,${T.amberDim},rgba(245,158,11,.02))`,border:`1.5px solid ${T.amberBorder}`,borderRadius:18,padding:"18px 12px",cursor:"pointer",fontFamily:"inherit",textAlign:"center" }}>
+          <span style={{ fontSize:24,display:"block",marginBottom:6 }}>⚡</span>
+          <p style={{ color:T.amber,fontWeight:800,fontSize:13 }}>Take an</p>
+          <p style={{ color:T.amber,fontWeight:800,fontSize:13 }}>action</p>
+        </button>
+        <button onClick={()=>setShowSheet("learn")}
+          style={{ background:`linear-gradient(145deg,${T.purpleDim},rgba(167,139,250,.02))`,border:`1.5px solid ${T.purpleBorder}`,borderRadius:18,padding:"18px 12px",cursor:"pointer",fontFamily:"inherit",textAlign:"center" }}>
+          <span style={{ fontSize:24,display:"block",marginBottom:6 }}>💡</span>
+          <p style={{ color:T.purple,fontWeight:800,fontSize:13 }}>Learn about</p>
+          <p style={{ color:T.purple,fontWeight:800,fontSize:13 }}>an area</p>
+        </button>
+      </div>
+
+      {/* Save for something sheet */}
+      {showSheet==="save" && (
+        <Sheet title="Save for something" onClose={()=>setShowSheet(null)}>
+          {!saveType ? (
+            <div style={{ display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10 }}>
+              {SAVE_OPTIONS.map(o=>(
+                <button key={o.id} onClick={()=>{ setSaveType(o.id); setSaveName(o.label) }}
+                  style={{ background:T.card,border:`1.5px solid ${T.border}`,borderRadius:16,padding:"16px",cursor:"pointer",fontFamily:"inherit",textAlign:"center",transition:"all .15s" }}>
+                  <span style={{ fontSize:28,display:"block",marginBottom:6 }}>{o.icon}</span>
+                  <p style={{ color:T.white,fontWeight:700,fontSize:13 }}>{o.label}</p>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div>
+              <Input label="Goal name" value={saveName} onChange={setSaveName} placeholder="e.g. Holiday to Spain"/>
+              <div style={{ height:12 }}/>
+              <CurrencyInput label="Target amount" value={saveTarget} onChange={setSaveTarget}/>
+              <div style={{ height:12 }}/>
+              <CurrencyInput label="Already saved" value={saveSaved} onChange={setSaveSaved}/>
+              <div style={{ height:12 }}/>
+              <CurrencyInput label="Monthly contribution" value={saveMonthly} onChange={setSaveMonthly}/>
+
+              {/* Dynamic time calculation */}
+              {saveTarget > 0 && saveMonthly > 0 && (
+                <div style={{ background:`linear-gradient(135deg,${T.tealDim},${T.purpleDim})`,border:`1px solid ${T.tealBorder}`,borderRadius:16,padding:"16px",marginTop:16,textAlign:"center" }}>
+                  {monthsNeeded && (
+                    <>
+                      <p style={{ color:T.teal,fontWeight:900,fontSize:28,lineHeight:1 }}>
+                        {monthsNeeded < 12 ? `${monthsNeeded} months` : `${Math.floor(monthsNeeded/12)} yr ${monthsNeeded%12} mo`}
+                      </p>
+                      <p style={{ color:"#C8D8EC",fontSize:13,marginTop:6 }}>
+                        At {fmt(saveMonthly)}/month you will reach {fmt(saveTarget)} by <strong style={{ color:T.teal }}>{etaDate}</strong>
+                      </p>
+                    </>
+                  )}
+                </div>
+              )}
+
+              <div style={{ height:16 }}/>
+              <Btn onClick={saveNewGoal} disabled={saveTarget<=0}>Create goal</Btn>
+              <button onClick={()=>setSaveType(null)} style={{ background:"none",border:"none",color:T.muted,fontSize:13,cursor:"pointer",width:"100%",padding:8,marginTop:8,fontFamily:"inherit" }}>
+                Back to options
+              </button>
+            </div>
+          )}
+        </Sheet>
+      )}
+
+      {/* Take an action sheet */}
+      {showSheet==="action" && (
+        <Sheet title="Take an action" onClose={()=>setShowSheet(null)}>
+          {!actionType ? (
+            <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
+              {ACTION_OPTIONS.map(o=>(
+                <button key={o.id} onClick={()=>setActionType(o.id)}
+                  style={{ background:T.card,border:`1.5px solid ${T.border}`,borderRadius:16,padding:"16px 18px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",display:"flex",alignItems:"center",gap:14,transition:"all .15s" }}>
+                  <span style={{ fontSize:24 }}>{o.icon}</span>
+                  <div>
+                    <p style={{ color:T.white,fontWeight:700,fontSize:14 }}>{o.label}</p>
+                    <p style={{ color:T.muted,fontSize:12 }}>{o.steps.length} steps</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div>
+              {(()=>{
+                const cfg = ACTION_OPTIONS.find(o=>o.id===actionType)
+                return (
+                  <>
+                    <div style={{ display:"flex",alignItems:"center",gap:12,marginBottom:20 }}>
+                      <span style={{ fontSize:28 }}>{cfg.icon}</span>
+                      <p style={{ color:T.white,fontWeight:800,fontSize:17 }}>{cfg.label}</p>
+                    </div>
+                    <p style={{ color:T.muted,fontSize:13,marginBottom:16 }}>Here is your step by step plan. Tick each one off as you go.</p>
+                    <div style={{ display:"flex",flexDirection:"column",gap:8,marginBottom:20 }}>
+                      {cfg.steps.map((step,i)=>(
+                        <div key={i} style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px 16px",display:"flex",alignItems:"center",gap:12 }}>
+                          <div style={{ width:24,height:24,borderRadius:7,border:`2px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,color:T.muted,fontSize:11,fontWeight:800 }}>{i+1}</div>
+                          <p style={{ color:"#C8D8EC",fontSize:14,fontWeight:600 }}>{step}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <Btn onClick={saveActionGoal}>Add this to my goals</Btn>
+                    <button onClick={()=>setActionType(null)} style={{ background:"none",border:"none",color:T.muted,fontSize:13,cursor:"pointer",width:"100%",padding:8,marginTop:8,fontFamily:"inherit" }}>
+                      Back to options
+                    </button>
+                  </>
+                )
+              })()}
+            </div>
+          )}
+        </Sheet>
+      )}
+
+      {/* Learn about an area sheet */}
+      {showSheet==="learn" && (
+        <Sheet title="Learn about an area" onClose={()=>setShowSheet(null)}>
+          <p style={{ color:T.muted,fontSize:13,marginBottom:16 }}>Choose what you want to learn about and we will build a personalised plan.</p>
+          <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
+            {LEARN_OPTIONS.map(o=>(
+              <button key={o.id} onClick={()=>{ setTab(1); setShowSheet(null); toast("Head to Learn to start your journey") }}
+                style={{ background:T.card,border:`1.5px solid ${T.purpleBorder}`,borderRadius:16,padding:"16px 18px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",display:"flex",alignItems:"center",gap:14,transition:"all .15s" }}>
+                <div style={{ width:40,height:40,borderRadius:12,background:T.purpleDim,border:`1px solid ${T.purpleBorder}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0 }}>{o.icon}</div>
+                <p style={{ color:T.white,fontWeight:700,fontSize:14 }}>{o.label}</p>
+                <div style={{ marginLeft:"auto" }}>
+                  <ChevronRight size={16} color={T.purple}/>
+                </div>
+              </button>
+            ))}
+          </div>
+        </Sheet>
+      )}
     </div>
   )
 }
@@ -2446,43 +2763,106 @@ function AnalyticsTab() {
 
         <div style={{ height:1,background:T.border,margin:"20px 0" }}/>
 
-        {/* ── Advanced Analytics (unlock with more data) ── */}
-        <p style={{ color:T.white,fontWeight:800,fontSize:17,marginBottom:4 }}>Insights</p>
-        <p style={{ color:T.muted,fontSize:13,marginBottom:16 }}>Unlock deeper analytics by adding more data.</p>
-
-        <div style={{ display:"grid",gridTemplateColumns:"1fr",gap:12,marginBottom:20 }}>
-          {[
-            { icon:"📊", label:"Asset Breakdown", desc:"See how your wealth splits between productive and lifestyle assets.", color:T.teal, unlocked:state.assets.length>=2 },
-            { icon:"🥧", label:"Spending Analysis", desc:"Understand your needs, wants and savings ratio.", color:T.purple, unlocked:!!(state.spending?.breakdown && Object.keys(state.spending.breakdown).length>0) },
-            { icon:"👥", label:"How You Compare", desc:"See how your net worth stacks up against others your age.", color:T.blue, unlocked:!!(state.profile?.age && state.assets.length>0) },
-            { icon:"📈", label:"Net Worth Over Time", desc:"Track your monthly progress and spot trends.", color:T.amber, unlocked:(state.history||[]).length>=2 },
-          ].map((insight,i)=>(
-            <div key={i} style={{ background:T.card,border:`1.5px solid ${insight.unlocked?insight.color+"30":T.border}`,borderRadius:20,padding:"20px",position:"relative",overflow:"hidden" }}>
-              {!insight.unlocked && <div style={{ position:"absolute",top:12,right:14 }}><Lock size={13} color={T.subtle}/></div>}
+        {/* ── Unlock More Insights ── */}
+        <div style={{ position:"relative",marginBottom:20 }}>
+          {/* Hero unlock button */}
+          <button onClick={()=>setSheet("insights")}
+            style={{ width:"100%",background:`linear-gradient(135deg,rgba(15,191,184,.12),rgba(167,139,250,.08))`,
+              border:`1.5px solid ${T.tealBorder}`,borderRadius:22,padding:"20px 22px",
+              cursor:"pointer",fontFamily:"inherit",textAlign:"left",marginBottom:16,
+              boxShadow:`0 8px 32px rgba(15,191,184,.12)`,position:"relative",overflow:"hidden" }}>
+            <div style={{ position:"absolute",top:-30,right:-30,width:120,height:120,borderRadius:"50%",background:"radial-gradient(circle,rgba(15,191,184,.2) 0%,transparent 70%)",pointerEvents:"none" }}/>
+            <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",position:"relative" }}>
               <div style={{ display:"flex",alignItems:"center",gap:14 }}>
-                <div style={{ width:44,height:44,borderRadius:13,background:insight.unlocked?`${insight.color}15`:T.faint,border:`1px solid ${insight.unlocked?`${insight.color}30`:T.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0,filter:insight.unlocked?"none":"grayscale(.8)" }}>{insight.icon}</div>
-                <div style={{ flex:1 }}>
-                  <p style={{ color:insight.unlocked?T.white:T.subtle,fontWeight:700,fontSize:14,marginBottom:3 }}>{insight.label}</p>
-                  <p style={{ color:insight.unlocked?"#C8D8EC":T.subtle,fontSize:12,lineHeight:1.45 }}>{insight.desc}</p>
+                <div style={{ width:48,height:48,borderRadius:14,background:"rgba(15,191,184,.15)",border:`1px solid ${T.tealBorder}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24 }}>✨</div>
+                <div>
+                  <p style={{ color:T.white,fontWeight:900,fontSize:16 }}>Unlock More Insights</p>
+                  <p style={{ color:T.muted,fontSize:12,marginTop:2 }}>Add a few more figures to reveal detailed analysis</p>
                 </div>
               </div>
-              {insight.unlocked && insight.label==="How You Compare" && state.profile?.age && (()=>{
-                const bench = ageBenchmark(state.profile.age)
-                if(!bench) return null
-                return (
-                  <div style={{ marginTop:14,background:T.surface,borderRadius:12,padding:"12px 14px" }}>
-                    <p style={{ color:"#C8D8EC",fontSize:13,lineHeight:1.5 }}>
-                      People your age who track their finances typically have around <strong style={{ color:T.teal }}>{fmtK(bench.tracked)}</strong> in net worth.
-                      The UK median for your age group is <strong style={{ color:T.muted }}>{fmtK(bench.median)}</strong>.
-                      {netWorth >= bench.tracked ? " You are ahead of most people who actively track." : netWorth >= bench.median ? " You are above the national median, and tracking puts you on a path to pull ahead." : " Tracking is the first step. People who measure consistently close the gap faster."}
-                    </p>
-                  </div>
-                )
-              })()}
+              <div style={{ background:T.teal,borderRadius:12,padding:"8px 16px",flexShrink:0 }}>
+                <p style={{ color:"#060C18",fontSize:13,fontWeight:800 }}>Go →</p>
+              </div>
             </div>
-          ))}
+          </button>
+
+          {/* Blurred chart previews grid */}
+          <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:12 }}>
+            {[
+              { icon:"📊", label:"Asset Breakdown", color:T.teal, bars:[65,40,80,30] },
+              { icon:"🥧", label:"Spending Analysis", color:T.purple, bars:[50,30,20,45] },
+              { icon:"👥", label:"Peer Comparison", color:T.blue, bars:[45,70,55,60] },
+              { icon:"📈", label:"Net Worth Trend", color:T.amber, bars:[20,35,45,60,55,70] },
+            ].map((chart,i)=>(
+              <div key={i} style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:18,padding:"16px",position:"relative",overflow:"hidden" }}>
+                <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:12 }}>
+                  <span style={{ fontSize:16 }}>{chart.icon}</span>
+                  <p style={{ color:T.subtle,fontWeight:700,fontSize:12 }}>{chart.label}</p>
+                </div>
+                {/* Fake blurred chart */}
+                <div style={{ display:"flex",alignItems:"flex-end",gap:4,height:50,filter:"blur(4px)",opacity:.35,pointerEvents:"none" }}>
+                  {chart.bars.map((h,j)=>(
+                    <div key={j} style={{ flex:1,height:`${h}%`,background:chart.color,borderRadius:"3px 3px 0 0" }}/>
+                  ))}
+                </div>
+                {/* Lock overlay */}
+                <div style={{ position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(6,12,24,.3)" }}>
+                  <div style={{ background:"rgba(6,12,24,.7)",borderRadius:10,padding:"6px 12px",display:"flex",alignItems:"center",gap:5 }}>
+                    <Lock size={11} color={T.muted}/>
+                    <span style={{ color:T.muted,fontSize:11,fontWeight:700 }}>Locked</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
+
+      {/* Insights popup */}
+      {sheet==="insights" && (
+        <Sheet title="Unlock Insights" onClose={()=>setSheet(null)}>
+          <p style={{ color:"#C8D8EC",fontSize:14,lineHeight:1.6,marginBottom:20 }}>
+            Get detailed charts and analysis by providing a few more quick figures. Choose which insight to unlock.
+          </p>
+          <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
+            {[
+              { icon:"📊", label:"Asset Breakdown", desc:"See productive vs lifestyle assets", color:T.teal, unlocked:state.assets.length>=2, action:"Add 2+ assets" },
+              { icon:"🥧", label:"Spending Analysis", desc:"Needs, wants and savings ratio", color:T.purple, unlocked:!!(state.spending?.breakdown && Object.keys(state.spending.breakdown).length>0), action:"Categorise spending" },
+              { icon:"👥", label:"Peer Comparison", desc:"Compare to others your age", color:T.blue, unlocked:!!(state.profile?.age && state.assets.length>0), action:"Add age + assets" },
+              { icon:"📈", label:"Net Worth Trend", desc:"Track changes over time", color:T.amber, unlocked:(state.history||[]).length>=2, action:"Update figures monthly" },
+            ].map((insight,i)=>(
+              <div key={i} style={{ background:insight.unlocked?`${insight.color}08`:T.card,border:`1.5px solid ${insight.unlocked?`${insight.color}30`:T.border}`,borderRadius:16,padding:"16px 18px",display:"flex",alignItems:"center",gap:14 }}>
+                <div style={{ width:44,height:44,borderRadius:13,background:insight.unlocked?`${insight.color}18`:T.faint,border:`1px solid ${insight.unlocked?`${insight.color}30`:T.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0 }}>{insight.icon}</div>
+                <div style={{ flex:1 }}>
+                  <p style={{ color:insight.unlocked?T.white:T.muted,fontWeight:700,fontSize:14 }}>{insight.label}</p>
+                  <p style={{ color:insight.unlocked?"#C8D8EC":T.subtle,fontSize:12 }}>{insight.desc}</p>
+                </div>
+                {insight.unlocked
+                  ? <div style={{ background:`${insight.color}20`,borderRadius:8,padding:"5px 10px" }}><Check size={14} color={insight.color}/></div>
+                  : <div style={{ background:T.faint,borderRadius:8,padding:"4px 10px" }}><p style={{ color:T.muted,fontSize:10,fontWeight:700 }}>{insight.action}</p></div>
+                }
+              </div>
+            ))}
+          </div>
+          {state.profile?.age && state.assets.length>0 && (()=>{
+            const bench = ageBenchmark(state.profile.age)
+            if(!bench) return null
+            return (
+              <div style={{ marginTop:20,background:T.surface,borderRadius:14,padding:"16px 18px",border:`1px solid ${T.blueBorder}` }}>
+                <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:10 }}>
+                  <span style={{ fontSize:18 }}>👥</span>
+                  <p style={{ color:T.white,fontWeight:700,fontSize:14 }}>How You Compare</p>
+                </div>
+                <p style={{ color:"#C8D8EC",fontSize:13,lineHeight:1.55 }}>
+                  People your age who track their finances typically have around <strong style={{ color:T.teal }}>{fmtK(bench.tracked)}</strong> in net worth.
+                  The UK median for your age group is <strong style={{ color:T.muted }}>{fmtK(bench.median)}</strong>.
+                  {netWorth >= bench.tracked ? " You are ahead of most people who actively track." : netWorth >= bench.median ? " You are above the national median." : " Tracking is the first step to closing the gap."}
+                </p>
+              </div>
+            )
+          })()}
+        </Sheet>
+      )}
 
       {sheet==="asset" && <AssetSheet item={editItem} onClose={()=>{ setSheet(null); setEditItem(null) }} onSave={saveAsset}/>}
       {sheet==="debt"  && <DebtSheet  item={editItem} onClose={()=>{ setSheet(null); setEditItem(null) }} onSave={saveDebt}/>}
@@ -3118,20 +3498,12 @@ function NetWorthMomentumChart({ state }) {
 }
 
 function AssetsSection({ assets, totalAssets, onAdd, onEdit, onDelete }) {
-  const BUCKETS = [
-    { id:"savings",   label:"Cash & Savings",  icon:"💰", color:T.teal   },
-    { id:"invest",    label:"Investments",      icon:"📈", color:T.purple },
-    { id:"pension",   label:"Pension",          icon:"🏛️", color:T.amber  },
-    { id:"property",  label:"Property",         icon:"🏠", color:T.green  },
-    { id:"other",     label:"Other Assets",     icon:"📦", color:T.blue   },
-  ]
-
   const getBucket = a => {
-    if(a.category==="savings") return "savings"
-    if(a.category==="investments") return "invest"
-    if(a.category==="pension") return "pension"
-    if(["primary_residence","investment_property"].includes(a.category)) return "property"
-    return "other"
+    if(a.category==="savings") return { icon:"💰", color:T.teal, label:"Cash & Savings" }
+    if(a.category==="investments") return { icon:"📈", color:T.purple, label:"Investments" }
+    if(a.category==="pension") return { icon:"🏛️", color:T.amber, label:"Pension" }
+    if(["primary_residence","investment_property"].includes(a.category)) return { icon:"🏠", color:T.green, label:"Property" }
+    return { icon:"📦", color:T.blue, label:"Other" }
   }
 
   return (
@@ -3139,59 +3511,40 @@ function AssetsSection({ assets, totalAssets, onAdd, onEdit, onDelete }) {
       <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16 }}>
         <div>
           <p style={{ color:T.green,fontWeight:900,fontSize:22 }}>{fmt(totalAssets)}</p>
-          <p style={{ color:"#E2EAF6",fontSize:13,fontWeight:600 }}>Total assets</p>
+          <p style={{ color:"#C8D8EC",fontSize:13,fontWeight:600 }}>Total assets</p>
         </div>
-        <button onClick={onAdd} style={{ background:T.tealDim,border:`1.5px solid ${T.tealBorder}`,borderRadius:11,padding:"10px 18px",color:T.teal,fontWeight:700,fontSize:14,cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontFamily:"inherit" }}>
+        <button onClick={onAdd} style={{ background:T.tealDim,border:`1.5px solid ${T.tealBorder}`,borderRadius:12,padding:"10px 18px",color:T.teal,fontWeight:700,fontSize:14,cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontFamily:"inherit" }}>
           <Plus size={15}/>Add asset
         </button>
       </div>
 
       {assets.length===0 ? (
-        <EmptyState icon="💰" title="No assets tracked" body="Add your savings, pension, investments, property everything of value." cta="Add an asset" onClick={onAdd}/>
+        <EmptyState icon="💰" title="No assets tracked" body="Add your savings, pension, investments, property. Everything of value." cta="Add an asset" onClick={onAdd}/>
       ) : (
-        <>
-          {/* Table header */}
-          <div style={{ display:"grid",gridTemplateColumns:"1fr auto auto auto",gap:8,padding:"8px 14px",marginBottom:4 }}>
-            <p style={{ color:"#8FA3BE",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8 }}>Asset</p>
-            <p style={{ color:"#8FA3BE",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8,textAlign:"right",minWidth:70 }}>Rate/Rtn</p>
-            <p style={{ color:"#8FA3BE",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8,textAlign:"right",minWidth:80 }}>Value</p>
-            <p style={{ color:"transparent",fontSize:11,minWidth:54 }}>...</p>
-          </div>
-
-          {BUCKETS.map(b=>{
-            const bAssets = assets.filter(a=>getBucket(a)===b.id)
-            if(bAssets.length===0) return null
-            const bTotal = bAssets.reduce((s,a)=>s+(a.value||0),0)
+        <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
+          {assets.map(a=>{
+            const b = getBucket(a)
+            const t = ASSET_TYPES.find(x=>x.cat===a.category)||ASSET_TYPES[ASSET_TYPES.length-1]
             return (
-              <div key={b.id} style={{ marginBottom:16 }}>
-                <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:8,padding:"6px 14px",background:T.faint,borderRadius:10 }}>
-                  <span style={{ fontSize:16 }}>{b.icon}</span>
-                  <p style={{ color:b.color,fontWeight:700,fontSize:13,flex:1 }}>{b.label}</p>
-                  <p style={{ color:b.color,fontWeight:800,fontSize:13 }}>{fmt(bTotal)}</p>
+              <div key={a.id} style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:"14px 16px",display:"flex",alignItems:"center",gap:12 }}>
+                <div style={{ width:40,height:40,borderRadius:12,background:`${b.color}12`,border:`1px solid ${b.color}25`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0 }}>{b.icon}</div>
+                <div style={{ flex:1,minWidth:0 }}>
+                  <p style={{ color:T.white,fontWeight:700,fontSize:14,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{a.name}</p>
+                  <div style={{ display:"flex",alignItems:"center",gap:8,marginTop:2 }}>
+                    <span style={{ color:b.color,fontSize:11,fontWeight:600 }}>{b.label}</span>
+                    {a.annualReturn && <span style={{ color:T.purple,fontSize:11,fontWeight:600 }}>{a.annualReturn}%/yr</span>}
+                    {a.monthlyIncome>0 && <span style={{ color:T.muted,fontSize:11 }}>{fmt(a.monthlyIncome)}/mo</span>}
+                  </div>
                 </div>
-                {bAssets.map(a=>{
-                  const t = ASSET_TYPES.find(x=>x.cat===a.category)||ASSET_TYPES[ASSET_TYPES.length-1]
-                  return (
-                    <div key={a.id} style={{ display:"grid",gridTemplateColumns:"1fr auto auto auto",gap:8,alignItems:"center",padding:"12px 14px",background:T.card,border:`1px solid ${T.border}`,borderRadius:12,marginBottom:6 }}>
-                      <div style={{ minWidth:0 }}>
-                        <p style={{ color:T.white,fontWeight:700,fontSize:14,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{a.name}</p>
-                        <p style={{ color:"#8FA3BE",fontSize:12 }}>{t?.label}{a.monthlyIncome>0?` ${fmt(a.monthlyIncome)}/mo income`:""}</p>
-                      </div>
-                      <p style={{ color:a.annualReturn?T.purple:"#8FA3BE",fontWeight:700,fontSize:13,textAlign:"right",minWidth:70 }}>
-                        {a.annualReturn?`${a.annualReturn}%/yr`:" "}
-                      </p>
-                      <p style={{ color:T.green,fontWeight:800,fontSize:14,textAlign:"right",minWidth:80 }}>{fmt(a.value)}</p>
-                      <div style={{ display:"flex",gap:4,minWidth:54,justifyContent:"flex-end" }}>
-                        <button onClick={()=>onEdit(a)} style={{ background:"none",border:"none",color:T.teal,cursor:"pointer",padding:6,borderRadius:8 }}><Pencil size={14}/></button>
-                        <button onClick={()=>onDelete(a)} style={{ background:"none",border:"none",color:"#8FA3BE",cursor:"pointer",padding:6,borderRadius:8 }}><Trash2 size={14}/></button>
-                      </div>
-                    </div>
-                  )
-                })}
+                <p style={{ color:T.green,fontWeight:900,fontSize:16,flexShrink:0 }}>{fmt(a.value)}</p>
+                <div style={{ display:"flex",gap:2,flexShrink:0 }}>
+                  <button onClick={()=>onEdit(a)} style={{ background:"none",border:"none",color:T.teal,cursor:"pointer",padding:6,borderRadius:8 }}><Pencil size={14}/></button>
+                  <button onClick={()=>onDelete(a)} style={{ background:"none",border:"none",color:T.subtle,cursor:"pointer",padding:6,borderRadius:8 }}><Trash2 size={14}/></button>
+                </div>
               </div>
             )
           })}
-        </>
+        </div>
       )}
     </div>
   )
