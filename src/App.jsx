@@ -744,30 +744,26 @@ function Sheet({ title, onClose, children }) {
   )
 }
 
-function StarField({ count=40, showRocket=false }) {
-  const stars = useMemo(()=>Array.from({length:count},(_,i)=>({
+function StarField({ count=40 }) {
+  // Deterministic but visually sparse and spaced — no flying rocket
+  const stars = useMemo(()=>Array.from({length:Math.min(count,28)},(_,i)=>({
     x: (i*137.508)%100, y: (i*93.7+17)%100,
-    size: i%7===0 ? 2.8 : i%3===0 ? 1.8 : ((i*31)%2)+0.8,
-    delay: (i*0.4)%5, dur: 1.5+((i*0.7)%3.5),
-    tint: i%11===0 ? "rgba(15,191,184,.9)" : i%7===0 ? "rgba(167,139,250,.8)" : "rgba(255,255,255,.95)"
+    size: i%9===0 ? 2.2 : i%5===0 ? 1.6 : 1,
+    delay: (i*0.6)%6, dur: 2+((i*0.9)%4),
+    tint: i%13===0 ? "rgba(15,191,184,.7)" : i%9===0 ? "rgba(167,139,250,.6)" : "rgba(255,255,255,.7)"
   })),[count])
   return (
     <div style={{ position:"absolute",inset:0,overflow:"hidden",pointerEvents:"none" }}>
-      {/* Nebula glows */}
-      <div className="ls-nebula" style={{ position:"absolute",top:"-20%",left:"-10%",width:"65%",height:"65%",
-        background:"radial-gradient(ellipse,rgba(167,139,250,.1) 0%,transparent 70%)",pointerEvents:"none" }}/>
-      <div className="ls-nebula" style={{ position:"absolute",bottom:"-20%",right:"-10%",width:"55%",height:"55%",
-        background:"radial-gradient(ellipse,rgba(15,191,184,.07) 0%,transparent 70%)",pointerEvents:"none",animationDelay:"4s" }}/>
-      {/* Stars */}
+      {/* Subtle nebula — very soft, just depth */}
+      <div className="ls-nebula" style={{ position:"absolute",top:"-30%",left:"-20%",width:"80%",height:"80%",
+        background:"radial-gradient(ellipse,rgba(167,139,250,.06) 0%,transparent 65%)",pointerEvents:"none" }}/>
+      <div className="ls-nebula" style={{ position:"absolute",bottom:"-25%",right:"-15%",width:"70%",height:"70%",
+        background:"radial-gradient(ellipse,rgba(15,191,184,.04) 0%,transparent 65%)",pointerEvents:"none",animationDelay:"5s" }}/>
       {stars.map((s,i)=>(
-        <div key={i} className="ls-star" style={{ position:"absolute",left:`${s.x}%`,top:`${s.y}%`,width:s.size,height:s.size,borderRadius:"50%",background:s.tint,"--d":`${s.dur}s`,"--dl":`${s.delay}s` }}/>
+        <div key={i} className="ls-star" style={{ position:"absolute",left:`${s.x}%`,top:`${s.y}%`,
+          width:s.size,height:s.size,borderRadius:"50%",background:s.tint,
+          "--d":`${s.dur}s`,"--dl":`${s.delay}s` }}/>
       ))}
-      {/* Flying rocket */}
-      {showRocket && (
-        <div className="ls-rocket-fly" style={{ position:"absolute",top:"42%",left:0,fontSize:26,userSelect:"none",filter:"drop-shadow(0 0 8px rgba(15,191,184,.6))" }}>
-          🚀
-        </div>
-      )}
     </div>
   )
 }
@@ -900,7 +896,7 @@ function WelcomeScreen({ onNext }) {
   if(screen === "splash") return (
     <div style={{ minHeight:"100vh", background:T.bg, display:"flex", flexDirection:"column",
       position:"relative", overflow:"hidden", alignItems:"center", justifyContent:"center" }}>
-      <StarField count={60} showRocket/>
+      <StarField count={28}/>
       {/* Big radial glow */}
       <div style={{ position:"absolute", top:"30%", left:"50%", transform:"translateX(-50%)",
         width:320, height:320, borderRadius:"50%",
@@ -911,15 +907,15 @@ function WelcomeScreen({ onNext }) {
         <div className="ls-float" style={{ fontSize:72, marginBottom:28, lineHeight:1,
           filter:"drop-shadow(0 0 30px rgba(15,191,184,.5))" }}>🚀</div>
 
-        <p style={{ color:T.teal, fontSize:12, fontWeight:700, letterSpacing:3,
-          textTransform:"uppercase", marginBottom:16 }}>LifeSmart</p>
+        <p style={{ color:T.teal, fontSize:13, fontWeight:800, letterSpacing:4,
+          textTransform:"uppercase", marginBottom:20 }}>LifeSmart</p>
 
         <h1 style={{ color:"#FFFFFF", fontWeight:900, fontSize:"clamp(32px,8vw,44px)",
           lineHeight:1.1, marginBottom:16 }}>
           Finance.<br/>For everyone.
         </h1>
 
-        <p style={{ color:"#8FA3BE", fontSize:16, lineHeight:1.55, marginBottom:48 }}>
+        <p style={{ color:"#B8CCDE", fontSize:17, lineHeight:1.5, marginBottom:48 }}>
           The financial knowledge you were never taught — now in your pocket.
         </p>
 
@@ -939,7 +935,7 @@ function WelcomeScreen({ onNext }) {
   if(screen === "hook") return (
     <div style={{ minHeight:"100vh", background:T.bg, display:"flex", flexDirection:"column",
       position:"relative", overflow:"hidden" }}>
-      <StarField count={40}/>
+      <StarField count={22}/>
 
       <div className="ls-fadein" style={{ position:"relative", zIndex:1, flex:1, display:"flex",
         flexDirection:"column", justifyContent:"center", padding:"60px 28px 32px", maxWidth:480, margin:"0 auto", width:"100%" }}>
@@ -954,9 +950,7 @@ function WelcomeScreen({ onNext }) {
             lineHeight:1.35, fontStyle:"italic", marginBottom:0 }}>
             &ldquo;If I had started tracking my money 10 years ago, everything would look completely different now.&rdquo;
           </p>
-          <p style={{ color:"#6B8CB8", fontSize:14, marginTop:16 }}>
-            — said by almost everyone who discovers this in their 30s and 40s
-          </p>
+
         </div>
 
         {/* The bridge */}
@@ -992,44 +986,54 @@ function WelcomeScreen({ onNext }) {
       <div className="ls-fadein" style={{ position:"relative", zIndex:1, flex:1, overflowY:"auto",
         padding:"60px 24px 20px", maxWidth:480, margin:"0 auto", width:"100%" }}>
 
-        <h1 style={{ color:"#FFFFFF", fontWeight:900, fontSize:"clamp(26px,6vw,34px)",
-          lineHeight:1.15, marginBottom:8 }}>
-          Here's what the evidence says.
+        <h1 style={{ color:"#FFFFFF", fontWeight:900, fontSize:"clamp(28px,6vw,36px)",
+          lineHeight:1.1, marginBottom:8 }}>
+          Two habits.<br/>Everything changes.
         </h1>
-        <p style={{ color:"#6B8CB8", fontSize:15, marginBottom:36 }}>
-          About money, wealth, and the two habits that change everything.
+        <p style={{ color:"#6B8CB8", fontSize:15, marginBottom:32 }}>
+          Backed by evidence. Takes minutes a month.
         </p>
 
-        {/* Big horizontal stat — TRACK */}
-        <div style={{ background:"linear-gradient(135deg,rgba(15,191,184,.12),rgba(15,191,184,.04))",
-          border:"1px solid rgba(15,191,184,.25)", borderRadius:22, padding:"26px 24px", marginBottom:14 }}>
-          <p style={{ color:T.teal, fontWeight:900, fontSize:52, lineHeight:1, marginBottom:8 }}>4×</p>
-          <p style={{ color:"#FFFFFF", fontWeight:700, fontSize:17, marginBottom:6 }}>
-            more wealth. Same income.
-          </p>
-          <p style={{ color:"#8FA3BE", fontSize:14, lineHeight:1.5 }}>
-            People who track their net worth build 4× more wealth than those who don't. Not because they earn more — because measuring creates better decisions.
-          </p>
+        {/* TRACK card */}
+        <div style={{ background:"linear-gradient(135deg,rgba(15,191,184,.14),rgba(15,191,184,.04))",
+          border:"1px solid rgba(15,191,184,.3)", borderRadius:22, padding:"24px", marginBottom:12,
+          display:"flex", gap:20, alignItems:"center" }}>
+          <div style={{ flexShrink:0, textAlign:"center" }}>
+            <p style={{ color:T.teal, fontWeight:900, fontSize:48, lineHeight:1 }}>4×</p>
+            <p style={{ color:"rgba(15,191,184,.7)", fontSize:11, fontWeight:700, letterSpacing:1,
+              textTransform:"uppercase", marginTop:4 }}>Track</p>
+          </div>
+          <div>
+            <p style={{ color:"#FFFFFF", fontWeight:800, fontSize:17, marginBottom:4 }}>More wealth. Same income.</p>
+            <p style={{ color:"#8FA3BE", fontSize:14, lineHeight:1.45 }}>
+              People who track their net worth build 4× more than those who don't — not because they earn more, because measuring changes decisions.
+            </p>
+          </div>
         </div>
 
-        {/* Big stat — LEARN */}
-        <div style={{ background:"linear-gradient(135deg,rgba(167,139,250,.12),rgba(167,139,250,.04))",
-          border:"1px solid rgba(167,139,250,.25)", borderRadius:22, padding:"26px 24px", marginBottom:14 }}>
-          <p style={{ color:T.purple, fontWeight:900, fontSize:52, lineHeight:1, marginBottom:8 }}>💡</p>
-          <p style={{ color:"#FFFFFF", fontWeight:700, fontSize:17, marginBottom:6 }}>
-            Knowledge that actually changes decisions.
-          </p>
-          <p style={{ color:"#8FA3BE", fontSize:14, lineHeight:1.5 }}>
-            Most people were never taught how money works. LifeSmart lessons are 5 minutes each — scenario-based, not lectures. Every one changes how you make a real financial decision.
-          </p>
+        {/* LEARN card */}
+        <div style={{ background:"linear-gradient(135deg,rgba(167,139,250,.14),rgba(167,139,250,.04))",
+          border:"1px solid rgba(167,139,250,.3)", borderRadius:22, padding:"24px", marginBottom:12,
+          display:"flex", gap:20, alignItems:"center" }}>
+          <div style={{ flexShrink:0, textAlign:"center" }}>
+            <p style={{ fontSize:40, lineHeight:1 }}>💡</p>
+            <p style={{ color:"rgba(167,139,250,.7)", fontSize:11, fontWeight:700, letterSpacing:1,
+              textTransform:"uppercase", marginTop:4 }}>Learn</p>
+          </div>
+          <div>
+            <p style={{ color:"#FFFFFF", fontWeight:800, fontSize:17, marginBottom:4 }}>5 min lessons. Real decisions.</p>
+            <p style={{ color:"#8FA3BE", fontSize:14, lineHeight:1.45 }}>
+              Short, scenario-based — not lectures. Each one changes how you think about pensions, debt, or investing. For real.
+            </p>
+          </div>
         </div>
 
-        {/* Small stat — TIME */}
-        <div style={{ background:"rgba(255,255,255,.03)", border:"1px solid rgba(255,255,255,.07)",
-          borderRadius:18, padding:"18px 20px", display:"flex", gap:16, alignItems:"center", marginBottom:36 }}>
-          <p style={{ color:T.amber, fontWeight:900, fontSize:36, lineHeight:1, flexShrink:0 }}>5 min</p>
-          <p style={{ color:"#8FA3BE", fontSize:14, lineHeight:1.45 }}>
-            a month to keep your numbers accurate. The habit that separates people who build wealth from everyone else.
+        {/* TIME strip */}
+        <div style={{ background:"rgba(245,158,11,.08)", border:"1px solid rgba(245,158,11,.2)",
+          borderRadius:16, padding:"14px 20px", display:"flex", gap:14, alignItems:"center", marginBottom:32 }}>
+          <p style={{ color:T.amber, fontWeight:900, fontSize:28, lineHeight:1, flexShrink:0 }}>5 min</p>
+          <p style={{ color:"#B8CCDE", fontSize:14 }}>
+            a month keeps your numbers accurate. That's the whole habit.
           </p>
         </div>
       </div>
@@ -1066,7 +1070,7 @@ function WelcomeScreen({ onNext }) {
           We'll personalise everything to you.
         </p>
 
-        <div style={{ marginBottom:20 }}>
+        <div style={{ display:"flex",flexDirection:"column",gap:14,marginBottom:20 }}>
           <input
             type="text"
             value={name}
@@ -1080,10 +1084,7 @@ function WelcomeScreen({ onNext }) {
               fontSize:22, fontWeight:700, fontFamily:"inherit",
               outline:"none", transition:"border .15s"
             }}/>
-        </div>
-
-        {name && (
-          <div style={{ marginBottom:20 }}>
+          <div>
             <input
               type="number"
               value={age}
@@ -1098,10 +1099,10 @@ function WelcomeScreen({ onNext }) {
                 outline:"none", transition:"border .15s"
               }}/>
             <p style={{ color:"#4A6080", fontSize:12, marginTop:8, paddingLeft:4 }}>
-              Used to benchmark your progress against your age group.
+              Used to benchmark you against your age group.
             </p>
           </div>
-        )}
+        </div>
       </div>
 
       <div style={{ position:"relative", zIndex:1, padding:"0 28px 48px", maxWidth:480, margin:"0 auto", width:"100%" }}>
@@ -1904,34 +1905,88 @@ function HomeTab() {
         </div>
         <p style={{ color:T.muted,fontSize:11,textAlign:"center",marginBottom:24 }}>Update in Analytics →</p>
 
-        {/* ── Prominent Learn section ──────────────────────────────── */}
-        <div style={{ background:`linear-gradient(135deg,${T.purpleDim},${T.surface})`,border:`1.5px solid ${T.purpleBorder}`,borderRadius:20,padding:"20px",marginBottom:20 }}>
-          <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:12 }}>
-            <div style={{ width:38,height:38,borderRadius:12,background:`${T.purple}25`,border:`1.5px solid ${T.purpleBorder}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0 }}>💡</div>
+        {/* ── Learn section — hero redesign ──────────────────────────── */}
+        <div style={{ marginBottom:20 }}>
+          <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14 }}>
             <div>
-              <p style={{ color:T.purple,fontWeight:800,fontSize:14 }}>Keep learning. It compounds.</p>
-              <p style={{ color:"#8FA3BE",fontSize:12 }}>{(completedLessons||[]).length}/{LESSONS.length} lessons done</p>
+              <p style={{ color:"#FFFFFF",fontWeight:800,fontSize:17 }}>Lessons</p>
+              <p style={{ color:"#6B8CB8",fontSize:12 }}>
+                {(completedLessons||[]).length}/{LESSONS.length} complete · knowledge that compounds
+              </p>
             </div>
-          </div>
-          <p style={{ color:"#D8E8F8",fontSize:14,lineHeight:1.65,marginBottom:14 }}>
-            Each lesson changes a real decision. Knowledge earned now is still paying off in 10 years.
-          </p>
-          {recLesson && !doneSet.has(recLesson.id) ? (
-            <button onClick={()=>setTab(1)} style={{ width:"100%",background:T.card,border:`1.5px solid ${recLesson.trackColor||T.purple}40`,borderRadius:14,padding:"14px 16px",cursor:"pointer",textAlign:"left",fontFamily:"inherit",display:"flex",alignItems:"center",gap:12 }}>
-              <div style={{ width:44,height:44,borderRadius:12,background:`${recLesson.trackColor||T.purple}20`,border:`1.5px solid ${recLesson.trackColor||T.purple}40`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0 }}>{recLesson.emoji}</div>
-              <div style={{ flex:1 }}>
-                <p style={{ color:recLesson.trackColor||T.purple,fontWeight:700,fontSize:10,letterSpacing:.5,textTransform:"uppercase",marginBottom:2 }}>{recLesson.track} · {recLesson.cards?.length} cards · +{recLesson.xp} XP</p>
-                <p style={{ color:T.white,fontWeight:700,fontSize:13,lineHeight:1.3 }}>{recLesson.title}</p>
-              </div>
-              <div style={{ background:`${recLesson.trackColor||T.purple}20`,borderRadius:99,padding:"5px 12px",flexShrink:0 }}>
-                <p style={{ color:recLesson.trackColor||T.purple,fontSize:12,fontWeight:800 }}>Start</p>
-              </div>
+            <button onClick={()=>setTab(1)} style={{ background:"rgba(167,139,250,.12)",border:"1px solid rgba(167,139,250,.25)",borderRadius:10,padding:"6px 14px",cursor:"pointer",fontFamily:"inherit" }}>
+              <p style={{ color:T.purple,fontSize:12,fontWeight:700 }}>See all →</p>
             </button>
-          ) : (
-            <button onClick={()=>setTab(1)} style={{ width:"100%",background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"12px 16px",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:8 }}>
-              <p style={{ color:T.purple,fontWeight:700,fontSize:13 }}>View all lessons →</p>
+          </div>
+
+          {/* Next lesson hero card */}
+          {recLesson && !doneSet.has(recLesson.id) && (
+            <button onClick={()=>setTab(1)}
+              style={{ width:"100%",background:`linear-gradient(145deg,${recLesson.trackColor}20,${recLesson.trackColor}06)`,
+                border:`1.5px solid ${recLesson.trackColor}45`,borderRadius:22,padding:"22px",
+                cursor:"pointer",fontFamily:"inherit",textAlign:"left",marginBottom:12,
+                position:"relative",overflow:"hidden",
+                boxShadow:`0 8px 32px ${recLesson.trackColor}18` }}>
+              {/* Background glow orb */}
+              <div style={{ position:"absolute",top:-40,right:-40,width:160,height:160,borderRadius:"50%",
+                background:`radial-gradient(circle,${recLesson.trackColor}25 0%,transparent 70%)`,
+                pointerEvents:"none" }}/>
+              <div style={{ position:"relative" }}>
+                <div style={{ display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:14 }}>
+                  <div style={{ display:"flex",alignItems:"center",gap:12 }}>
+                    <div style={{ width:52,height:52,borderRadius:16,background:`${recLesson.trackColor}25`,
+                      border:`1.5px solid ${recLesson.trackColor}50`,
+                      display:"flex",alignItems:"center",justifyContent:"center",fontSize:26 }}>
+                      {recLesson.emoji}
+                    </div>
+                    <div>
+                      <span style={{ background:`${recLesson.trackColor}30`,color:recLesson.trackColor,
+                        fontSize:10,fontWeight:800,padding:"3px 10px",borderRadius:99,
+                        letterSpacing:1,textTransform:"uppercase" }}>
+                        {recLesson.track}
+                      </span>
+                      <p style={{ color:"#4A6080",fontSize:11,marginTop:4 }}>
+                        {recLesson.cards?.length} cards · +{recLesson.xp} XP
+                      </p>
+                    </div>
+                  </div>
+                  <div style={{ background:`${recLesson.trackColor}`,borderRadius:12,
+                    padding:"8px 16px",flexShrink:0 }}>
+                    <p style={{ color:"#FFFFFF",fontSize:13,fontWeight:800 }}>Start →</p>
+                  </div>
+                </div>
+                <p style={{ color:"#FFFFFF",fontWeight:800,fontSize:16,lineHeight:1.3 }}>
+                  {recLesson.title}
+                </p>
+              </div>
             </button>
           )}
+
+          {/* Horizontal scroll of upcoming lessons */}
+          <div style={{ display:"flex",gap:10,overflowX:"auto",paddingBottom:4,
+            scrollbarWidth:"none",WebkitOverflowScrolling:"touch" }}>
+            {LESSONS.filter(l=>l.id!==recLessonId).slice(0,4).map(l=>{
+              const done = doneSet.has(l.id)
+              return (
+                <button key={l.id} onClick={()=>setTab(1)}
+                  style={{ flexShrink:0,width:130,
+                    background: done ? `${l.trackColor}15` : "rgba(255,255,255,.04)",
+                    border:`1.5px solid ${done ? l.trackColor+"40" : "rgba(255,255,255,.08)"}`,
+                    borderRadius:18,padding:"14px",cursor:"pointer",
+                    fontFamily:"inherit",textAlign:"left" }}>
+                  <div style={{ fontSize:24,marginBottom:8 }}>{done ? "✅" : l.emoji}</div>
+                  <p style={{ color:done ? l.trackColor : "#8FA3BE",
+                    fontSize:10,fontWeight:700,letterSpacing:.8,
+                    textTransform:"uppercase",marginBottom:4 }}>{l.track}</p>
+                  <p style={{ color:done?"#6B8CB8":"#FFFFFF",fontWeight:700,
+                    fontSize:12,lineHeight:1.3 }}>
+                    {l.title.length>40?l.title.slice(0,38)+"…":l.title}
+                  </p>
+                  {done && <p style={{ color:l.trackColor,fontSize:10,fontWeight:700,marginTop:6 }}>✓ Done</p>}
+                </button>
+              )
+            })}
+          </div>
         </div>
 
         {/* ── Priority goals ──────────────────────────────────────── */}
@@ -3990,11 +4045,8 @@ function LearnTab() {
     const newCompleted = [...completedLessons, lessonId]
     const lesson = LESSONS.find(l=>l.id===lessonId)
     const xpGain = lesson?.xp || 10
-    save({
-      ...state,
-      completedLessons: newCompleted,
-      profile: { ...state.profile, points:(state.profile.points||0)+xpGain }
-    })
+    save({ ...state, completedLessons: newCompleted,
+      profile: { ...state.profile, points:(state.profile.points||0)+xpGain } })
     setJustCompleted(lessonId)
     setShowConfetti(true)
     setTimeout(()=>setShowConfetti(false), 1800)
@@ -4021,128 +4073,198 @@ function LearnTab() {
   })
 
   const doneCount = completedLessons.length
-  const encouragement = doneCount===0
-    ? "Every lesson you complete moves your net worth in the right direction."
-    : doneCount===1
-    ? "One lesson done. You already know more than most people ever learn about money."
-    : doneCount < LESSONS.length
-    ? `${doneCount} lessons completed. You are building the knowledge that most people never get.`
-    : "You have completed every lesson. Your financial knowledge is genuinely rare."
+  const xp = state.profile?.points||0
+  const nextLevel = XP_LEVELS.find(l=>l.min>xp)
+  const curLevel  = [...XP_LEVELS].reverse().find(l=>l.min<=xp) || XP_LEVELS[0]
+  const xpToNext  = nextLevel ? nextLevel.min - xp : 0
+  const xpPct     = nextLevel ? Math.round(((xp-curLevel.min)/(nextLevel.min-curLevel.min))*100) : 100
+  const firstIncomplete = sorted.find(l=>!doneSet.has(l.id))
 
   return (
     <div style={{ flex:1,overflowY:"auto",paddingBottom:100 }}>
       <Confetti active={showConfetti}/>
 
-      {/* Completion banner */}
       {justCompleted && (
-        <div style={{ position:"fixed",top:60,left:"50%",transform:"translateX(-50%)",zIndex:500,background:`linear-gradient(135deg,${T.teal},${T.purple})`,borderRadius:16,padding:"14px 24px",boxShadow:"0 8px 32px rgba(0,0,0,.5)",textAlign:"center",animation:"slideDown .3s ease" }}>
-          <p style={{ color:T.bg,fontWeight:900,fontSize:15 }}>🎉 Lesson complete!</p>
-          <p style={{ color:T.bg,fontSize:13,opacity:.85,marginTop:2 }}>You are one step closer to growing your net worth</p>
+        <div style={{ position:"fixed",top:60,left:"50%",transform:"translateX(-50%)",zIndex:500,
+          background:`linear-gradient(135deg,${T.teal},${T.purple})`,borderRadius:16,padding:"14px 24px",
+          boxShadow:"0 8px 32px rgba(0,0,0,.5)",textAlign:"center",animation:"slideDown .3s ease" }}>
+          <p style={{ color:"#FFFFFF",fontWeight:900,fontSize:15 }}>🎉 Lesson complete!</p>
+          <p style={{ color:"rgba(255,255,255,.8)",fontSize:13,marginTop:2 }}>One step closer</p>
         </div>
       )}
 
-      <div style={{ padding:"28px 18px 10px",maxWidth:700,margin:"0 auto",width:"100%" }}>
-
-        <h2 style={{ color:T.white,fontWeight:900,fontSize:22,marginBottom:16 }}>Learn</h2>
-
-        {/* Why learning matters */}
-        <div className="ls-card-glass" style={{ border:`1px solid ${T.purpleBorder}`,borderRadius:18,padding:"16px",marginBottom:20 }}>
-          <p style={{ color:T.white,fontWeight:800,fontSize:14,marginBottom:6 }}>The knowledge that pays for itself</p>
-          <p style={{ color:"#D8E8F8",fontSize:14,lineHeight:1.65,marginBottom:10 }}>
-            Every lesson changes a real decision — pensions, debt, investing. People who complete the curriculum look back and say: <em style={{ color:T.white }}>"If I\'d known this 5 years ago."</em> You do know it. Now.
+      {/* ── Hero header with XP ───────────────────────────────── */}
+      <div style={{ background:"linear-gradient(180deg,rgba(167,139,250,.14) 0%,transparent 100%)",
+        padding:"28px 20px 24px",borderBottom:"1px solid rgba(255,255,255,.05)" }}>
+        <div style={{ maxWidth:700,margin:"0 auto" }}>
+          <h2 style={{ color:"#FFFFFF",fontWeight:900,fontSize:26,lineHeight:1.1,marginBottom:4 }}>Learn</h2>
+          <p style={{ color:"#6B8CB8",fontSize:14,marginBottom:20 }}>
+            5-minute lessons. Real financial decisions, changed.
           </p>
-          <div style={{ display:"flex",gap:8,flexWrap:"wrap" }}>
-            <span style={{ background:T.purpleDim,color:T.purple,fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:99,border:`1px solid ${T.purpleBorder}` }}>⏱ 5 mins per lesson</span>
-            <span style={{ background:T.tealDim,color:T.teal,fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:99,border:`1px solid ${T.tealBorder}` }}>✓ Quiz at the end</span>
-            <span style={{ background:T.amberDim,color:T.amber,fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:99,border:`1px solid ${T.amberBorder}` }}>🌟 XP earned</span>
+
+          {/* XP level bar */}
+          <div style={{ background:"rgba(255,255,255,.04)",borderRadius:16,padding:"14px 18px" }}>
+            <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10 }}>
+              <div style={{ display:"flex",alignItems:"center",gap:8 }}>
+                <span style={{ fontSize:18 }}>{curLevel.emoji}</span>
+                <p style={{ color:"#FFFFFF",fontWeight:700,fontSize:14 }}>{curLevel.label}</p>
+              </div>
+              <div style={{ display:"flex",alignItems:"center",gap:6 }}>
+                <p style={{ color:T.teal,fontWeight:800,fontSize:14 }}>{xp} XP</p>
+                {nextLevel && <p style={{ color:"#4A6080",fontSize:12 }}>· {xpToNext} to {nextLevel.emoji}</p>}
+              </div>
+            </div>
+            <div style={{ background:"rgba(255,255,255,.06)",borderRadius:99,height:6,overflow:"hidden" }}>
+              <div style={{ width:`${xpPct}%`,height:"100%",
+                background:`linear-gradient(90deg,${T.teal},${T.purple})`,borderRadius:99,
+                transition:"width .6s ease",boxShadow:`0 0 10px ${T.teal}60` }}/>
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* XP bar */}
-        <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px 16px",marginBottom:24 }}>
-          <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8 }}>
-            <p style={{ color:T.white,fontWeight:700,fontSize:13 }}>Progress</p>
-            <p style={{ color:T.teal,fontWeight:800,fontSize:13 }}>{state.profile?.points||0} XP earned</p>
-          </div>
-          <div style={{ background:T.surface,borderRadius:99,height:8,overflow:"hidden" }}>
-            <div style={{ width:`${LESSONS.length>0?Math.round(doneCount/LESSONS.length*100):0}%`,height:"100%",background:`linear-gradient(90deg,${T.teal},${T.purple})`,borderRadius:99,transition:"width .6s ease" }}/>
-          </div>
-        </div>
+      <div style={{ padding:"24px 18px 0",maxWidth:700,margin:"0 auto",width:"100%" }}>
 
-        {/* Lessons — square grid cards */}
-        <div style={{ display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:12 }}>
+        {/* ── Next lesson — big hero card ────────────────────────── */}
+        {firstIncomplete && (
+          <div style={{ marginBottom:28 }}>
+            <p style={{ color:"#6B8CB8",fontSize:11,fontWeight:700,letterSpacing:1.5,
+              textTransform:"uppercase",marginBottom:12 }}>Up next</p>
+
+            <button onClick={()=>setActiveLesson(firstIncomplete.id)}
+              style={{ width:"100%",
+                background:`linear-gradient(145deg,${firstIncomplete.trackColor}22,${firstIncomplete.trackColor}06)`,
+                border:`2px solid ${firstIncomplete.trackColor}50`,
+                borderRadius:24,padding:"24px",cursor:"pointer",fontFamily:"inherit",
+                textAlign:"left",position:"relative",overflow:"hidden",
+                boxShadow:`0 12px 40px ${firstIncomplete.trackColor}20` }}>
+              <div style={{ position:"absolute",top:-60,right:-60,width:200,height:200,borderRadius:"50%",
+                background:`radial-gradient(circle,${firstIncomplete.trackColor}20 0%,transparent 70%)`,
+                pointerEvents:"none" }}/>
+              <div style={{ position:"relative" }}>
+                <div style={{ display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:16 }}>
+                  <div style={{ width:60,height:60,borderRadius:18,
+                    background:`${firstIncomplete.trackColor}28`,
+                    border:`2px solid ${firstIncomplete.trackColor}50`,
+                    display:"flex",alignItems:"center",justifyContent:"center",fontSize:30 }}>
+                    {firstIncomplete.emoji}
+                  </div>
+                  <div style={{ background:firstIncomplete.trackColor,borderRadius:14,
+                    padding:"10px 20px",flexShrink:0 }}>
+                    <p style={{ color:"#FFFFFF",fontSize:14,fontWeight:900 }}>Start →</p>
+                  </div>
+                </div>
+                <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:8 }}>
+                  <span style={{ background:`${firstIncomplete.trackColor}30`,
+                    color:firstIncomplete.trackColor,fontSize:10,fontWeight:800,
+                    padding:"3px 10px",borderRadius:99,letterSpacing:1,textTransform:"uppercase" }}>
+                    {firstIncomplete.track}
+                  </span>
+                  <span style={{ color:"#4A6080",fontSize:11 }}>
+                    {firstIncomplete.cards?.length} cards · +{firstIncomplete.xp} XP
+                  </span>
+                </div>
+                <p style={{ color:"#FFFFFF",fontWeight:800,fontSize:17,lineHeight:1.3 }}>
+                  {firstIncomplete.title}
+                </p>
+              </div>
+            </button>
+          </div>
+        )}
+
+        {/* ── All lessons list ────────────────────────────────────── */}
+        <p style={{ color:"#6B8CB8",fontSize:11,fontWeight:700,letterSpacing:1.5,
+          textTransform:"uppercase",marginBottom:14 }}>
+          {doneCount > 0 ? `All lessons · ${doneCount} of ${LESSONS.length} done` : "All lessons"}
+        </p>
+
+        <div style={{ display:"flex",flexDirection:"column",gap:10,marginBottom:28 }}>
           {sorted.map(lesson=>{
-            const done     = doneSet.has(lesson.id)
-            const linked   = lesson.goalLinks?.some(g=>priorityGoals.includes(g))
-            const justDone = justCompleted===lesson.id
+            const done   = doneSet.has(lesson.id)
+            const linked = lesson.goalLinks?.some(g=>priorityGoals.includes(g))
+            const isNext = lesson.id === firstIncomplete?.id
             return (
               <button key={lesson.id} onClick={()=>setActiveLesson(lesson.id)}
-                style={{
-                  background: done
-                    ? `linear-gradient(145deg,${lesson.trackColor}22,${lesson.trackColor}08)`
-                    : T.card,
-                  border: `1.5px solid ${done ? lesson.trackColor+"55" : linked ? lesson.trackColor+"35" : T.border}`,
-                  borderRadius:18, padding:"18px 14px",
-                  cursor:"pointer", textAlign:"left", fontFamily:"inherit",
-                  display:"flex", flexDirection:"column", gap:0,
-                  transition:"all .2s",
-                  boxShadow: done ? `0 0 24px ${lesson.trackColor}18` : justDone ? `0 0 30px ${T.teal}40` : "none",
-                  minHeight:140, position:"relative",
-                }}>
-                {/* Track badge */}
-                <span style={{ position:"absolute",top:12,right:12,background:`${lesson.trackColor}25`,color:lesson.trackColor,fontSize:9,fontWeight:800,padding:"2px 7px",borderRadius:99,letterSpacing:.6,textTransform:"uppercase",border:`1px solid ${lesson.trackColor}30` }}>
-                  {lesson.track}
-                </span>
-                {/* Emoji */}
-                <div style={{ fontSize:30,marginBottom:10 }}>
-                  {done ? "✅" : lesson.emoji}
-                </div>
-                {/* Title */}
-                <p style={{ color:T.white,fontWeight:800,fontSize:13,lineHeight:1.3,marginBottom:"auto",paddingRight:8 }}>
-                  {lesson.title}
-                </p>
-                {/* Footer */}
-                <div style={{ marginTop:12,display:"flex",alignItems:"center",justifyContent:"space-between" }}>
-                  <span style={{ color:T.muted,fontSize:11 }}>{lesson.cards?.length} cards · +{lesson.xp} XP</span>
-                  {done
-                    ? <span style={{ color:lesson.trackColor,fontSize:11,fontWeight:800 }}>Done ✓</span>
-                    : linked
-                    ? <span style={{ color:lesson.trackColor,fontSize:11,fontWeight:700 }}>★ Goal</span>
-                    : <span style={{ color:T.muted,fontSize:16 }}>→</span>
-                  }
+                className="ls-card-lift"
+                style={{ width:"100%",background: done
+                    ? "rgba(255,255,255,.025)"
+                    : isNext ? `${lesson.trackColor}12` : "rgba(255,255,255,.03)",
+                  border:`1px solid ${done ? "rgba(255,255,255,.06)" : isNext ? lesson.trackColor+"35" : "rgba(255,255,255,.07)"}`,
+                  borderRadius:18,padding:0,cursor:"pointer",fontFamily:"inherit",
+                  textAlign:"left",overflow:"hidden",
+                  boxShadow: isNext ? `0 4px 24px ${lesson.trackColor}18` : "none",
+                  display:"flex" }}>
+                {/* Left colour bar */}
+                <div style={{ width:5,flexShrink:0,
+                  background: done ? lesson.trackColor+"40" : isNext ? lesson.trackColor : lesson.trackColor+"25" }}/>
+                {/* Content */}
+                <div style={{ flex:1,padding:"16px",display:"flex",alignItems:"center",gap:14 }}>
+                  <div style={{ width:50,height:50,borderRadius:15,flexShrink:0,
+                    background:`${lesson.trackColor}20`,
+                    display:"flex",alignItems:"center",justifyContent:"center",fontSize:24 }}>
+                    {done ? "✅" : lesson.emoji}
+                  </div>
+                  <div style={{ flex:1,minWidth:0 }}>
+                    <div style={{ display:"flex",alignItems:"center",gap:6,marginBottom:3 }}>
+                      <span style={{ color:lesson.trackColor,fontSize:10,fontWeight:800,
+                        letterSpacing:.8,textTransform:"uppercase" }}>{lesson.track}</span>
+                      {linked && <span style={{ color:T.amber,fontSize:10,fontWeight:700 }}>★</span>}
+                    </div>
+                    <p style={{ color: done ? "#6B8CB8" : "#FFFFFF",fontWeight:700,
+                      fontSize:14,lineHeight:1.3,marginBottom:3 }}>{lesson.title}</p>
+                    <p style={{ color:"#4A6080",fontSize:11 }}>
+                      {lesson.cards?.length} cards · +{lesson.xp} XP
+                    </p>
+                  </div>
+                  <div style={{ flexShrink:0 }}>
+                    {done
+                      ? <div style={{ width:28,height:28,borderRadius:"50%",
+                          background:`${lesson.trackColor}20`,
+                          display:"flex",alignItems:"center",justifyContent:"center" }}>
+                          <Check size={13} color={lesson.trackColor}/>
+                        </div>
+                      : <div style={{ width:32,height:32,borderRadius:"50%",
+                          background: isNext ? lesson.trackColor : "rgba(255,255,255,.05)",
+                          display:"flex",alignItems:"center",justifyContent:"center" }}>
+                          <p style={{ color: isNext ? "#FFFFFF" : "#6B8CB8",
+                            fontSize:18,fontWeight:300,lineHeight:1,marginTop:-1 }}>›</p>
+                        </div>
+                    }
+                  </div>
                 </div>
               </button>
             )
           })}
         </div>
 
-        {/* Coming soon greyed lessons */}
-        <div style={{ marginTop:24 }}>
-          <p style={{ color:"#8FA3BE",fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:14 }}>Coming soon</p>
-          <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
-            {COMING_SOON_LESSONS.map((l,i)=>(
-              <div key={i} style={{ background:T.faint,border:`1px solid ${T.border}`,borderRadius:16,padding:"16px 18px",display:"flex",gap:12,alignItems:"center",opacity:0.5 }}>
-                <div style={{ width:48,height:48,borderRadius:14,background:`${l.trackColor}12`,border:`1px solid ${l.trackColor}20`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0 }}>
-                  {l.emoji}
-                </div>
-                <div style={{ flex:1,minWidth:0 }}>
-                  <p style={{ color:T.white,fontWeight:700,fontSize:13,marginBottom:3 }}>{l.title}</p>
-                  <div style={{ display:"flex",gap:8,alignItems:"center" }}>
-                    <span style={{ background:`${l.trackColor}15`,color:l.trackColor,fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:6 }}>{l.track}</span>
-                    <span style={{ color:"#8FA3BE",fontSize:11 }}>{l.desc}</span>
-                  </div>
-                </div>
-                <div style={{ background:T.surface,borderRadius:8,padding:"4px 10px" }}>
-                  <span style={{ color:"#8FA3BE",fontSize:11,fontWeight:700 }}>Soon</span>
-                </div>
+        {/* ── Coming soon ─────────────────────────────────────────── */}
+        <p style={{ color:"#4A6080",fontSize:11,fontWeight:700,letterSpacing:1.5,
+          textTransform:"uppercase",marginBottom:12 }}>Coming soon</p>
+        <div style={{ display:"flex",flexDirection:"column",gap:8,marginBottom:24 }}>
+          {COMING_SOON_LESSONS.map((l,i)=>(
+            <div key={i} style={{ background:"rgba(255,255,255,.02)",borderRadius:16,
+              padding:"13px 16px",display:"flex",gap:12,alignItems:"center",
+              opacity:0.45,overflow:"hidden",position:"relative" }}>
+              <div style={{ width:4,position:"absolute",left:0,top:0,bottom:0,
+                background:`${l.trackColor}40`,borderRadius:0 }}/>
+              <div style={{ width:42,height:42,borderRadius:13,marginLeft:8,
+                background:`${l.trackColor}12`,
+                display:"flex",alignItems:"center",justifyContent:"center",
+                fontSize:20,flexShrink:0 }}>{l.emoji}</div>
+              <div style={{ flex:1,minWidth:0 }}>
+                <p style={{ color:"#FFFFFF",fontWeight:600,fontSize:13,marginBottom:2 }}>{l.title}</p>
+                <span style={{ color:l.trackColor,fontSize:10,fontWeight:700,
+                  letterSpacing:.8,textTransform:"uppercase" }}>{l.track}</span>
               </div>
-            ))}
-          </div>
+              <span style={{ color:"#4A6080",fontSize:11,fontWeight:700,flexShrink:0 }}>Soon</span>
+            </div>
+          ))}
         </div>
       </div>
     </div>
   )
 }
+
 
 /* ════════════════════════════════════════════════════════════════════
    LESSON PLAYER
