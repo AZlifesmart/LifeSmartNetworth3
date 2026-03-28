@@ -1,5 +1,6 @@
 import { useState, useEffect, useContext, createContext, useMemo, useRef } from "react"
-import { Home, BookOpen, User, Check, X, ChevronLeft, ChevronRight, ChevronDown, Play, Lock, Clock, Zap, AlertTriangle, RotateCcw, Map } from "lucide-react"
+import { Home, BookOpen, User, Check, X, ChevronLeft, ChevronRight, ChevronDown, Play, Lock, Clock, Zap, AlertTriangle, RotateCcw, Map, Info, DollarSign } from "lucide-react"
+import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts"
 
 const G=`
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800;9..40,900&display=swap');
@@ -28,161 +29,126 @@ const T={bg:"#070D1A",surface:"#0B1424",card:"#0F1D32",border:"#1B2C45",
   green:"#34D399",greenDim:"rgba(52,211,153,.10)",
   blue:"#60A5FA",blueDim:"rgba(96,165,250,.1)",blueBorder:"rgba(96,165,250,.3)",
   white:"#F0F6FF",muted:"#7A8FA8",subtle:"#344D68",faint:"#162038"}
-const PC={Foundations:T.red,Stabilise:T.amber,Optimise:T.blue,Grow:T.green,Protect:T.purple}
-const PE={Foundations:"🧱",Stabilise:"🛡️",Optimise:"⚙️",Grow:"🌱",Protect:"🔒"}
-const getPhase=n=>n<=3?"Foundations":n<=6?"Stabilise":n<=9?"Optimise":n<=12?"Grow":"Protect"
 
 /* ══════════════════ LEVELS ══════════════════ */
+
+const PC={Foundations:T.red,Stabilise:T.amber,Optimise:T.blue,Grow:T.green,Protect:T.purple}
+const PE={Foundations:"🧱",Stabilise:"🛡️",Optimise:"⚙️",Grow:"🌱",Protect:"🔒"}
+const getPhase=n=>n<=3?"Foundations":n<=6?"Stabilise":n<=7?"Optimise":"Grow"
+
+const AGE_BENCH=[{max:25,median:5000},{max:34,median:30000},{max:44,median:130000},{max:54,median:250000},{max:64,median:370000},{max:999,median:500000}]
+function getMedian(age){const b=AGE_BENCH.find(x=>(age||30)<=x.max);return b?b.median:30000}
+
+/* ═══════════════════════════════════════════════════════
+   LEVELS — 9 rich levels
+   ═══════════════════════════════════════════════════════ */
 const LEVELS=[
-{n:1,phase:"Foundations",title:"Know your actual numbers",
- hook:"Most people are wrong about their own spending. Find your real gap.",
- done:"You can state your monthly take-home, costs and surplus without guessing.",
- micros:[
-   {type:"teach",title:"The spending gap",
-    content:"You think you spend about £200/month on food. Your bank says £340. This is not unusual. Studies show people underestimate variable spending by 30 to 40%. The gap between what you think and what you actually spend is where money disappears.",
-    keyPoint:"The gap between perceived and actual spending is where most money disappears.",
-    example:{label:"Monthly reality check",items:[
-      {left:"What you think",right:"What it actually is"},
-      {left:"Food: £200",right:"Food: £340"},
-      {left:"Going out: £100",right:"Going out: £220"},
-      {left:"Subscriptions: £30",right:"Subscriptions: £85"},
-      {left:"Total: £330/mo",right:"Total: £645/mo"}]}},
-   {type:"interactive",title:"Find your gap",
-    scenario:"You earn £2,400/month. Rent £850, bills £180, subscriptions £65, transport £120, food £340, phone £35.",
-    question:"What is actually left each month?",
-    opts:["£810","£610","£510","£410"],correct:0,
-    reveal:"£2,400 minus £1,590 in costs = £810. This is your gap. Most people have never calculated it. That £810 is the number that changes your life because now you can decide what to do with it instead of wondering where it went.",
-    breakdown:[{label:"Take-home",val:"£2,400"},{label:"Fixed costs",val:"-£1,590"},{label:"Your gap",val:"= £810",highlight:true}]},
-   {type:"teach",title:"Why this matters",
-    content:"People who track their spending build on average 4 times more wealth than those who do not. Not because they earn more but because knowing your numbers means every financial decision is informed rather than guesswork. This single habit, knowing your gap, is the foundation everything else builds on.",
-    keyPoint:"Knowing your gap turns financial guesswork into informed decisions."}
+{n:1,phase:"Foundations",title:"Your Net Worth: The Only Number That Really Matters",hook:"Nobody builds wealth by accident. You have to track it.",time:15,
+ sections:[
+  {title:"Why net worth is the real measure",content:"Income is vanity. Net worth is reality. Two people can both earn £50k and have completely different financial lives. One has a net worth of £120k. The other is £8k in the hole. The difference is not what they earn. It is what they kept, grew, and owed.\n\nNet worth is the score. Everything else is just activity. You cannot manage what you do not measure. This is where that starts."},
+  {title:"Productive vs lifestyle assets",content:"Productive assets put money in your pocket or grow without you working: cash savings, pension, Stocks and Shares ISA, investment property. These build financial freedom.\n\nLifestyle assets feel like assets but rarely grow: your car depreciates the moment you drive away. Including them is honest but the goal over time is to shift more into productive assets.",
+   columns:[{label:"Productive (green)",items:["Cash savings","Pension","Stocks/ISA","Investment property"]},{label:"Lifestyle (amber)",items:["Car","Jewellery","Personal property"]}]},
+  {title:"How to find your figures",content:"Assets: Log into your bank app for savings. Check your pension provider app. Check investment apps (Vanguard, Trading 212). Home value: Zoopla or Rightmove estimate. Car: Autotrader part-exchange value.\n\nLiabilities: Credit card balance from your app. Student loan: gov.uk. Mortgage remaining: lender app.\n\nRough estimates are fine. A ballpark net worth updated regularly beats a precise number calculated once three years ago."}
  ],
- videos:[{title:"Tracking Incomes & Outgoings",role:"core",min:3},{title:"Budgeting: 50/30/20",role:"core",min:3},{title:"Know Your Why",role:"deeper",min:3}],
- action:"Run the gap analysis. Write your actual take-home, fixed costs, variable spend. Calculate your gap. This is the number that changes everything.",
- xpMicro:15,xpVideo:20,xpAction:50,xpBonus:15},
+ dataFields:{
+   assets:[{id:"cash",label:"Cash / current accounts",hint:"What is in your bank right now"},{id:"savings",label:"Savings accounts",hint:""},{id:"pension",label:"Pension estimated value",hint:"Check your pension app or annual statement"},{id:"stocksIsa",label:"Stocks & ISA value",hint:""},{id:"propertyValue",label:"Property value",hint:"Zoopla or Rightmove estimate"},{id:"carValue",label:"Car value",hint:"Autotrader part-exchange value"},{id:"other",label:"Other assets",hint:""}],
+   liabilities:[{id:"mortgage",label:"Mortgage remaining",hint:""},{id:"creditCards",label:"Credit card balances",hint:"Total across all cards"},{id:"carFinance",label:"Car finance remaining",hint:""},{id:"personalLoans",label:"Personal loans",hint:""},{id:"studentLoan",label:"Student loan",hint:"gov.uk/student-loan-repayment"},{id:"otherDebt",label:"Other debt",hint:""}]
+ },
+ videos:[{title:"Balance-Sheet and net worth check",role:"core",min:3},{title:"Asset Types",role:"core",min:3},{title:"Know Your Why",role:"deeper",min:3}],
+ action:"Set up a note, spreadsheet, or use this app to update your net worth quarterly. The habit of tracking matters as much as the number.",
+ doneWhen:"You have entered your assets and liabilities and seen your net worth figure and projection. You do not need to be happy with the number. You just need to know it."},
 
-{n:2,phase:"Foundations",title:"Separate needs, wants and waste",
- hook:"You have 9 active subscriptions. You can name 5. What are the other 4 costing you?",
- done:"You have cancelled at least one forgotten subscription and categorised last month's spending.",
- micros:[
-   {type:"teach",title:"The subscription trap",
-    content:"The average UK adult has £250+ per year in forgotten subscriptions. Apps you downloaded once, free trials that converted, gym memberships you stopped using months ago. They are small enough to ignore individually but collectively they are a significant drain.",
-    keyPoint:"£250+ per year leaves most people's accounts for things they do not use.",
-    example:{label:"Common hidden subscriptions",items:[
-      {left:"App free trials",right:"£5 to £15/month each"},
-      {left:"Old gym membership",right:"£25 to £40/month"},
-      {left:"Streaming services",right:"£30 to £60/month total"},
-      {left:"Insurance add-ons",right:"£5 to £10/month"},
-      {left:"Cloud storage upgrades",right:"£2 to £10/month"}]}},
-   {type:"interactive",title:"Need, want or waste?",
-    scenario:"Look at these monthly spends and categorise them.",
-    question:"£400/month on going out. Is that a need, want, or waste?",
-    opts:["It is always a want","If it makes you happy it is a need","It depends on whether you can afford it","It is waste if you regret it"],correct:2,
-    reveal:"There is no right answer without context. £400 on going out when you have £800 surplus is an intentional choice. £400 when you have £100 surplus and growing debt is a different story. The question is not whether you spend, it is whether you chose to.",
-    breakdown:[{label:"Need",val:"Survival costs. Rent, food, transport."},{label:"Want",val:"Chosen spending. Enjoyment, experiences."},{label:"Waste",val:"Spending you did not choose or notice."}]}
+{n:2,phase:"Foundations",title:"Income and Spending: Your Complete Financial Picture",hook:"Without this, every financial decision is based on a guess.",time:12,
+ sections:[
+  {title:"Income: one source vs multiple",content:"Active income is what most people have: a salary. If you stop working, it stops. Multiple income streams reduce risk and accelerate wealth building. A second income of even £300/month is £3,600/year.\n\nPassive income earns while you sleep: rental income, dividends, interest. This is what financial freedom actually looks like. Everything in this programme works toward making your passive income number real."},
+  {title:"Why we always underestimate spending",content:"Research consistently shows people underestimate variable spending by 30 to 40%. We remember big purchases but forget the coffee, the Deliveroo, the impulse buy. Your mental estimate is almost always wrong.\n\nThe only way to know is to look at actual bank statements. Not what you think you spend. What you actually spent."},
+  {title:"Subscriptions: the slow leak",content:"The average UK household has 7 active subscriptions and can name 4 of them. The forgotten ones typically add up to £30 to £60/month. That is £360 to £720/year.\n\nGo through your last bank statement and highlight every recurring payment. Cancel anything you would not actively choose to sign up for again today."}
  ],
+ dataFields:{
+   income:[{id:"takeHome",label:"Monthly take-home pay after tax",hint:"What hits your bank account"},{id:"sideIncome",label:"Side income / freelance (monthly avg)",hint:""},{id:"benefits",label:"Benefits / tax credits",hint:""},{id:"rentalIncome",label:"Rental income",hint:""},{id:"interest",label:"Interest / dividends",hint:""},{id:"otherIncome",label:"Other regular income",hint:""}],
+   fixed:[{id:"rent",label:"Rent / mortgage payment",hint:""},{id:"gasElec",label:"Gas and electricity",hint:""},{id:"water",label:"Water",hint:""},{id:"councilTax",label:"Council tax",hint:""},{id:"phone",label:"Phone",hint:""},{id:"internet",label:"Internet",hint:""},{id:"transport",label:"Transport",hint:"Include car payment if applicable"},{id:"insurance",label:"Insurance (total all)",hint:"Car, home, life"}],
+   variable:[{id:"groceries",label:"Groceries",hint:""},{id:"eatingOut",label:"Eating out / takeaways",hint:""},{id:"clothing",label:"Clothing / shopping",hint:""},{id:"entertainment",label:"Entertainment / going out",hint:""},{id:"personalCare",label:"Personal care",hint:""},{id:"otherVar",label:"Other",hint:""}]
+ },
+ videos:[{title:"Tracking Incomes & Outgoings",role:"core",min:3},{title:"Budgeting: 50/30/20",role:"core",min:3},{title:"The Psychology of Money",role:"deeper",min:4}],
+ action:"Know your monthly surplus (or deficit) and where your money goes. Data saves and pre-fills Level 3.",
+ doneWhen:"You know your monthly surplus and can see clearly where your money is going."},
+
+{n:3,phase:"Foundations",title:"Budgeting: Give Every Pound a Job",hook:"The 50/30/20 rule is a starting framework. Your numbers make it personal.",time:10,
+ sections:[
+  {title:"Needs vs wants vs savings vs waste",content:"50% to needs (must-haves: rent, food, transport). 30% to wants (chosen: eating out, holidays). 20% to savings and debt repayment.\n\nIt is not rigid. London rent might push needs to 65%. The point is knowing your numbers and making conscious choices.\n\nWaste is different from wants. A want is consciously chosen and enjoyed. Waste is money spent without realising. Eliminating waste does not feel like sacrifice. It feels like getting your money back."},
+  {title:"Budgeting methods that work",content:"Pay yourself first: savings leave your account on payday before spending. You live on what remains. The simplest method. Requires the least willpower because the decision is automated.\n\nZero-based: every pound assigned a job. Income minus all planned spending equals zero.\n\nStart with pay yourself first. Set up a standing order on payday."}
+ ],
+ dataFields:null,
  videos:[{title:"Savings Pots",role:"core",min:3},{title:"Comparison Traps: Financial Freedom",role:"core",min:3}],
- action:"Go through last month's bank statement. Categorise every transaction as need, want, or waste. Cancel at least one subscription you forgot you were paying for.",
- xpMicro:15,xpVideo:20,xpAction:50,xpBonus:15},
+ action:"Every spending item from Level 2 categorised. Monthly budget with targets set. The pay-yourself-first amount identified.",
+ doneWhen:"You have a monthly budget with targets and have identified your pay-yourself-first amount."},
 
-{n:3,phase:"Foundations",title:"Read your payslip",
- hook:"Your payslip says £2,800 gross. You take home £2,190. Where did £610 go?",
- done:"You know your tax code, what it means, and have confirmed it is correct.",
- micros:[
-   {type:"teach",title:"Where your money goes before you see it",
-    content:"Every month, three things take money from your gross pay before it reaches your bank. Income tax (20% on earnings above £12,570), National Insurance (12% on earnings between £12,570 and £50,270), and your pension contribution (typically 3 to 5%). Most people never check whether these amounts are correct.",
-    keyPoint:"Three deductions happen before you see your pay. Most people never verify them.",
-    example:{label:"Payslip breakdown on £2,800 gross",items:[
-      {left:"Gross pay",right:"£2,800"},
-      {left:"Income tax (20%)",right:"-£303"},
-      {left:"National Insurance (12%)",right:"-£175"},
-      {left:"Pension (5%)",right:"-£140"},
-      {left:"Take-home",right:"= £2,182"}]}},
-   {type:"interactive",title:"Your tax code",
-    scenario:"Your tax code is 1257L. This appears on every payslip and P60.",
-    question:"What does the 1257 in your tax code mean?",
-    opts:["Your employee number","Your tax-free personal allowance (£12,570)","The percentage of tax you pay","Your National Insurance category"],correct:1,
-    reveal:"1257L means your personal allowance is £12,570. The first £12,570 you earn each year is completely tax-free. If your tax code is wrong, HMRC may not tell you, and you could be overpaying or underpaying tax for months. It takes 5 minutes to check on the HMRC website."}
+{n:4,phase:"Foundations",title:"Your Payslip and How Tax Actually Works",hook:"The most common tax misconception costs people real money.",time:10,
+ sections:[
+  {title:"Every payslip line explained",content:"Gross salary: what you are contracted to earn. Income tax (PAYE): taken at source, depends on your tax code. National Insurance: 12% on earnings between £12,570 and £50,270, separate from income tax. Pension contribution: usually shown as % of gross. Net pay: what hits your bank."},
+  {title:"How tax bands actually work",content:"The misconception: 'I got a pay rise into the 40% bracket, I am worse off.' This is wrong.\n\nTax bands are marginal. You only pay the higher rate on the portion above the threshold.\n\n£0 to £12,570: 0% (personal allowance)\n£12,571 to £50,270: 20% (basic rate)\n£50,271 to £125,140: 40% (higher rate)\n\nSomeone earning £55,000 pays 0% on first £12,570, 20% on next £37,700, 40% only on £4,730 above £50,270. Effective rate: about 20%, not 40%."}
  ],
+ dataFields:{payslip:[{id:"grossSalary",label:"Gross annual salary",hint:""},{id:"taxCode",label:"Tax code (e.g. 1257L)",hint:"Check your payslip"},{id:"monthlyTax",label:"Income tax paid per month",hint:""},{id:"monthlyNI",label:"NI paid per month",hint:""},{id:"monthlyPension",label:"Pension deducted per month",hint:""}]},
  videos:[{title:"Banking Basics",role:"deeper",min:3}],
- action:"Check your tax code on the HMRC website (gov.uk/check-income-tax). Confirm it is 1257L or understand why it is different.",
- xpMicro:15,xpVideo:20,xpAction:50,xpBonus:15},
+ action:"Understand every line of your payslip. Confirm your tax code is correct at gov.uk/check-income-tax.",
+ doneWhen:"You understand your payslip and have confirmed your tax code."},
 
-{n:4,phase:"Stabilise",title:"Kill high-interest debt",
- hook:"The maths will shock you. Interest is probably costing more than you think.",
- done:"Every debt listed, ranked by rate, with a payoff method chosen and target dates set.",
- micros:[
-   {type:"teach",title:"The real cost of debt",
-    content:"A £5,000 credit card balance at 22% APR, paying only the minimum (about £100/month), takes over 7 years to clear and costs over £3,500 in interest alone. You end up paying £8,500 for your original £5,000 of spending. Adding just £100 extra per month clears it in 2.5 years and saves you over £2,500 in interest.",
-    keyPoint:"Minimum payments are designed to maximise profit for lenders, not to help you clear debt.",
-    example:{label:"£5,000 credit card at 22% APR",items:[
-      {left:"Minimum payments only",right:"7+ years, £3,500 interest"},
-      {left:"£100 extra per month",right:"2.5 years, £1,000 interest"},
-      {left:"£200 extra per month",right:"1.5 years, £500 interest"},
-      {left:"You save",right:"Up to £3,000"}]}},
-   {type:"interactive",title:"Which debt first?",
-    scenario:"You have 3 debts: £800 at 19% APR, £2,200 at 34% APR, £500 at 9% APR. You have £200 extra per month to put towards debt.",
-    question:"Which debt should you pay extra on first?",
-    opts:["The £500 at 9% because it is smallest","The £800 at 19% as a middle ground","The £2,200 at 34% because the rate matters most","Pay them all equally"],correct:2,
-    reveal:"Avalanche method: attack the highest interest rate first. The £2,200 at 34% costs you £748 per year in interest. The £500 at 9% costs just £45 per year. Clearing the highest rate debt first saves you the most money mathematically. The snowball method (smallest balance first) can work for motivation, but avalanche always saves more.",
-    breakdown:[{label:"£2,200 at 34%",val:"£748/year in interest",highlight:true},{label:"£800 at 19%",val:"£152/year in interest"},{label:"£500 at 9%",val:"£45/year in interest"}]},
-   {type:"teach",title:"Savings vs debt: the maths",
-    content:"If you have £2,000 in savings earning 4% and £1,800 on a credit card at 34% APR, you are losing money every single day. Your savings earn £80 per year. Your card costs £612 per year. That is a net loss of £532 per year for the comfort of seeing money in your savings account. Pay off the card. Then rebuild savings without the anchor.",
-    keyPoint:"High-interest debt costs more than savings earn. Clear it first, rebuild savings second."}
+{n:5,phase:"Stabilise",title:"Debt: Stop Letting Your Past Control Your Present",hook:"Interest compounds against you the same way investing compounds for you.",time:15,
+ sections:[
+  {title:"Why debt is the biggest drag",content:"£2,000 on a card at 34% APR, paying only the minimum £58/month, takes 11 years to clear and costs £1,400 in extra interest. Not a spending problem. A compounding problem working in the wrong direction.\n\nBeyond the financial cost: the low-level anxiety that does not go away. Clearing debt changes how people feel every day."},
+  {title:"Paying off debt vs investing",content:"If your debt costs 29% APR, paying it off gives you a guaranteed 29% return, better than any investment can reliably promise. The stock market averages 7 to 10% per year.\n\nThe one exception: employer pension match. That is a guaranteed 100% return. Capture that first. But all other investing waits until high-interest debt is cleared."},
+  {title:"Avalanche vs Snowball",content:"Avalanche (highest interest first): mathematically optimal, costs least total interest.\n\nSnowball (smallest balance first): costs more interest but research shows higher completion rates because of psychological momentum.\n\nPick the one you will stick to. A completed snowball beats an abandoned avalanche."}
  ],
+ dataFields:{debts:"dynamic"},
  videos:[{title:"Good debt vs. bad debt",role:"core",min:3},{title:"Cost of Borrowing",role:"core",min:3},{title:"Snowball vs. Avalanche",role:"core",min:3}],
- action:"List every debt with its balance, interest rate and minimum payment. Rank by rate. Choose avalanche (highest rate first) or snowball (smallest first). Write a payoff order with target dates.",
- xpMicro:15,xpVideo:20,xpAction:50,xpBonus:15},
+ action:"Every debt listed with APR. Payoff order chosen. First extra payment scheduled.",
+ doneWhen:"Every debt listed with its APR. Payoff order and debt-free date set."},
 
-{n:5,phase:"Stabilise",title:"Build a £1,000 starter buffer",
- hook:"Your boiler breaks. It costs £600. No savings means this becomes debt.",done:"£1,000 in a named easy-access savings account.",
- micros:[{type:"interactive",title:"Emergency = debt spiral",question:"Your boiler breaks in January. Repair costs £600. You have no savings. What happens?",
-  opts:["Credit card at 24% APR","Borrow from family","Skip other bills","Any of these, none are good"],correct:3,
-  reveal:"Without savings, every emergency becomes debt. A £600 repair on a 24% credit card, paying £50/month, costs £672 total. A £1,000 buffer prevents this spiral entirely."}],
- videos:[{title:"Banking Basics",role:"core",min:3},{title:"Savings Pots",role:"core",min:3}],
- action:"Open a named easy-access savings account. Transfer £1,000 or set up a standing order to get there.",
- xpMicro:15,xpVideo:20,xpAction:50,xpBonus:15},
+{n:6,phase:"Stabilise",title:"Savings Pots: A Place for Everything",hook:"An emergency fund is not savings. It is insurance.",time:10,
+ sections:[
+  {title:"Emergency fund first",content:"Start with £1,000. That covers most common emergencies. Then build to 3 to 6 months of essential spending using your Level 2 numbers.\n\nKeep it in a high-interest easy-access account. Not your current account. Not an investment. A named pot, accessible within 24 hours but not accidentally spent."},
+  {title:"Sinking funds",content:"A sinking fund is money set aside for a cost you know is coming. Car insurance (£800/year = £67/month). Holiday. Christmas. If you can predict it, save for it in advance.\n\nEverything that ends up on a credit card 'out of nowhere' was actually predictable. It just was not planned for."}
+ ],
+ dataFields:null,
+ videos:[{title:"Savings Pots",role:"core",min:3},{title:"SMART Goal-Setting",role:"core",min:3}],
+ action:"Emergency fund started with standing order. At least one sinking fund set up.",
+ doneWhen:"Emergency fund started with a standing order running. At least one sinking fund set up."},
 
-{n:6,phase:"Stabilise",title:"Grow to 3 months of essentials",hook:"How long could you survive if your income stopped tomorrow?",done:"3-month essential costs calculated with an automated standing order running.",
- micros:[{type:"interactive",title:"Your safety number",question:"Essentials: rent £800, food £200, transport £120, utilities £90, phone £25. Your 3-month number?",opts:["£2,470","£3,105","£3,705","£4,200"],correct:2,reveal:"£1,235/month × 3 = £3,705. That is your real target."}],
- videos:[],action:"Calculate your 3-month essential costs. Set up a standing order. Name the pot Emergency Fund.",xpMicro:15,xpVideo:20,xpAction:50,xpBonus:15},
+{n:7,phase:"Optimise",title:"Capture Free Money: Tax, Pension Match, Allowances",hook:"Your employer is offering money you are not taking.",time:10,
+ sections:[
+  {title:"Employer pension match",content:"If your employer matches up to 5% and you contribute 3%, on a £32,000 salary you are leaving £640/year in free money on the table.\n\nSalary sacrifice makes it even better. You pay pension from gross salary before tax or NI. On £35k contributing 5% via salary sacrifice, you save approximately £350/year in NI."},
+  {title:"Tax allowances most people miss",content:"Marriage allowance: if one partner earns under £12,570, transfer £1,260 of personal allowance. Saves up to £252/year, backdatable 4 years.\n\nWorking from home: £6/week (£312/year) tax relief without receipts.\n\nUniform and professional fees, Gift Aid on charity donations, Rent a Room Relief (£7,500/year tax-free)."}
+ ],
+ dataFields:null,
+ videos:[{title:"Retirement Toolkit",role:"core",min:3}],
+ action:"Pension contribution set to capture full employer match. Applicable allowances identified.",
+ doneWhen:"Pension contribution matches employer maximum. Applicable allowances claimed or queued."},
 
-{n:7,phase:"Optimise",title:"Capture free money at work",hook:"Your employer is offering money you are not taking.",done:"Pension contribution matches employer maximum.",
- micros:[{type:"interactive",title:"The pay rise you have not claimed",question:"Employer matches pension up to 5%. You contribute 3%. On £30,000, how much free money are you missing per year?",opts:["£300","£600","£900","£1,200"],correct:1,reveal:"£600/year. Over 30 years at 7% growth, that compounds to over £56,000 in retirement savings you declined."}],
- videos:[{title:"Retirement Toolkit",role:"core",min:3}],action:"Log into your workplace pension. Check your contribution %. Increase to match your employer's maximum.",xpMicro:15,xpVideo:20,xpAction:50,xpBonus:15},
+{n:8,phase:"Grow",title:"Open Your ISA: The Tax-Free Wrapper",hook:"Every year you delay costs you. The allowance does not roll over.",time:10,
+ sections:[
+  {title:"What an ISA is",content:"An ISA is a tax wrapper where money grows without being taxed. No capital gains tax. No income tax on dividends. No tax on withdrawal. Every adult has a £20,000 per year allowance. Use it or lose it.\n\nThe principle: fill an ISA before investing anywhere else. Why pay tax on growth when there is a legal wrapper that prevents it?"},
+  {title:"Types of ISA",content:"Cash ISA: like a savings account, 4 to 5% interest tax-free. Good for money needed within 5 years.\n\nStocks and Shares ISA: invest in funds and shares inside the wrapper. 7 to 10% average long-term. This builds wealth.\n\nLifetime ISA (LISA): under-40s only. 25% government bonus on up to £4,000/year. For first home or retirement. If eligible, open one before you turn 40."},
+  {title:"Where to open one",content:"Vanguard: lowest overall costs, great for beginners. Trading 212: 0% platform fee. Freetrade: popular for first-time investors. For LISA: Moneybox or AJ Bell."}
+ ],
+ dataFields:null,
+ videos:[{title:"Asset Types",role:"core",min:3},{title:"Rate of Return",role:"core",min:3},{title:"Risk and Risk Tolerance",role:"core",min:3}],
+ action:"A Stocks and Shares ISA is open. LISA opened if under 40 and planning to buy a first home.",
+ doneWhen:"A Stocks and Shares ISA is open, even with £0 in it."},
 
-{n:8,phase:"Optimise",title:"Set up sinking funds",hook:"Christmas is not a surprise. Why do people go into debt for it?",done:"At least one named savings pot for a known future expense.",
- micros:[{type:"interactive",title:"Predictable expenses",question:"Car insurance renews in 4 months. It was £640 last year. Monthly amount?",opts:["£100","£160","£200","£640 when due"],correct:1,reveal:"£640 ÷ 4 = £160/month. Starting at renewal = £53/month over 12 months. The longer you plan, the smaller the amount."}],
- videos:[{title:"SMART Goal-Setting",role:"core",min:3},{title:"Savings Pots",role:"core",min:3}],action:"Name your next 3 predictable future expenses. Open named pots with monthly transfers.",xpMicro:15,xpVideo:20,xpAction:50,xpBonus:15},
-
-{n:9,phase:"Optimise",title:"Understand your taxes",hook:"Most people misunderstand how tax bands work.",done:"You can explain your own tax situation in under 60 seconds.",
- micros:[{type:"interactive",title:"Tax bands",question:"You earn £38,000. Someone says you are in the 40% tax bracket. Are they right?",opts:["Yes, above the limit","No, only £300 is taxed at 40%","Your effective rate is 40%","Depends on tax code"],correct:1,reveal:"Only £300 is taxed at 40%. Your effective rate is about 17%. This misunderstanding stops people seeking pay rises."}],
- videos:[],action:"Calculate your effective tax rate. Check for missing allowances.",xpMicro:15,xpVideo:20,xpAction:50,xpBonus:15},
-
-{n:10,phase:"Grow",title:"Open a Stocks & Shares ISA",hook:"The tax wrapper most people wait too long to use.",done:"You have an open Stocks & Shares ISA.",
- micros:[{type:"interactive",title:"Cash ISA vs Stocks & Shares ISA",question:"You are 27, saving for 20+ years. Which ISA is almost certainly better?",opts:["Cash ISA, no risk","Stocks & Shares ISA","About the same","Depends on rate"],correct:1,reveal:"Over 20+ years, stock market returns of 7 to 10% annually far outpace cash ISA rates. Short-term volatility smooths out over long periods."}],
- videos:[{title:"Asset Types",role:"core",min:3}],action:"Open a Stocks & Shares ISA. Vanguard, Freetrade or Trading 212.",xpMicro:15,xpVideo:20,xpAction:50,xpBonus:15},
-
-{n:11,phase:"Grow",title:"Make your first investment",hook:"£200/month from 25 vs 35. Same amount. The difference is life-changing.",done:"Automated monthly payment into an index fund.",
- micros:[{type:"interactive",title:"The compound growth reveal",question:"You invest £200/month from 25. Friend starts at 35. Same return. At 60, difference?",opts:["£50k more","£100k more","£180k+ more","About the same"],correct:2,reveal:"You: ~£380,000. Friend: ~£196,000. Those first 10 years are worth almost as much as the next 25 combined."}],
- videos:[{title:"Rate of Return",role:"core",min:3},{title:"Funds",role:"core",min:3},{title:"Diversification",role:"core",min:3}],action:"Set up a monthly direct debit into a global index fund inside your ISA.",xpMicro:15,xpVideo:20,xpAction:50,xpBonus:15},
-
-{n:12,phase:"Grow",title:"Build a pension strategy",hook:"Your pension default fund might be wrong for you.",done:"You have checked your pension fund and made a conscious choice.",
- micros:[{type:"interactive",title:"Default funds",question:"Default fund is 'Balanced Growth'. Right for a 28-year-old?",opts:["Yes, balanced is sensible","No, higher growth better at 28","Does not matter","Lowest risk is safest"],correct:1,reveal:"At 28, you have 30+ years. A higher-growth fund will almost certainly outperform. Default funds are designed for everyone, optimised for no one."}],
- videos:[{title:"Retirement Toolkit",role:"core",min:3}],action:"Log into your pension. Check your fund. Consider a higher-growth option if under 40.",xpMicro:15,xpVideo:20,xpAction:50,xpBonus:15},
-
-{n:13,phase:"Protect",title:"Get income protection",hook:"Statutory sick pay is £116.75/week. Your rent is probably more.",done:"You know your sick pay policy and have made a decision about cover.",
- micros:[{type:"interactive",title:"The sick pay gap",question:"SSP is £116.75/week. Rent £900/month. Off sick 10 weeks. The shortfall?",opts:["SSP covers it","~£6,800 short","Employer tops up","Universal Credit covers it"],correct:1,reveal:"£116.75/week × 10 = £1,167. Rent alone for 10 weeks = £2,250. Income protection for a 28-year-old costs about £25/month and pays up to 60% of salary, tax-free."}],
- videos:[],action:"Check your contract for sick pay terms. Get at least one income protection quote if cover is inadequate.",xpMicro:15,xpVideo:20,xpAction:50,xpBonus:15},
-
-{n:14,phase:"Protect",title:"Write a will",hook:"No common-law marriage exists in England and Wales. Your partner gets nothing without a will.",done:"You have a signed, witnessed will.",
- micros:[{type:"interactive",title:"The common-law myth",question:"Unmarried, 6 years together, no will. Your partner legally receives?",opts:["Everything","Half","What you discussed","Nothing by default"],correct:3,reveal:"There is no common-law marriage in England and Wales. Without a will, intestacy rules apply. Your partner receives nothing. Everything goes to blood relatives. A basic will costs from £50 online."}],
- videos:[],action:"Write a basic will. Farewill or Wills Online from £50.",xpMicro:15,xpVideo:20,xpAction:50,xpBonus:15},
-
-{n:15,phase:"Protect",title:"Annual money review",hook:"Your life changed. Did your financial settings change with it?",done:"Recurring annual calendar event with the review checklist.",
- micros:[{type:"interactive",title:"What drifts",question:"14 months since your last check. £4,000 pay rise. What did you forget?",opts:["Pension %","Emergency fund target","Budget categories","All of the above"],correct:3,reveal:"A pay rise changes pension amounts, emergency fund targets, budget categories. An annual 30-minute review prevents years of financial drift."}],
- videos:[{title:"Balance-Sheet and net worth check",role:"core",min:3},{title:"SMART Goal-Setting",role:"core",min:3}],action:"Book a recurring annual calendar event. Checklist: tax code, pension %, emergency fund, ISA allowance, insurance, will, net worth.",xpMicro:15,xpVideo:20,xpAction:50,xpBonus:15},
+{n:9,phase:"Grow",title:"Make Your First Investment: Let Time Do the Work",hook:"Starting at 25 vs 35 on £200/month is a £282,000 difference.",time:10,
+ sections:[
+  {title:"Compound growth",content:"£10,000 growing at 7%/year becomes £76,000 over 30 years without any additional contributions. Your returns earn returns.\n\nStart at 25 with £200/month at 7%: £525,000 by 65.\nStart at 35 with £200/month at 7%: £243,000 by 65.\n\nSame investment. Same fund. 10-year head start = £282,000 difference.\n\nThe mantra: start now, start small."},
+  {title:"Index funds: why simple wins",content:"An index fund tracks a market like the S&P 500 or FTSE Global All Cap. You own a slice of hundreds of companies at once.\n\nOver 10 years, roughly 90% of active fund managers underperform their benchmark index. The reason is fees. 1.5% vs 0.2% on £100,000 over 10 years costs approximately £15,000.\n\nRecommended: Vanguard FTSE Global All Cap (0.23%) inside a Stocks and Shares ISA. Monthly direct debit. Do not watch it daily."},
+  {title:"Risk and time horizon",content:"Under 3 years: keep in cash.\n3 to 5 years: cautious mix.\n5+ years: global equity index fund.\n10+ years: higher equity allocation.\n\nThe emergency fund from Level 6 exists so your investments can stay invested through volatile periods."}
+ ],
+ dataFields:{investing:[{id:"monthlyInvestment",label:"Monthly investment amount",hint:"From your surplus"},{id:"currentISA",label:"Any existing ISA balance",hint:""},{id:"targetAge",label:"Target age to stop working",hint:""}]},
+ videos:[{title:"Funds",role:"core",min:3},{title:"Diversification",role:"core",min:3},{title:"Time horizon and portfolio construction",role:"core",min:3}],
+ action:"A monthly direct debit is set up into a global index fund inside your ISA. Even £25/month.",
+ doneWhen:"A monthly direct debit is running into an index fund. The habit matters more than the amount."},
 ]
+
+const QUICK_WINS=[{id:"tax",icon:"🔍",label:"Tax code check",min:5},{id:"subs",icon:"📱",label:"Subscription audit",min:10},{id:"savings",icon:"🏦",label:"Savings rate check",min:3},{id:"pension",icon:"💼",label:"Pension match check",min:5}]
+
 
 const LEARN_THEMES=[
   {id:"economy",icon:"🌍",title:"How the world economy works",items:[
@@ -194,24 +160,6 @@ const LEARN_THEMES=[
   {id:"credit",icon:"💳",title:"Credit deep dive",items:[
     {title:"How Credit Actually Works",min:3},{title:"Credit Scores and Bureaus",min:3},{title:"Credit Cards Explained",min:3}]},
 ]
-
-const QUICK_WINS=[
-  {id:"tax",icon:"🔍",label:"Tax code check",min:5},
-  {id:"subs",icon:"📱",label:"Subscription audit",min:10},
-  {id:"savings",icon:"🏦",label:"Savings rate check",min:3},
-  {id:"pension",icon:"💼",label:"Pension match check",min:5},
-]
-
-const GOAL_CONTENT={
-  understand:{headline:"Nobody taught you this. Most adults are still figuring it out. That changes now.",cards:[{color:T.blue,text:"You will understand how money actually works: inflation, interest, tax, in plain language."},{color:T.green,text:"Starting now puts you years ahead of most people your age."},{color:T.amber,text:"You will never have to nod along pretending you understood something financial again."}],bullets:["Explain how your payslip works to someone else","Know exactly what your money is doing each month","Make financial decisions with confidence, not guesswork"]},
-  budgeting:{headline:"You earn money. It disappears. We are going to find it.",cards:[{color:T.blue,text:"Most people find £50 to £150/month in forgotten subscriptions in the first session."},{color:T.green,text:"Once you know your gap, what is actually left each month, everything else becomes possible."},{color:T.amber,text:"A budget you stick to is not about restriction. It is about intentional spending."}],bullets:["Track every pound without it feeling like a chore","Cut spending you do not even notice","Build savings automatically from the gap you find"]},
-  debt:{headline:"You are not in a hole. You are at the start of getting out of one.",cards:[{color:T.blue,text:"Most people clear debt faster than expected once they have a real plan."},{color:T.green,text:"You will know your exact debt-free date before you finish your first session."},{color:T.amber,text:"Interest is probably costing you more than you realise. We will show you the real number."}],bullets:["List every debt with its true cost","Have a payoff plan with actual dates","Stop paying interest you do not need to"]},
-  investing:{headline:"You have income coming in. Right now it is just sitting there.",cards:[{color:T.blue,text:"Starting at 27 vs 37 is a £180,000+ difference at retirement."},{color:T.green,text:"90% of fund managers underperform a simple index fund. You do not need to pick stocks."},{color:T.amber,text:"Your employer may be offering free money you have not claimed yet."}],bullets:["Open a Stocks & Shares ISA and understand why","Set up automated investing that runs without you","Know the difference between good fees and bad fees"]},
-  home:{headline:"You have a goal. Let us build the path backwards from it.",cards:[{color:T.blue,text:"You will know exactly how much you need, by when, and what needs to happen each month."},{color:T.green,text:"Most people overestimate how long it takes when they have a plan."},{color:T.amber,text:"There are government bonuses most first-time buyers do not know exist."}],bullets:["Calculate your exact savings target","Use the right accounts to get government bonuses","Build a realistic timeline that actually works"]},
-  admin:{headline:"Most people overpay tax and underpay themselves. Let us fix both.",cards:[{color:T.blue,text:"A wrong tax code costs real money. We check this in the first session."},{color:T.green,text:"If your employer matches pension and you are not maximising it, you are turning down salary."},{color:T.amber,text:"30 minutes in this app will be worth more than most financial decisions this year."}],bullets:["Confirm your tax code is correct","Maximise your employer pension match","Know exactly what you are entitled to"]},
-}
-
-
 /* ══════════════════ PERSONALITY QUIZ DATA ══════════════════ */
 const PERSONALITY_QUIZ=[
   {id:"q1",dimension:"security_growth",headline:"You receive an unexpected £5,000.",sub:"What feels most natural?",options:[{label:"Add it straight to savings for security",scores:{security_growth:10,present_future:30,abundance_scarcity:30}},{label:"Split it: half saved, half invested",scores:{security_growth:45,present_future:60,abundance_scarcity:60}},{label:"Invest most of it for long-term growth",scores:{security_growth:80,present_future:80,abundance_scarcity:80}},{label:"Use it for something I have been putting off",scores:{security_growth:40,present_future:10,abundance_scarcity:70}}]},
@@ -260,7 +208,7 @@ function calcQuizPersonality(answers,state){
 }
 
 /* ══════════════════ STATE ══════════════════ */
-const DEFAULTS={profile:{name:"",age:null,onboardingComplete:false,goal:null,situations:[],currentLevel:1,completedLevels:[],phaseTag:"Foundations",personalityResult:null,xp:0,levelProgress:{}},assets:[],debts:[],income:{primary:0},spending:{monthly:0}}
+const DEFAULTS={profile:{name:"",age:null,onboardingComplete:false,goal:null,situations:[],phaseTag:"Foundations",personalityResult:null,xp:0},learningProgress:{currentLevel:1,completedLevels:[],levelData:{}},assets:[],debts:[],income:{primary:0},spending:{monthly:0}}
 const load=()=>{try{const s=localStorage.getItem("ls_v3");return s?{...DEFAULTS,...JSON.parse(s)}:DEFAULTS}catch{return DEFAULTS}}
 const AppCtx=createContext(null)
 const useApp=()=>useContext(AppCtx)
@@ -398,179 +346,566 @@ function Onboarding(){
 }
 
 
-/* ══════════════════ LEVEL PLAYER (rich micro lessons) ══════════════════ */
+
+/* ═══════════════════════════════════════════════════════
+   LEVEL PLAYER — 4-part structure: Learn, Data, Output, Action
+   ═══════════════════════════════════════════════════════ */
 function LevelPlayer({level,onBack}){
   const{state,save,toast}=useApp()
-  const prog=state.profile.levelProgress?.[level.n]||{microsDone:[],videosDone:[],actionDone:false}
-  const[step,setStep]=useState("overview")
-  const[microIdx,setMicroIdx]=useState(0)
-  const[answer,setAnswer]=useState(null)
+  const lp=state.learningProgress||{currentLevel:1,completedLevels:[],levelData:{}}
+  const ld=lp.levelData?.[`level${level.n}`]||{}
+  const[tab,setTab]=useState("learn")
   const[showConfetti,setShowConfetti]=useState(false)
+  const pc=PC[level.phase]||T.teal
 
-  function saveProg(u){const np={...prog,...u};save({...state,profile:{...state.profile,levelProgress:{...state.profile.levelProgress,[level.n]:np}}})}
-  function addXP(amt){save({...state,profile:{...state.profile,xp:(state.profile.xp||0)+amt}})}
-  function completeMicro(idx){const d=[...(prog.microsDone||[])];if(!d.includes(idx)){d.push(idx);saveProg({microsDone:d});addXP(level.xpMicro)}}
-  function completeVideo(title){const d=[...(prog.videosDone||[])];if(!d.includes(title)){d.push(title);saveProg({videosDone:d});addXP(level.xpVideo)}}
-  function completeAction(){
-    saveProg({actionDone:true});addXP(level.xpAction)
-    const cl=[...(state.profile.completedLevels||[])];if(!cl.includes(level.n))cl.push(level.n)
-    const next=Math.min(Math.max(level.n+1,state.profile.currentLevel),15)
-    save({...state,profile:{...state.profile,completedLevels:cl,currentLevel:next,phaseTag:getPhase(next),xp:(state.profile.xp||0)+level.xpAction,levelProgress:{...state.profile.levelProgress,[level.n]:{...prog,actionDone:true}}}})
-    setShowConfetti(true);setTimeout(()=>setShowConfetti(false),2000);setStep("done");toast("🎉 Level complete!")
+  // Data state for this level
+  const[data,setData]=useState(ld)
+  function updateData(key,val){setData(prev=>{const n={...prev,[key]:val};saveLevelData(n);return n})}
+  function updateNested(group,key,val){setData(prev=>{const n={...prev,[group]:{...(prev[group]||{}),[key]:val}};saveLevelData(n);return n})}
+
+  function saveLevelData(d){
+    const newLP={...lp,levelData:{...lp.levelData,[`level${level.n}`]:d}}
+    save({...state,learningProgress:newLP})
   }
 
-  const pc=PC[level.phase]||T.teal
-  const totalSteps=level.micros.length+(level.videos.length>0?1:0)+1
-  const doneSteps=Math.min((prog.microsDone||[]).length,level.micros.length)+((prog.videosDone||[]).length>0?1:0)+(prog.actionDone?1:0)
+  function completeLevel(){
+    const newCompleted=[...(lp.completedLevels||[])];if(!newCompleted.includes(level.n))newCompleted.push(level.n)
+    const newLP={...lp,currentLevel:Math.min(Math.max(level.n+1,lp.currentLevel||1),9),completedLevels:newCompleted,levelData:{...lp.levelData,[`level${level.n}`]:{...data,completed:true}}}
+    save({...state,learningProgress:newLP,profile:{...state.profile,xp:(state.profile.xp||0)+80}})
+    setShowConfetti(true);setTimeout(()=>setShowConfetti(false),2000)
+    toast("🎉 Level "+level.n+" complete! +80 XP")
+  }
 
-  if(step==="overview")return(
+  const isComplete=data.completed||(lp.completedLevels||[]).includes(level.n)
+  const TABS=[{id:"learn",label:"Learn",icon:"📖"},{id:"data",label:"Your Numbers",icon:"📊"},{id:"output",label:"Results",icon:"📈"},{id:"action",label:"Action",icon:"✅"}]
+
+  return(
     <div style={{minHeight:"100dvh",background:T.bg,display:"flex",flexDirection:"column"}}>
+      <Confetti active={showConfetti}/>
+      {/* Header */}
       <div style={{background:"rgba(11,20,36,.95)",backdropFilter:"blur(20px)",padding:"14px 20px",display:"flex",alignItems:"center",gap:12,borderBottom:`1px solid rgba(255,255,255,.05)`,flexShrink:0}}>
         <button onClick={onBack} style={{background:"none",border:"none",color:T.muted,cursor:"pointer",padding:4}}><ChevronLeft size={22}/></button>
         <div style={{flex:1}}><p style={{color:pc,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase"}}>{level.phase} · Level {level.n}</p><p style={{color:T.white,fontWeight:800,fontSize:15}}>{level.title}</p></div>
+        {isComplete&&<span style={{background:T.greenDim,color:T.green,fontSize:10,fontWeight:700,padding:"4px 10px",borderRadius:99}}>✓ Done</span>}
       </div>
-      <div style={{flex:1,overflowY:"auto",padding:"24px 20px 100px",maxWidth:600,margin:"0 auto",width:"100%"}}>
-        <div style={{display:"flex",gap:4,marginBottom:24}}>{Array.from({length:totalSteps}).map((_,i)=><div key={i} style={{flex:1,height:4,borderRadius:2,background:i<doneSteps?T.teal:T.border}}/>)}</div>
-        <p style={{color:"#E2EAF6",fontSize:15,lineHeight:1.6,marginBottom:6}}>{level.hook}</p>
-        <p style={{color:T.muted,fontSize:13,marginBottom:28}}>Done when: {level.done}</p>
 
-        <p style={{color:T.white,fontWeight:800,fontSize:15,marginBottom:12}}>⚡ Lessons</p>
-        <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:24}}>
-          {level.micros.map((m,i)=>{const done=(prog.microsDone||[]).includes(i);return(
-            <button key={i} onClick={()=>{setMicroIdx(i);setAnswer(null);setStep("micro")}}
-              style={{background:done?`${T.teal}08`:T.card,border:`1.5px solid ${done?T.tealBorder:T.border}`,borderRadius:16,padding:"16px 18px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",display:"flex",alignItems:"center",gap:14}}>
-              <div style={{width:36,height:36,borderRadius:10,background:done?T.tealDim:T.faint,border:`1px solid ${done?T.tealBorder:T.border}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                {done?<Check size={16} color={T.teal}/>:<Zap size={16} color={T.muted}/>}
-              </div>
-              <div style={{flex:1}}>
-                <p style={{color:done?T.teal:T.white,fontWeight:600,fontSize:13,lineHeight:1.4}}>{m.title}</p>
-                <p style={{color:T.muted,fontSize:11,marginTop:2}}>{done?"Completed":m.type==="teach"?"Read · 2 min":"Interactive · 1 min"} · +15 XP</p>
-              </div>
-            </button>)})}
-        </div>
-
-        {level.videos.length>0&&(<><p style={{color:T.white,fontWeight:800,fontSize:15,marginBottom:12}}>🎬 Videos</p>
-        <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:24}}>
-          {level.videos.map((v,i)=>{const done=(prog.videosDone||[]).includes(v.title);return(
-            <div key={i} style={{background:done?`${T.purple}08`:T.card,border:`1.5px solid ${done?T.purpleBorder:T.border}`,borderRadius:16,padding:"14px 18px",display:"flex",alignItems:"center",gap:14}}>
-              <div style={{width:36,height:36,borderRadius:10,background:done?T.purpleDim:T.faint,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{done?<Check size={16} color={T.purple}/>:<Play size={16} color={T.muted}/>}</div>
-              <div style={{flex:1}}><p style={{color:done?"#8FA3BE":T.white,fontWeight:600,fontSize:13}}>{v.title}</p><p style={{color:T.muted,fontSize:11,marginTop:2}}>{v.role==="core"?"Core":"Go deeper"} · {v.min} min</p></div>
-              {!done&&<button onClick={()=>completeVideo(v.title)} style={{background:T.purpleDim,border:`1px solid ${T.purpleBorder}`,borderRadius:10,padding:"6px 14px",color:T.purple,fontWeight:700,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>Watched</button>}
-            </div>)})}
-        </div></>)}
-
-        <p style={{color:T.white,fontWeight:800,fontSize:15,marginBottom:12}}>✅ Action</p>
-        <div style={{background:prog.actionDone?`${T.green}08`:T.card,border:`1.5px solid ${prog.actionDone?"rgba(52,211,153,.3)":T.amberBorder}`,borderRadius:18,padding:"20px"}}>
-          <p style={{color:"#E2EAF6",fontSize:14,lineHeight:1.6,marginBottom:14}}>{level.action}</p>
-          <p style={{color:T.muted,fontSize:12,marginBottom:16}}>Required to complete this level.</p>
-          {!prog.actionDone?<Btn onClick={completeAction}>I have done this ✓</Btn>:<div style={{display:"flex",alignItems:"center",gap:10}}><Check size={18} color={T.green}/><p style={{color:T.green,fontWeight:700,fontSize:14}}>Completed</p></div>}
-        </div>
+      {/* Section tabs */}
+      <div style={{display:"flex",borderBottom:`1px solid ${T.border}`,background:T.surface,flexShrink:0}}>
+        {TABS.map(t=>{const active=tab===t.id;return(
+          <button key={t.id} onClick={()=>setTab(t.id)} style={{flex:1,background:"none",border:"none",padding:"12px 8px",cursor:"pointer",fontFamily:"inherit",position:"relative",display:"flex",alignItems:"center",justifyContent:"center",gap:4}}>
+            <span style={{fontSize:12}}>{t.icon}</span>
+            <span style={{fontSize:11,fontWeight:active?700:500,color:active?T.teal:T.muted}}>{t.label}</span>
+            {active&&<div style={{position:"absolute",bottom:0,left:"10%",right:"10%",height:2,borderRadius:2,background:T.teal}}/>}
+          </button>
+        )})}
       </div>
-    </div>)
 
-  // Micro lesson (teach or interactive)
-  if(step==="micro"){
-    const micro=level.micros[microIdx];if(!micro){setStep("overview");return null}
-    const isTeach=micro.type==="teach"
+      <div style={{flex:1,overflowY:"auto",paddingBottom:100}}>
+        <div style={{maxWidth:600,margin:"0 auto",padding:"20px 18px"}}>
 
-    if(isTeach) return(
-      <div style={{minHeight:"100dvh",background:T.bg,display:"flex",flexDirection:"column"}}>
-        <div style={{background:"rgba(11,20,36,.95)",backdropFilter:"blur(20px)",padding:"14px 20px",display:"flex",alignItems:"center",gap:12,borderBottom:`1px solid rgba(255,255,255,.05)`,flexShrink:0}}>
-          <button onClick={()=>{setStep("overview")}} style={{background:"none",border:"none",color:T.muted,cursor:"pointer",padding:4}}><ChevronLeft size={22}/></button>
-          <p style={{color:T.white,fontWeight:700,fontSize:14}}>{micro.title}</p>
-        </div>
-        <div style={{flex:1,overflowY:"auto",padding:"28px 22px 100px",maxWidth:540,margin:"0 auto",width:"100%"}}>
-          <p style={{color:"#E2EAF6",fontSize:15,lineHeight:1.7,marginBottom:20}}>{micro.content}</p>
-
-          {/* Key point callout */}
-          {micro.keyPoint&&<div style={{background:`${T.teal}10`,border:`1.5px solid ${T.tealBorder}`,borderRadius:16,padding:"16px 18px",marginBottom:20}}>
-            <p style={{color:T.teal,fontWeight:700,fontSize:11,letterSpacing:.8,textTransform:"uppercase",marginBottom:6}}>Key takeaway</p>
-            <p style={{color:"#E2EAF6",fontSize:14,lineHeight:1.5,fontWeight:600}}>{micro.keyPoint}</p>
-          </div>}
-
-          {/* Example table */}
-          {micro.example&&<div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:"18px",marginBottom:20}}>
-            <p style={{color:T.white,fontWeight:700,fontSize:13,marginBottom:12}}>{micro.example.label}</p>
-            <div style={{display:"flex",flexDirection:"column",gap:6}}>
-              {micro.example.items.map((item,i)=>(
-                <div key={i} style={{display:"flex",justifyContent:"space-between",padding:"8px 12px",background:i===0?T.faint:"transparent",borderRadius:8,border:i===0?`1px solid ${T.border}`:"none"}}>
-                  <p style={{color:i===0?T.muted:"#C8D8EC",fontSize:13,fontWeight:i===0?700:500}}>{item.left}</p>
-                  <p style={{color:i===0?T.muted:"#C8D8EC",fontSize:13,fontWeight:i===0?700:600}}>{item.right}</p>
+          {/* LEARN TAB */}
+          {tab==="learn"&&(
+            <div className="ls-fadein">
+              <p style={{color:"#C8D8EC",fontSize:14,lineHeight:1.6,marginBottom:20}}>{level.hook}</p>
+              {level.sections.map((s,i)=>(
+                <div key={i} style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:18,padding:"20px",marginBottom:14}}>
+                  <p style={{color:T.white,fontWeight:800,fontSize:15,marginBottom:10}}>{s.title}</p>
+                  {s.content.split("\n\n").map((para,j)=><p key={j} style={{color:"#C8D8EC",fontSize:14,lineHeight:1.65,marginBottom:j<s.content.split("\n\n").length-1?12:0}}>{para}</p>)}
+                  {s.columns&&(
+                    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginTop:14}}>
+                      {s.columns.map((col,ci)=>(
+                        <div key={ci} style={{background:T.surface,borderRadius:12,padding:"12px"}}>
+                          <p style={{color:ci===0?T.green:T.amber,fontWeight:700,fontSize:12,marginBottom:8}}>{col.label}</p>
+                          {col.items.map((item,ii)=><p key={ii} style={{color:"#C8D8EC",fontSize:12,marginBottom:4}}>· {item}</p>)}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
-            </div>
-          </div>}
-
-          <button onClick={()=>{completeMicro(microIdx);if(microIdx<level.micros.length-1){setMicroIdx(microIdx+1);setAnswer(null)}else setStep("overview")}}
-            style={{width:"100%",background:T.teal,border:"none",borderRadius:14,padding:"14px",color:"#070D1A",fontWeight:700,fontSize:14,cursor:"pointer",fontFamily:"inherit"}}>
-            {microIdx<level.micros.length-1?"Got it, next →":"Got it, back to overview"}
-          </button>
-        </div>
-      </div>)
-
-    // Interactive micro
-    return(
-      <div style={{minHeight:"100dvh",background:T.bg,display:"flex",flexDirection:"column"}}>
-        <div style={{background:"rgba(11,20,36,.95)",backdropFilter:"blur(20px)",padding:"14px 20px",display:"flex",alignItems:"center",gap:12,borderBottom:`1px solid rgba(255,255,255,.05)`,flexShrink:0}}>
-          <button onClick={()=>{setStep("overview");setAnswer(null)}} style={{background:"none",border:"none",color:T.muted,cursor:"pointer",padding:4}}><ChevronLeft size={22}/></button>
-          <p style={{color:T.white,fontWeight:700,fontSize:14}}>{micro.title}</p>
-        </div>
-        <div style={{flex:1,overflowY:"auto",padding:"28px 22px 100px",maxWidth:540,margin:"0 auto",width:"100%"}}>
-          {micro.scenario&&<p style={{color:"#C8D8EC",fontSize:14,lineHeight:1.6,marginBottom:16,background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px 16px"}}>{micro.scenario}</p>}
-          <h2 style={{color:T.white,fontWeight:900,fontSize:"clamp(18px,4vw,22px)",lineHeight:1.3,marginBottom:20}}>{micro.question}</h2>
-          <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:20}}>
-            {micro.opts.map((opt,i)=>{
-              const picked=answer===i,correct=micro.correct===i
-              let bg=T.card,border=T.border,tc=T.muted
-              if(answer!==null&&correct){bg="rgba(52,211,153,.08)";border="rgba(52,211,153,.35)";tc=T.green}
-              if(answer!==null&&picked&&!correct){bg=T.redDim;border=T.redBorder;tc=T.red}
-              return(<button key={i} onClick={()=>{if(answer===null){setAnswer(i);completeMicro(microIdx)}}}
-                style={{background:bg,border:`2px solid ${border}`,borderRadius:16,padding:"16px 18px",cursor:answer!==null?"default":"pointer",textAlign:"left",fontFamily:"inherit",display:"flex",alignItems:"center",gap:12}}>
-                <div style={{width:28,height:28,borderRadius:8,background:answer!==null?(correct?"rgba(52,211,153,.15)":(picked?T.redDim:`${pc}10`)):`${pc}12`,border:`1.5px solid ${answer!==null?(correct?"rgba(52,211,153,.4)":(picked?T.redBorder:`${pc}25`)):T.border}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                  <span style={{color:answer!==null?(correct?T.green:(picked?T.red:T.muted)):pc,fontWeight:800,fontSize:11}}>{answer!==null?(correct?"✓":(picked?"✗":String.fromCharCode(65+i))):String.fromCharCode(65+i)}</span>
+              {/* Videos */}
+              {level.videos.length>0&&(
+                <div style={{marginTop:8}}>
+                  <p style={{color:T.white,fontWeight:700,fontSize:14,marginBottom:10}}>🎬 Videos</p>
+                  {level.videos.map((v,i)=>(
+                    <div key={i} style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px 18px",display:"flex",alignItems:"center",gap:12,marginBottom:8}}>
+                      <Play size={16} color={v.role==="core"?T.teal:T.purple}/>
+                      <div style={{flex:1}}><p style={{color:T.white,fontWeight:600,fontSize:13}}>{v.title}</p><p style={{color:T.muted,fontSize:11}}>{v.role==="core"?"Core":"Go deeper"} · {v.min} min</p></div>
+                    </div>
+                  ))}
                 </div>
-                <p style={{color:answer!==null?tc:T.white,fontWeight:600,fontSize:14,flex:1,lineHeight:1.4}}>{opt}</p>
-              </button>)})}
-          </div>
-          {answer!==null&&<div className="ls-fadein">
-            <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:"18px 20px",marginBottom:16}}>
-              <p style={{color:T.muted,fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8,marginBottom:8}}>The takeaway</p>
-              <p style={{color:"#E2EAF6",fontSize:14,lineHeight:1.65}}>{micro.reveal}</p>
+              )}
+              <button onClick={()=>setTab("data")} style={{width:"100%",marginTop:16,background:T.teal,border:"none",borderRadius:14,padding:"14px",color:"#070D1A",fontWeight:700,fontSize:14,cursor:"pointer",fontFamily:"inherit"}}>Enter your numbers →</button>
             </div>
-            {/* Breakdown if provided */}
-            {micro.breakdown&&<div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:"18px 20px",marginBottom:16}}>
-              {micro.breakdown.map((b,i)=><div key={i} style={{display:"flex",justifyContent:"space-between",padding:"8px 0",borderBottom:i<micro.breakdown.length-1?`1px solid ${T.border}`:"none"}}>
-                <p style={{color:b.highlight?T.teal:"#C8D8EC",fontWeight:b.highlight?700:500,fontSize:13}}>{b.label}</p>
-                <p style={{color:b.highlight?T.teal:"#C8D8EC",fontWeight:b.highlight?800:600,fontSize:13}}>{b.val}</p>
-              </div>)}
-            </div>}
-            <button onClick={()=>{if(microIdx<level.micros.length-1){setMicroIdx(microIdx+1);setAnswer(null)}else setStep("overview")}}
-              style={{width:"100%",background:T.teal,border:"none",borderRadius:14,padding:"14px",color:"#070D1A",fontWeight:700,fontSize:14,cursor:"pointer",fontFamily:"inherit"}}>
-              {microIdx<level.micros.length-1?"Next lesson →":"Back to overview"}
-            </button>
-          </div>}
-        </div>
-      </div>)
-  }
+          )}
 
-  if(step==="done")return(<div style={{minHeight:"100dvh",background:T.bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",position:"relative"}}>
-    <Confetti active={showConfetti}/>
-    <div className="ls-fadein" style={{textAlign:"center",padding:32,maxWidth:400}}>
-      <div style={{fontSize:64,marginBottom:20}}>🎉</div>
-      <h2 style={{color:T.white,fontWeight:900,fontSize:26,marginBottom:8}}>Level {level.n} Complete!</h2>
-      <p style={{color:T.muted,fontSize:15,marginBottom:32}}>{level.title}</p>
-      <Btn onClick={onBack}>Continue →</Btn>
+          {/* DATA TAB */}
+          {tab==="data"&&(
+            <div className="ls-fadein">
+              {level.n===1&&<Level1DataEntry data={data} updateNested={updateNested}/>}
+              {level.n===2&&<Level2DataEntry data={data} updateNested={updateNested} updateData={updateData}/>}
+              {level.n===5&&<Level5DataEntry data={data} updateData={updateData}/>}
+              {level.n===9&&<Level9DataEntry data={data} updateNested={updateNested} age={state.profile?.age}/>}
+              {![1,2,5,9].includes(level.n)&&(
+                <div style={{textAlign:"center",padding:"40px 20px"}}>
+                  <p style={{fontSize:40,marginBottom:12}}>📊</p>
+                  <p style={{color:T.white,fontWeight:700,fontSize:16,marginBottom:6}}>Data entry for this level</p>
+                  <p style={{color:T.muted,fontSize:13}}>Review the educational content first, then complete the action to finish this level.</p>
+                </div>
+              )}
+              <button onClick={()=>setTab("output")} style={{width:"100%",marginTop:16,background:T.teal,border:"none",borderRadius:14,padding:"14px",color:"#070D1A",fontWeight:700,fontSize:14,cursor:"pointer",fontFamily:"inherit"}}>See your results →</button>
+            </div>
+          )}
+
+          {/* OUTPUT TAB */}
+          {tab==="output"&&(
+            <div className="ls-fadein">
+              {level.n===1&&<Level1Outputs data={data} age={state.profile?.age}/>}
+              {level.n===2&&<Level2Outputs data={data}/>}
+              {level.n===9&&<Level9Outputs data={data} age={state.profile?.age} state={state}/>}
+              {![1,2,9].includes(level.n)&&(
+                <div style={{textAlign:"center",padding:"40px 20px"}}>
+                  <p style={{fontSize:40,marginBottom:12}}>📈</p>
+                  <p style={{color:T.white,fontWeight:700,fontSize:16,marginBottom:6}}>Complete data entry to see your results</p>
+                  <p style={{color:T.muted,fontSize:13}}>Charts and insights appear here once you enter your numbers.</p>
+                </div>
+              )}
+              <button onClick={()=>setTab("action")} style={{width:"100%",marginTop:16,background:T.teal,border:"none",borderRadius:14,padding:"14px",color:"#070D1A",fontWeight:700,fontSize:14,cursor:"pointer",fontFamily:"inherit"}}>See the action →</button>
+            </div>
+          )}
+
+          {/* ACTION TAB */}
+          {tab==="action"&&(
+            <div className="ls-fadein">
+              <div style={{background:`${pc}10`,border:`1.5px solid ${pc}30`,borderRadius:20,padding:"24px",marginBottom:16}}>
+                <p style={{color:pc,fontWeight:800,fontSize:13,letterSpacing:.5,textTransform:"uppercase",marginBottom:10}}>Your action</p>
+                <p style={{color:"#E2EAF6",fontSize:15,lineHeight:1.65,marginBottom:16}}>{level.action}</p>
+                <div style={{background:"rgba(0,0,0,.2)",borderRadius:12,padding:"14px 16px",marginBottom:20}}>
+                  <p style={{color:T.muted,fontSize:12,fontWeight:700,marginBottom:4}}>Done when:</p>
+                  <p style={{color:"#C8D8EC",fontSize:13,lineHeight:1.5}}>{level.doneWhen}</p>
+                </div>
+                {!isComplete?
+                  <button onClick={completeLevel} style={{width:"100%",background:T.teal,border:"none",borderRadius:14,padding:"16px",color:"#070D1A",fontWeight:800,fontSize:15,cursor:"pointer",fontFamily:"inherit"}}>I have done this ✓</button>:
+                  <div style={{display:"flex",alignItems:"center",gap:10,justifyContent:"center"}}><Check size={20} color={T.green}/><p style={{color:T.green,fontWeight:800,fontSize:16}}>Level complete!</p></div>
+                }
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
-  </div>)
-  return null
+  )
 }
 
-/* ══════════════════ HOME TAB (= journey map + current focus) ══════════════════ */
+/* ═══════════════════════════════════════════════════════
+   DATA ENTRY COMPONENTS
+   ═══════════════════════════════════════════════════════ */
+function CurrInput({label,hint,value,onChange}){
+  const[raw,setRaw]=useState(value>0?String(value):"")
+  useEffect(()=>{if(value===0||value===null)setRaw("")},[value])
+  return(
+    <div style={{marginBottom:12}}>
+      <p style={{color:"#C8D8EC",fontSize:12,fontWeight:600,marginBottom:5}}>{label}</p>
+      <div style={{display:"flex",alignItems:"center",background:T.card,border:`1px solid ${T.border}`,borderRadius:12,overflow:"hidden"}}>
+        <span style={{padding:"0 12px",color:T.muted,fontSize:15,fontWeight:700}}>£</span>
+        <input type="number" min="0" value={raw} placeholder="0"
+          onChange={e=>{setRaw(e.target.value);onChange(parseFloat(e.target.value)||0)}}
+          style={{flex:1,background:"transparent",border:"none",outline:"none",color:T.white,fontSize:15,fontWeight:600,padding:"12px 12px 12px 0",fontFamily:"inherit"}}/>
+      </div>
+      {hint&&<p style={{color:T.subtle,fontSize:11,marginTop:3}}>{hint}</p>}
+    </div>
+  )
+}
+
+function Level1DataEntry({data,updateNested}){
+  const assets=data.assets||{};const liabs=data.liabilities||{}
+  return(<div>
+    <p style={{color:T.green,fontWeight:800,fontSize:15,marginBottom:12}}>Assets (what you own)</p>
+    {[{id:"cash",label:"Cash / current accounts"},{id:"savings",label:"Savings accounts"},{id:"pension",label:"Pension value",hint:"Check pension app"},{id:"stocksIsa",label:"Stocks & ISA"},{id:"propertyValue",label:"Property value",hint:"Zoopla estimate"},{id:"carValue",label:"Car value",hint:"Autotrader value"},{id:"other",label:"Other assets"}].map(f=>
+      <CurrInput key={f.id} label={f.label} hint={f.hint} value={assets[f.id]||0} onChange={v=>updateNested("assets",f.id,v)}/>
+    )}
+    <p style={{color:T.red,fontWeight:800,fontSize:15,marginTop:20,marginBottom:12}}>Liabilities (what you owe)</p>
+    {[{id:"mortgage",label:"Mortgage remaining"},{id:"creditCards",label:"Credit card balances"},{id:"carFinance",label:"Car finance"},{id:"personalLoans",label:"Personal loans"},{id:"studentLoan",label:"Student loan",hint:"gov.uk/student-loan-repayment"},{id:"otherDebt",label:"Other debt"}].map(f=>
+      <CurrInput key={f.id} label={f.label} hint={f.hint} value={liabs[f.id]||0} onChange={v=>updateNested("liabilities",f.id,v)}/>
+    )}
+  </div>)
+}
+
+function Level2DataEntry({data,updateNested,updateData}){
+  const inc=data.income||{};const fixed=data.fixed||{};const variable=data.variable||{}
+  const[subs,setSubs]=useState(data.subscriptions||[])
+  const[subName,setSubName]=useState("");const[subAmt,setSubAmt]=useState("")
+  function addSub(){if(subName&&subAmt){const ns=[...subs,{name:subName,amount:parseFloat(subAmt)||0}];setSubs(ns);updateData("subscriptions",ns);setSubName("");setSubAmt("")}}
+  function removeSub(i){const ns=subs.filter((_,j)=>j!==i);setSubs(ns);updateData("subscriptions",ns)}
+  return(<div>
+    <p style={{color:T.teal,fontWeight:800,fontSize:15,marginBottom:12}}>Income</p>
+    {[{id:"takeHome",label:"Monthly take-home pay",hint:"What hits your bank"},{id:"sideIncome",label:"Side income (monthly avg)"},{id:"benefits",label:"Benefits / tax credits"},{id:"rentalIncome",label:"Rental income"},{id:"interest",label:"Interest / dividends"},{id:"otherIncome",label:"Other income"}].map(f=>
+      <CurrInput key={f.id} label={f.label} hint={f.hint} value={inc[f.id]||0} onChange={v=>updateNested("income",f.id,v)}/>
+    )}
+    <p style={{color:T.amber,fontWeight:800,fontSize:15,marginTop:20,marginBottom:12}}>Fixed spending</p>
+    {[{id:"rent",label:"Rent / mortgage"},{id:"gasElec",label:"Gas & electricity"},{id:"water",label:"Water"},{id:"councilTax",label:"Council tax"},{id:"phone",label:"Phone"},{id:"internet",label:"Internet"},{id:"transport",label:"Transport"},{id:"insurance",label:"Insurance (total)"}].map(f=>
+      <CurrInput key={f.id} label={f.label} value={fixed[f.id]||0} onChange={v=>updateNested("fixed",f.id,v)}/>
+    )}
+    <p style={{color:T.purple,fontWeight:800,fontSize:15,marginTop:20,marginBottom:12}}>Subscriptions</p>
+    {subs.map((s,i)=>(
+      <div key={i} style={{display:"flex",alignItems:"center",gap:8,marginBottom:8,background:T.card,borderRadius:10,padding:"10px 14px"}}>
+        <p style={{color:T.white,fontSize:13,flex:1}}>{s.name}</p>
+        <p style={{color:T.amber,fontWeight:700,fontSize:13}}>£{s.amount}</p>
+        <button onClick={()=>removeSub(i)} style={{background:"none",border:"none",color:T.red,cursor:"pointer",padding:2}}><X size={14}/></button>
+      </div>
+    ))}
+    <div style={{display:"flex",gap:8,marginBottom:16}}>
+      <input value={subName} onChange={e=>setSubName(e.target.value)} placeholder="Name" style={{flex:2,background:T.card,border:`1px solid ${T.border}`,borderRadius:10,padding:"10px 12px",color:T.white,fontSize:13,fontFamily:"inherit",outline:"none"}}/>
+      <input type="number" value={subAmt} onChange={e=>setSubAmt(e.target.value)} placeholder="£" style={{flex:1,background:T.card,border:`1px solid ${T.border}`,borderRadius:10,padding:"10px 12px",color:T.white,fontSize:13,fontFamily:"inherit",outline:"none",textAlign:"center"}}/>
+      <button onClick={addSub} style={{background:T.tealDim,border:`1px solid ${T.tealBorder}`,borderRadius:10,padding:"10px 14px",color:T.teal,fontWeight:700,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>Add</button>
+    </div>
+    <p style={{color:T.blue,fontWeight:800,fontSize:15,marginTop:8,marginBottom:12}}>Variable spending</p>
+    {[{id:"groceries",label:"Groceries"},{id:"eatingOut",label:"Eating out / takeaways"},{id:"clothing",label:"Clothing / shopping"},{id:"entertainment",label:"Entertainment"},{id:"personalCare",label:"Personal care"},{id:"otherVar",label:"Other"}].map(f=>
+      <CurrInput key={f.id} label={f.label} value={variable[f.id]||0} onChange={v=>updateNested("variable",f.id,v)}/>
+    )}
+  </div>)
+}
+
+function Level5DataEntry({data,updateData}){
+  const[debts,setDebts]=useState(data.debts||[])
+  const[name,setName]=useState("");const[bal,setBal]=useState("");const[apr,setApr]=useState("");const[minP,setMinP]=useState("")
+  function addDebt(){if(name&&bal){const nd=[...debts,{name,balance:parseFloat(bal)||0,apr:parseFloat(apr)||0,minPayment:parseFloat(minP)||0}];setDebts(nd);updateData("debts",nd);setName("");setBal("");setApr("");setMinP("")}}
+  return(<div>
+    <p style={{color:T.red,fontWeight:800,fontSize:15,marginBottom:12}}>Your debts</p>
+    {debts.map((d,i)=>(
+      <div key={i} style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px 16px",marginBottom:8}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <p style={{color:T.white,fontWeight:700,fontSize:14}}>{d.name}</p>
+          <button onClick={()=>{const nd=debts.filter((_,j)=>j!==i);setDebts(nd);updateData("debts",nd)}} style={{background:"none",border:"none",color:T.muted,cursor:"pointer"}}><X size={14}/></button>
+        </div>
+        <div style={{display:"flex",gap:16,marginTop:6}}>
+          <p style={{color:T.red,fontSize:13}}>£{d.balance.toLocaleString()}</p>
+          <p style={{color:T.amber,fontSize:13}}>{d.apr}% APR</p>
+          <p style={{color:T.muted,fontSize:13}}>Min £{d.minPayment}/mo</p>
+        </div>
+      </div>
+    ))}
+    <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px",marginTop:8}}>
+      <p style={{color:T.muted,fontSize:12,fontWeight:700,marginBottom:8}}>Add a debt</p>
+      <div style={{display:"flex",flexDirection:"column",gap:8}}>
+        <input value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Barclaycard" style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,padding:"10px 12px",color:T.white,fontSize:13,fontFamily:"inherit",outline:"none"}}/>
+        <div style={{display:"flex",gap:8}}>
+          <input type="number" value={bal} onChange={e=>setBal(e.target.value)} placeholder="Balance £" style={{flex:1,background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,padding:"10px 12px",color:T.white,fontSize:13,fontFamily:"inherit",outline:"none"}}/>
+          <input type="number" value={apr} onChange={e=>setApr(e.target.value)} placeholder="APR %" style={{flex:1,background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,padding:"10px 12px",color:T.white,fontSize:13,fontFamily:"inherit",outline:"none"}}/>
+          <input type="number" value={minP} onChange={e=>setMinP(e.target.value)} placeholder="Min £/mo" style={{flex:1,background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,padding:"10px 12px",color:T.white,fontSize:13,fontFamily:"inherit",outline:"none"}}/>
+        </div>
+        <button onClick={addDebt} style={{background:T.tealDim,border:`1px solid ${T.tealBorder}`,borderRadius:10,padding:"10px",color:T.teal,fontWeight:700,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>Add debt</button>
+      </div>
+    </div>
+  </div>)
+}
+
+function Level9DataEntry({data,updateNested,age}){
+  const inv=data.investing||{}
+  return(<div>
+    <p style={{color:T.green,fontWeight:800,fontSize:15,marginBottom:12}}>Your investing plan</p>
+    <CurrInput label="Monthly investment amount" hint="From your surplus" value={inv.monthlyInvestment||0} onChange={v=>updateNested("investing","monthlyInvestment",v)}/>
+    <CurrInput label="Any existing ISA balance" value={inv.currentISA||0} onChange={v=>updateNested("investing","currentISA",v)}/>
+    <div style={{marginBottom:12}}>
+      <p style={{color:"#C8D8EC",fontSize:12,fontWeight:600,marginBottom:5}}>Target age to stop working</p>
+      <input type="range" min="50" max="70" value={inv.targetAge||65} onChange={e=>updateNested("investing","targetAge",parseInt(e.target.value))}
+        style={{width:"100%",accentColor:T.teal}}/>
+      <p style={{color:T.teal,fontWeight:800,fontSize:18,textAlign:"center"}}>{inv.targetAge||65}</p>
+    </div>
+  </div>)
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   OUTPUT COMPONENTS (Recharts)
+   ═══════════════════════════════════════════════════════ */
+const fmt=v=>{if(v==null||isNaN(v))return"£0";const a=Math.abs(Math.round(v)).toLocaleString("en-GB");return v<0?`-£${a}`:`£${a}`}
+const fmtK=v=>{if(v==null||isNaN(v))return"£0";const a=Math.abs(v);return a>=1000000?`£${(a/1e6).toFixed(1)}M`:a>=1000?`£${(a/1000).toFixed(0)}k`:`£${Math.round(a)}`}
+const CHART_COLORS=[T.teal,T.green,T.amber,T.purple,T.blue,T.red,"#F472B6"]
+
+function Level1Outputs({data,age}){
+  const assets=data.assets||{};const liabs=data.liabilities||{}
+  const totalA=Object.values(assets).reduce((s,v)=>s+(v||0),0)
+  const totalL=Object.values(liabs).reduce((s,v)=>s+(v||0),0)
+  const nw=totalA-totalL
+  const productive=(assets.cash||0)+(assets.savings||0)+(assets.pension||0)+(assets.stocksIsa||0)
+  const lifestyle=(assets.propertyValue||0)+(assets.carValue||0)+(assets.other||0)
+  const median=getMedian(age)
+  const userAge=age||30
+
+  if(totalA===0&&totalL===0) return(
+    <div style={{textAlign:"center",padding:"40px 20px"}}>
+      <div style={{filter:"blur(6px)",opacity:.3,marginBottom:16}}>
+        <div style={{width:120,height:120,borderRadius:"50%",background:`linear-gradient(135deg,${T.teal}30,${T.purple}30)`,margin:"0 auto"}}/>
+      </div>
+      <p style={{color:T.white,fontWeight:700,fontSize:16}}>Enter your numbers to see your picture</p>
+      <p style={{color:T.muted,fontSize:13,marginTop:6}}>Go to the Your Numbers tab to get started.</p>
+    </div>)
+
+  // Projection data
+  const monthlyGrowth=500
+  const projData=[];let val=nw;for(let y=0;y<=Math.max(70-userAge,10);y++){projData.push({age:userAge+y,slow:Math.round(nw+y*200*12),moderate:Math.round(nw+y*500*12*(1+0.05*y/2)),fast:Math.round(nw+y*1000*12*(1+0.07*y/2))});val=val+monthlyGrowth*12}
+
+  // Pie data
+  const pieData=[];if(productive>0)pieData.push({name:"Productive",value:productive,fill:T.teal});if(lifestyle>0)pieData.push({name:"Lifestyle",value:lifestyle,fill:T.amber});if(totalL>0)pieData.push({name:"Liabilities",value:totalL,fill:T.red})
+
+  // Asset breakdown
+  const assetBars=Object.entries(assets).filter(([,v])=>v>0).map(([k,v],i)=>({name:k.replace(/([A-Z])/g," $1").trim(),value:v,fill:CHART_COLORS[i%7]}))
+
+  return(<div>
+    {/* Net worth hero */}
+    <div style={{textAlign:"center",marginBottom:24}}>
+      <p style={{color:T.muted,fontSize:14,fontWeight:600,marginBottom:6}}>Your net worth today</p>
+      <p style={{fontSize:"clamp(36px,8vw,52px)",fontWeight:900,color:nw>=0?T.teal:T.red,lineHeight:1,textShadow:nw>=0?`0 0 40px ${T.teal}40`:`0 0 40px ${T.red}30`}}>{fmt(nw)}</p>
+    </div>
+
+    {/* Donut */}
+    {pieData.length>0&&(
+      <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:18,padding:"20px",marginBottom:16}}>
+        <p style={{color:T.white,fontWeight:700,fontSize:14,marginBottom:12}}>Composition</p>
+        <div style={{display:"flex",alignItems:"center",gap:20}}>
+          <div style={{width:120,height:120,flexShrink:0}}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart><Pie data={pieData} cx="50%" cy="50%" innerRadius={35} outerRadius={55} dataKey="value" strokeWidth={0}>
+                {pieData.map((e,i)=><Cell key={i} fill={e.fill}/>)}
+              </Pie></PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div style={{flex:1}}>
+            {pieData.map((d,i)=><div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+              <div style={{display:"flex",alignItems:"center",gap:6}}><div style={{width:8,height:8,borderRadius:"50%",background:d.fill}}/><p style={{color:"#C8D8EC",fontSize:12}}>{d.name}</p></div>
+              <p style={{color:d.fill,fontWeight:700,fontSize:12}}>{fmt(d.value)}</p>
+            </div>)}
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* Asset breakdown bar */}
+    {assetBars.length>0&&(
+      <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:18,padding:"20px",marginBottom:16}}>
+        <p style={{color:T.white,fontWeight:700,fontSize:14,marginBottom:12}}>Asset breakdown</p>
+        <div style={{height:140}}>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={assetBars} layout="vertical" margin={{left:0,right:10}}>
+              <XAxis type="number" tick={{fontSize:10,fill:T.muted}} axisLine={false} tickLine={false} tickFormatter={v=>fmtK(v)}/>
+              <YAxis type="category" dataKey="name" tick={{fontSize:10,fill:"#C8D8EC"}} axisLine={false} tickLine={false} width={80}/>
+              <Tooltip formatter={v=>fmt(v)} contentStyle={{background:T.card,border:`1px solid ${T.border}`,borderRadius:10,fontSize:12,color:T.white}}/>
+              <Bar dataKey="value" radius={[0,6,6,0]}>{assetBars.map((e,i)=><Cell key={i} fill={e.fill}/>)}</Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    )}
+
+    {/* Age comparison */}
+    <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:18,padding:"20px",marginBottom:16}}>
+      <p style={{color:T.white,fontWeight:700,fontSize:14,marginBottom:8}}>👥 UK comparison</p>
+      <p style={{color:"#C8D8EC",fontSize:13,lineHeight:1.5}}>
+        The median net worth for someone aged {userAge} in the UK is approximately <strong style={{color:T.teal}}>{fmt(median)}</strong>.
+        {nw>=median?" You are above the median. Tracking puts you on a path to pull ahead.":" Tracking is the first step. People who measure consistently close the gap faster."}
+      </p>
+    </div>
+
+    {/* Projection */}
+    <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:18,padding:"20px",marginBottom:16}}>
+      <p style={{color:T.white,fontWeight:700,fontSize:14,marginBottom:4}}>📈 Where could you be?</p>
+      <p style={{color:T.muted,fontSize:12,marginBottom:14}}>Three scenarios based on monthly net worth growth</p>
+      <div style={{height:200}}>
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={projData} margin={{top:5,right:5,bottom:0,left:0}}>
+            <defs>
+              <linearGradient id="gFast" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={T.teal} stopOpacity={.3}/><stop offset="95%" stopColor={T.teal} stopOpacity={0}/></linearGradient>
+            </defs>
+            <XAxis dataKey="age" tick={{fontSize:10,fill:T.muted}} axisLine={false} tickLine={false}/>
+            <YAxis tick={{fontSize:9,fill:T.subtle}} axisLine={false} tickLine={false} tickFormatter={v=>fmtK(v)} width={42}/>
+            <Tooltip formatter={v=>fmt(v)} labelFormatter={v=>`Age ${v}`} contentStyle={{background:T.card,border:`1px solid ${T.border}`,borderRadius:10,fontSize:12,color:T.white}}/>
+            <Area type="monotone" dataKey="fast" stroke={T.teal} strokeWidth={2} fill="url(#gFast)" dot={false} name="Fast (£1k/mo)"/>
+            <Area type="monotone" dataKey="moderate" stroke={T.amber} strokeWidth={1.5} fill="none" strokeDasharray="4 3" dot={false} name="Moderate (£500/mo)"/>
+            <Area type="monotone" dataKey="slow" stroke={T.muted} strokeWidth={1} fill="none" strokeDasharray="2 4" dot={false} name="Slow (£200/mo)"/>
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+      <div style={{display:"flex",gap:16,marginTop:10,flexWrap:"wrap"}}>
+        <div style={{display:"flex",alignItems:"center",gap:5}}><div style={{width:14,height:3,background:T.teal,borderRadius:2}}/><span style={{color:"#C8D8EC",fontSize:10}}>£1,000/mo</span></div>
+        <div style={{display:"flex",alignItems:"center",gap:5}}><div style={{width:14,height:0,borderTop:`2px dashed ${T.amber}`}}/><span style={{color:"#C8D8EC",fontSize:10}}>£500/mo</span></div>
+        <div style={{display:"flex",alignItems:"center",gap:5}}><div style={{width:14,height:0,borderTop:`1px dashed ${T.muted}`}}/><span style={{color:"#C8D8EC",fontSize:10}}>£200/mo</span></div>
+      </div>
+    </div>
+
+    {/* Personalised paragraph */}
+    <div style={{background:`${nw>=0?T.teal:T.amber}10`,border:`1px solid ${nw>=0?T.tealBorder:T.amberBorder}`,borderRadius:18,padding:"20px"}}>
+      <p style={{color:"#E2EAF6",fontSize:14,lineHeight:1.6}}>
+        {nw<0?"Your net worth is "+fmt(nw)+". This means your debts currently outweigh what you own, which is more common in your 20s than you would think. Your income is your biggest asset right now. The good news: the plan from here is clear. Level 5 deals with debt directly.":
+         nw<50000?"You are net positive, which puts you ahead of many people your age. The projection above shows what consistent, intentional decisions could do to this number over the next 20 to 30 years.":
+         "You have built a solid foundation. The focus now is making sure your assets are working as hard as possible, and that the right proportion is in productive, growing assets."}
+      </p>
+    </div>
+  </div>)
+}
+
+function Level2Outputs({data}){
+  const inc=data.income||{};const fixed=data.fixed||{};const variable=data.variable||{};const subs=data.subscriptions||[]
+  const totalIncome=Object.values(inc).reduce((s,v)=>s+(v||0),0)
+  const totalFixed=Object.values(fixed).reduce((s,v)=>s+(v||0),0)
+  const totalSubs=subs.reduce((s,x)=>s+(x.amount||0),0)
+  const totalVar=Object.values(variable).reduce((s,v)=>s+(v||0),0)
+  const totalSpend=totalFixed+totalSubs+totalVar
+  const surplus=totalIncome-totalSpend
+
+  if(totalIncome===0) return(
+    <div style={{textAlign:"center",padding:"40px 20px"}}>
+      <div style={{filter:"blur(6px)",opacity:.3,marginBottom:16}}><div style={{width:120,height:30,borderRadius:6,background:`linear-gradient(90deg,${T.teal}40,${T.amber}40,${T.purple}40)`,margin:"0 auto"}}/></div>
+      <p style={{color:T.white,fontWeight:700,fontSize:16}}>Enter your income and spending</p>
+      <p style={{color:T.muted,fontSize:13,marginTop:6}}>Go to Your Numbers to get started.</p>
+    </div>)
+
+  const barData=[{name:"Income",value:totalIncome,fill:T.teal}];if(totalFixed>0)barData.push({name:"Fixed",value:totalFixed,fill:T.amber});if(totalSubs>0)barData.push({name:"Subs",value:totalSubs,fill:T.purple});if(totalVar>0)barData.push({name:"Variable",value:totalVar,fill:T.blue});if(surplus>0)barData.push({name:"Surplus",value:surplus,fill:T.green})
+
+  const spendPct=totalIncome>0?Math.round(totalSpend/totalIncome*100):0
+
+  return(<div>
+    {/* Surplus hero */}
+    <div style={{textAlign:"center",marginBottom:24}}>
+      <p style={{color:T.muted,fontSize:14,fontWeight:600,marginBottom:6}}>Your monthly surplus</p>
+      <p style={{fontSize:"clamp(36px,8vw,48px)",fontWeight:900,color:surplus>=0?T.green:T.red,lineHeight:1}}>{fmt(surplus)}</p>
+      <p style={{color:"#C8D8EC",fontSize:13,marginTop:8}}>{surplus>=0?"This is what you have to work with each month.":"You are currently spending more than you earn."}</p>
+    </div>
+
+    {/* Stacked bar */}
+    <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:18,padding:"20px",marginBottom:16}}>
+      <p style={{color:T.white,fontWeight:700,fontSize:14,marginBottom:12}}>Monthly breakdown</p>
+      <div style={{height:160}}>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={barData} margin={{left:0,right:10}}>
+            <XAxis dataKey="name" tick={{fontSize:10,fill:"#C8D8EC"}} axisLine={false} tickLine={false}/>
+            <YAxis tick={{fontSize:9,fill:T.subtle}} axisLine={false} tickLine={false} tickFormatter={v=>fmtK(v)} width={42}/>
+            <Tooltip formatter={v=>fmt(v)} contentStyle={{background:T.card,border:`1px solid ${T.border}`,borderRadius:10,fontSize:12,color:T.white}}/>
+            <Bar dataKey="value" radius={[6,6,0,0]}>{barData.map((e,i)=><Cell key={i} fill={e.fill}/>)}</Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+
+    {/* Spending % */}
+    <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:18,padding:"20px",marginBottom:16}}>
+      <p style={{color:T.white,fontWeight:700,fontSize:14,marginBottom:8}}>Spending ratio</p>
+      <p style={{color:"#C8D8EC",fontSize:13,lineHeight:1.5}}>You are spending <strong style={{color:spendPct>80?T.amber:T.teal}}>{spendPct}%</strong> of your income. The 50/30/20 guideline suggests 80% spending and 20% saving/investing.</p>
+    </div>
+
+    {/* Subscriptions spotlight */}
+    {totalSubs>0&&(
+      <div style={{background:T.purpleDim,border:`1px solid ${T.purpleBorder}`,borderRadius:18,padding:"20px",marginBottom:16}}>
+        <p style={{color:T.purple,fontWeight:700,fontSize:14,marginBottom:6}}>📱 Subscription spotlight</p>
+        <p style={{color:"#C8D8EC",fontSize:13,lineHeight:1.5}}>Your subscriptions total <strong style={{color:T.purple}}>{fmt(totalSubs)}/month</strong> which is <strong>{fmt(totalSubs*12)}/year</strong>.</p>
+        <div style={{marginTop:10}}>{subs.map((s,i)=><p key={i} style={{color:"#C8D8EC",fontSize:12,marginBottom:3}}>· {s.name}: £{s.amount}/mo</p>)}</div>
+      </div>
+    )}
+
+    {/* Coffee calculator */}
+    <CoffeeCalculator/>
+
+    {/* Annual impact */}
+    {surplus>0&&(
+      <div style={{background:T.greenDim,border:`1px solid rgba(52,211,153,.3)`,borderRadius:18,padding:"20px"}}>
+        <p style={{color:T.green,fontWeight:700,fontSize:14,marginBottom:6}}>Annual impact</p>
+        <p style={{color:"#C8D8EC",fontSize:13,lineHeight:1.5}}>Your monthly surplus of {fmt(surplus)} is <strong style={{color:T.green}}>{fmt(surplus*12)}/year</strong>. Invested at 7% average growth, that becomes approximately {fmt(Math.round(surplus*12*((Math.pow(1.07,20)-1)/0.07)))} over 20 years.</p>
+      </div>
+    )}
+  </div>)
+}
+
+function CoffeeCalculator(){
+  const[monthly,setMonthly]=useState(100)
+  const calcGrowth=(m,years)=>Math.round(m*12*((Math.pow(1.07,years)-1)/0.07))
+  const chartData=[{year:0,value:0},{year:5,value:calcGrowth(monthly,5)},{year:10,value:calcGrowth(monthly,10)},{year:20,value:calcGrowth(monthly,20)},{year:30,value:calcGrowth(monthly,30)}]
+
+  return(
+    <div style={{background:T.card,border:`1.5px solid ${T.tealBorder}`,borderRadius:20,padding:"22px",marginBottom:16}}>
+      <p style={{color:T.teal,fontWeight:800,fontSize:15,marginBottom:4}}>☕ What if you redirected £{monthly}/month?</p>
+      <p style={{color:T.muted,fontSize:12,marginBottom:14}}>Projected at 7% average annual growth</p>
+      <input type="range" min="25" max="500" step="25" value={monthly} onChange={e=>setMonthly(Number(e.target.value))}
+        style={{width:"100%",accentColor:T.teal,marginBottom:12}}/>
+      <p style={{color:T.teal,fontWeight:900,fontSize:22,textAlign:"center",marginBottom:12}}>£{monthly}/month</p>
+      <div style={{height:140}}>
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={chartData} margin={{top:5,right:5,bottom:0,left:0}}>
+            <defs><linearGradient id="gCoffee" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={T.teal} stopOpacity={.3}/><stop offset="95%" stopColor={T.teal} stopOpacity={0}/></linearGradient></defs>
+            <XAxis dataKey="year" tick={{fontSize:10,fill:T.muted}} axisLine={false} tickLine={false} tickFormatter={v=>`${v}yr`}/>
+            <YAxis tick={{fontSize:9,fill:T.subtle}} axisLine={false} tickLine={false} tickFormatter={v=>fmtK(v)} width={42}/>
+            <Tooltip formatter={v=>fmt(v)} labelFormatter={v=>`${v} years`} contentStyle={{background:T.card,border:`1px solid ${T.border}`,borderRadius:10,fontSize:12,color:T.white}}/>
+            <Area type="monotone" dataKey="value" stroke={T.teal} strokeWidth={2.5} fill="url(#gCoffee)" dot={{fill:T.teal,r:4}} name="Portfolio value"/>
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+      <div style={{display:"flex",flexDirection:"column",gap:6,marginTop:14}}>
+        <p style={{color:"#C8D8EC",fontSize:12}}>· £5/day coffee = £150/mo → <strong style={{color:T.teal}}>{fmtK(calcGrowth(150,20))}</strong> in 20 years</p>
+        <p style={{color:"#C8D8EC",fontSize:12}}>· £50/mo less eating out → <strong style={{color:T.teal}}>{fmtK(calcGrowth(50,20))}</strong> in 20 years</p>
+        <p style={{color:"#C8D8EC",fontSize:12}}>· Cancel 3 subs (£40/mo) → <strong style={{color:T.teal}}>{fmtK(calcGrowth(40,20))}</strong> in 20 years</p>
+      </div>
+      <p style={{color:T.muted,fontSize:11,marginTop:10}}>This is not about deprivation. It is about knowing the true cost of each choice.</p>
+    </div>
+  )
+}
+
+function Level9Outputs({data,age,state}){
+  const inv=data.investing||{};const monthly=inv.monthlyInvestment||0;const currentISA=inv.currentISA||0;const targetAge=inv.targetAge||65
+  const userAge=age||30;const years=Math.max(targetAge-userAge,5)
+  if(monthly===0&&currentISA===0) return(<div style={{textAlign:"center",padding:"40px 20px"}}><div style={{filter:"blur(6px)",opacity:.3,marginBottom:16}}><div style={{width:120,height:60,borderRadius:6,background:`linear-gradient(135deg,${T.teal}30,${T.green}30)`,margin:"0 auto"}}/></div><p style={{color:T.white,fontWeight:700,fontSize:16}}>Enter your investing numbers</p></div>)
+
+  const projData=[];for(let y=0;y<=years;y++){
+    const con=currentISA+monthly*12*y
+    const mod=Math.round((currentISA*(Math.pow(1.07,y)))+(monthly*12*((Math.pow(1.07,y)-1)/0.07)))
+    const grow=Math.round((currentISA*(Math.pow(1.09,y)))+(monthly*12*((Math.pow(1.09,y)-1)/0.09)))
+    projData.push({age:userAge+y,conservative:Math.round((currentISA*(Math.pow(1.05,y)))+(monthly*12*((Math.pow(1.05,y)-1)/0.05))),moderate:mod,growth:grow})
+  }
+  const finalMod=projData[projData.length-1]?.moderate||0
+  const passiveIncome=Math.round(finalMod*0.04)
+
+  return(<div>
+    <div style={{textAlign:"center",marginBottom:24}}>
+      <p style={{color:T.muted,fontSize:14,fontWeight:600,marginBottom:6}}>Projected portfolio at age {targetAge}</p>
+      <p style={{fontSize:"clamp(32px,8vw,48px)",fontWeight:900,color:T.teal,lineHeight:1}}>{fmtK(finalMod)}</p>
+      <p style={{color:"#C8D8EC",fontSize:13,marginTop:8}}>At {fmt(monthly)}/month with 7% average growth</p>
+    </div>
+
+    <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:18,padding:"20px",marginBottom:16}}>
+      <p style={{color:T.white,fontWeight:700,fontSize:14,marginBottom:12}}>Compound growth projection</p>
+      <div style={{height:220}}>
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={projData} margin={{top:5,right:5,bottom:0,left:0}}>
+            <defs><linearGradient id="gInv" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={T.teal} stopOpacity={.3}/><stop offset="95%" stopColor={T.teal} stopOpacity={0}/></linearGradient></defs>
+            <XAxis dataKey="age" tick={{fontSize:10,fill:T.muted}} axisLine={false} tickLine={false}/>
+            <YAxis tick={{fontSize:9,fill:T.subtle}} axisLine={false} tickLine={false} tickFormatter={v=>fmtK(v)} width={48}/>
+            <Tooltip formatter={v=>fmt(v)} labelFormatter={v=>`Age ${v}`} contentStyle={{background:T.card,border:`1px solid ${T.border}`,borderRadius:10,fontSize:12,color:T.white}}/>
+            <Area type="monotone" dataKey="growth" stroke={T.green} strokeWidth={1.5} fill="none" strokeDasharray="4 3" dot={false} name="Growth (9%)"/>
+            <Area type="monotone" dataKey="moderate" stroke={T.teal} strokeWidth={2.5} fill="url(#gInv)" dot={false} name="Moderate (7%)"/>
+            <Area type="monotone" dataKey="conservative" stroke={T.muted} strokeWidth={1} fill="none" strokeDasharray="2 4" dot={false} name="Conservative (5%)"/>
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+
+    {/* Freedom indicator */}
+    <div style={{background:`${T.teal}10`,border:`1.5px solid ${T.tealBorder}`,borderRadius:18,padding:"20px"}}>
+      <p style={{color:T.teal,fontWeight:800,fontSize:15,marginBottom:8}}>🔥 Financial freedom indicator</p>
+      <p style={{color:"#E2EAF6",fontSize:14,lineHeight:1.6}}>
+        At this rate, your projected portfolio at age {targetAge} could generate approximately <strong style={{color:T.teal}}>{fmt(passiveIncome)}/year</strong> in passive income (at 4% drawdown rate).
+      </p>
+    </div>
+  </div>)
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   HOME TAB — Journey map with all 9 levels
+   ═══════════════════════════════════════════════════════ */
 function HomeTab(){
   const{state,toast}=useApp()
   const{profile}=state
-  const currentLevel=profile.currentLevel||1
-  const completed=new Set(profile.completedLevels||[])
+  const lp=state.learningProgress||{currentLevel:1,completedLevels:[],levelData:{}}
+  const currentLevel=lp.currentLevel||1
+  const completed=new Set(lp.completedLevels||[])
   const[activeLevel,setActiveLevel]=useState(null)
   const[warning,setWarning]=useState(null)
   const[showQuiz,setShowQuiz]=useState(false)
@@ -578,43 +913,61 @@ function HomeTab(){
   function handleTap(level){
     const diff=level.n-currentLevel
     if(diff<=1||completed.has(level.n)){setActiveLevel(level.n);return}
-    if(level.n>=10&&level.n<=12&&!completed.has(4)){setWarning({type:"red",level,msg:"You have high-interest debt at Level 4. Investing while paying high APR means your debt grows faster than your investments.",link:4,linkText:"Level 4: the maths will shock you →"});return}
-    if(level.n>=10&&!completed.has(7)){setWarning({type:"amber",level,msg:"Check your pension match at Level 7 before opening an ISA. Free money first.",link:7,linkText:"Level 7: capture free money →"});return}
-    if(level.n>=7&&currentLevel<=3){setWarning({type:"amber",level,msg:"These lessons land better once your foundation is solid.",link:currentLevel,linkText:`Continue with Level ${currentLevel} →`});return}
+    if(level.n>=8&&!completed.has(5)){setWarning({type:"red",level,msg:"You have high-interest debt at Level 5 that has not been addressed. Investing while paying high APR means your debt grows faster than most investments earn.",link:5,linkText:"Level 5: the maths will shock you →"});return}
+    if(level.n>=8&&!completed.has(6)){setWarning({type:"amber",level,msg:"Without an emergency fund, you might need to sell investments at the wrong moment. Consider completing Level 6 first.",link:6,linkText:"Level 6: build your safety net →"});return}
+    if(diff>=2){setWarning({type:"amber",level,msg:"A couple of things earlier in the journey will help this land better. But you are welcome to read ahead.",link:currentLevel,linkText:`Continue with Level ${currentLevel} →`});return}
     setActiveLevel(level.n)
   }
 
   if(showQuiz)return<PersonalityQuiz state={state} onClose={()=>setShowQuiz(false)}/>
   if(activeLevel){const lv=LEVELS.find(l=>l.n===activeLevel);if(!lv){setActiveLevel(null);return null};return<LevelPlayer level={lv} onBack={()=>setActiveLevel(null)}/>}
 
-  const phases=["Foundations","Stabilise","Optimise","Grow","Protect"]
   const level=LEVELS.find(l=>l.n===currentLevel)||LEVELS[0]
   const pc_=PC[level.phase]||T.teal
+  const phases=["Foundations","Stabilise","Optimise","Grow"]
 
   return(
     <div style={{flex:1,overflowY:"auto",paddingBottom:100}}>
-      {/* Greeting + current level hero */}
+      {/* Hero greeting */}
       <div style={{position:"relative",background:`linear-gradient(180deg,${pc_}12 0%,transparent 100%)`,padding:"28px 20px 20px"}}>
         <StarField count={8}/>
         <div style={{position:"relative",maxWidth:600,margin:"0 auto"}}>
           <p style={{color:T.white,fontWeight:800,fontSize:22,marginBottom:4}}>Hey {profile.name} 👋</p>
-          <p style={{color:T.muted,fontSize:14,marginBottom:18}}>Level {currentLevel} of 15 · {getPhase(currentLevel)}</p>
+          <p style={{color:T.muted,fontSize:14,marginBottom:18}}>Level {currentLevel} of 9 · {getPhase(currentLevel)}</p>
 
-          {/* Current level hero */}
+          {/* Current level card */}
           <div style={{background:`linear-gradient(145deg,${pc_}12,${pc_}04)`,border:`2px solid ${pc_}40`,borderRadius:22,padding:"22px",position:"relative",overflow:"hidden"}}>
             <div style={{position:"absolute",top:-40,right:-40,width:120,height:120,borderRadius:"50%",background:`radial-gradient(circle,${pc_}15 0%,transparent 70%)`,pointerEvents:"none"}}/>
-            <p style={{color:pc_,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:10}}>Your focus now · Level {currentLevel}</p>
-            <h2 style={{color:T.white,fontWeight:900,fontSize:19,lineHeight:1.2,marginBottom:8}}>{level.title}</h2>
-            <p style={{color:"#C8D8EC",fontSize:13,lineHeight:1.5,marginBottom:16}}>{level.hook}</p>
+            <p style={{color:pc_,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:10}}>Your focus · Level {currentLevel}</p>
+            <h2 style={{color:T.white,fontWeight:900,fontSize:18,lineHeight:1.2,marginBottom:8}}>{level.title}</h2>
+            <p style={{color:"#C8D8EC",fontSize:13,lineHeight:1.5,marginBottom:4}}>{level.hook}</p>
+            <p style={{color:T.muted,fontSize:11,marginBottom:16}}>~{level.time} minutes</p>
             <button onClick={()=>setActiveLevel(currentLevel)} style={{width:"100%",background:T.teal,border:"none",borderRadius:14,padding:"14px",color:"#070D1A",fontWeight:800,fontSize:14,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
               <Zap size={16}/>Start Level {currentLevel}
             </button>
+          </div>
+
+          {/* How this helps */}
+          <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:18,padding:"18px",marginTop:14}}>
+            <p style={{color:T.white,fontWeight:700,fontSize:13,marginBottom:8}}>What completing all 9 levels gives you</p>
+            <div style={{display:"flex",flexDirection:"column",gap:6}}>
+              {[
+                "Know exactly what comes in and goes out each month",
+                "No high-interest debt, or a plan with a payoff date",
+                "An emergency fund covering 3 months of expenses",
+                "A Stocks and Shares ISA with automated monthly investing",
+                "A complete picture of your net worth at age 70",
+              ].map((item,i)=><div key={i} style={{display:"flex",alignItems:"flex-start",gap:8}}>
+                <Check size={13} color={T.teal} style={{flexShrink:0,marginTop:2}}/>
+                <p style={{color:"#C8D8EC",fontSize:12,lineHeight:1.4}}>{item}</p>
+              </div>)}
+            </div>
           </div>
         </div>
       </div>
 
       <div style={{maxWidth:600,margin:"0 auto",padding:"0 18px"}}>
-        {/* Quick wins + personality quiz */}
+        {/* Quick wins + quiz */}
         <div style={{display:"flex",gap:10,overflowX:"auto",paddingBottom:8,marginTop:20,marginBottom:24,scrollbarWidth:"none"}}>
           {!profile.personalityResult&&<button onClick={()=>setShowQuiz(true)} style={{flexShrink:0,background:`linear-gradient(135deg,${T.purpleDim},rgba(167,139,250,.03))`,border:`1.5px solid ${T.purpleBorder}`,borderRadius:14,padding:"12px 16px",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:8}}>
             <span style={{fontSize:16}}>🧠</span><div style={{textAlign:"left"}}><p style={{color:T.purple,fontWeight:700,fontSize:12,whiteSpace:"nowrap"}}>Money personality quiz</p><p style={{color:T.muted,fontSize:10}}>4 min · 8 types</p></div>
@@ -624,20 +977,20 @@ function HomeTab(){
           </button>)}
         </div>
 
-        {/* All 15 levels journey map */}
-        <p style={{color:T.white,fontWeight:800,fontSize:17,marginBottom:16}}>Your 15 Level Plan</p>
+        {/* Journey map */}
+        <p style={{color:T.white,fontWeight:800,fontSize:17,marginBottom:16}}>Your 9 Level Journey</p>
         {phases.map(phase=>{
           const phaseLevels=LEVELS.filter(l=>l.phase===phase)
-          const pc2=PC[phase];const pe=PE[phase]
+          const pc2=PC[phase]||T.teal;const pe=PE[phase]||"📦"
           return(<div key={phase} style={{marginBottom:24}}>
             <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
               <span style={{fontSize:16}}>{pe}</span><p style={{color:pc2,fontWeight:800,fontSize:12,letterSpacing:.5,textTransform:"uppercase"}}>{phase}</p>
             </div>
             {phaseLevels.map((lv,i)=>{
               const isDone=completed.has(lv.n);const isCurrent=lv.n===currentLevel;const isFuture=lv.n>currentLevel&&!isDone;const isLast=i===phaseLevels.length-1
-              const prog2=profile.levelProgress?.[lv.n]||{microsDone:[],videosDone:[],actionDone:false}
-              const microCount=lv.micros.length;const videoCount=lv.videos.length
-              return(<div key={lv.n} style={{display:"flex",gap:14,marginBottom:isLast?0:0}}>
+              const ld=lp.levelData?.[`level${lv.n}`]
+              const hasData=ld&&Object.values(ld).some(v=>v!==null&&v!==false&&v!==undefined&&!(typeof v==="object"&&Object.keys(v).length===0))
+              return(<div key={lv.n} style={{display:"flex",gap:14}}>
                 <div style={{display:"flex",flexDirection:"column",alignItems:"center",width:28,flexShrink:0}}>
                   <div style={{width:isDone?24:isCurrent?28:20,height:isDone?24:isCurrent?28:20,borderRadius:"50%",
                     background:isDone?T.green:isCurrent?T.teal:T.faint,border:`2.5px solid ${isDone?T.green:isCurrent?T.teal:T.border}`,
@@ -647,7 +1000,7 @@ function HomeTab(){
                   </div>
                   {!isLast&&<div style={{width:2,flex:1,background:isDone?`${T.green}40`:T.border,minHeight:16}}/>}
                 </div>
-                <button onClick={()=>handleTap(lv)} style={{flex:1,background:isCurrent?`${T.teal}08`:T.card,border:`1.5px solid ${isCurrent?T.tealBorder:isDone?`${T.green}20`:T.border}`,borderRadius:18,padding:"14px 16px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",marginBottom:10,opacity:isFuture?.65:1}}>
+                <button onClick={()=>handleTap(lv)} style={{flex:1,background:isCurrent?`${T.teal}08`:T.card,border:`1.5px solid ${isCurrent?T.tealBorder:isDone?`${T.green}20`:T.border}`,borderRadius:18,padding:"14px 16px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",marginBottom:10,opacity:isFuture?.6:1}}>
                   <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4}}>
                     <p style={{color:isDone?T.green:isCurrent?T.teal:T.muted,fontSize:10,fontWeight:700,letterSpacing:.5,textTransform:"uppercase"}}>{phase}</p>
                     {isDone&&<span style={{background:T.greenDim,color:T.green,fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:99}}>Done</span>}
@@ -656,11 +1009,11 @@ function HomeTab(){
                   </div>
                   <p style={{color:isDone?"#7A8FA8":T.white,fontWeight:700,fontSize:14,lineHeight:1.3,textDecoration:isDone?"line-through":"none"}}>{lv.title}</p>
                   <p style={{color:T.muted,fontSize:12,marginTop:4,lineHeight:1.35}}>{lv.hook.length>65?lv.hook.slice(0,63)+"...":lv.hook}</p>
-                  {/* Content indicators */}
                   <div style={{display:"flex",gap:8,marginTop:8}}>
-                    <span style={{color:T.muted,fontSize:10}}>⚡ {microCount} lesson{microCount>1?"s":""}</span>
-                    {videoCount>0&&<span style={{color:T.muted,fontSize:10}}>🎬 {videoCount} video{videoCount>1?"s":""}</span>}
-                    <span style={{color:T.muted,fontSize:10}}>✅ 1 action</span>
+                    <span style={{color:T.muted,fontSize:10}}>📖 {lv.sections.length} sections</span>
+                    {lv.videos.length>0&&<span style={{color:T.muted,fontSize:10}}>🎬 {lv.videos.length} videos</span>}
+                    <span style={{color:T.muted,fontSize:10}}>~{lv.time} min</span>
+                    {hasData&&<span style={{color:T.teal,fontSize:10}}>📊 Data entered</span>}
                   </div>
                 </button>
               </div>)})}
@@ -683,7 +1036,6 @@ function HomeTab(){
       </div>}
     </div>)
 }
-
 
 /* ══════════════════ PERSONALITY QUIZ UI ══════════════════ */
 function PersonalityQuiz({state:_st,onClose}){
@@ -768,7 +1120,6 @@ function PersonalityResult({result,onClose}){
   </div>)
 }
 
-/* ══════════════════ LEARN TAB ══════════════════ */
 function LearnTab(){
   const{toast}=useApp();const[expanded,setExpanded]=useState(null)
   return(<div style={{flex:1,overflowY:"auto",paddingBottom:100}}>
@@ -796,8 +1147,9 @@ function LearnTab(){
 /* ══════════════════ ME TAB ══════════════════ */
 function MeTab(){
   const{state,save,reset}=useApp();const{profile}=state
-  const currentLevel=profile.currentLevel||1;const phase=getPhase(currentLevel);const phaseColor=PC[phase]
-  const completedCount=(profile.completedLevels||[]).length;const xp=profile.xp||0
+  const lp=state.learningProgress||{currentLevel:1,completedLevels:[]}
+  const currentLevel=lp.currentLevel||1;const phase=getPhase(currentLevel);const phaseColor=PC[phase]
+  const completedCount=(lp.completedLevels||[]).length;const xp=profile.xp||0
   const isHalal=profile.situations?.includes("faith");const initials=(profile.name||"?").slice(0,2).toUpperCase()
   const[showQuiz,setShowQuiz]=useState(false)
   const arch=profile.personalityResult?.archetype
@@ -811,7 +1163,7 @@ function MeTab(){
     <div style={{padding:"32px 20px 24px",textAlign:"center"}}>
       <div style={{width:72,height:72,borderRadius:22,background:`linear-gradient(135deg,${T.teal},${T.purple})`,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 14px",boxShadow:`0 8px 32px rgba(15,191,184,.3)`}}><p style={{color:"#FFF",fontWeight:900,fontSize:24}}>{initials}</p></div>
       <p style={{color:T.white,fontWeight:800,fontSize:20}}>{profile.name||"You"}</p>
-      <p style={{color:T.muted,fontSize:13,marginTop:4}}>Level {currentLevel} of 15</p>
+      <p style={{color:T.muted,fontSize:13,marginTop:4}}>Level {currentLevel} of 9</p>
       <div style={{display:"flex",gap:6,justifyContent:"center",flexWrap:"wrap",marginTop:14}}>
         <span style={{background:T.faint,color:T.white,fontSize:11,fontWeight:700,padding:"5px 12px",borderRadius:99,border:`1px solid ${T.border}`}}>⚡ Level {currentLevel}</span>
         <span style={{background:`${phaseColor}12`,color:phaseColor,fontSize:11,fontWeight:700,padding:"5px 12px",borderRadius:99,border:`1px solid ${phaseColor}30`}}>{PE[phase]} {phase}</span>
@@ -839,7 +1191,7 @@ function MeTab(){
       <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:20,padding:"20px",marginBottom:16}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
           <div><p style={{color:T.teal,fontWeight:900,fontSize:28}}>{xp} XP</p><p style={{color:T.muted,fontSize:12}}>Total earned</p></div>
-          <div style={{textAlign:"right"}}><p style={{color:T.white,fontWeight:700,fontSize:14}}>{completedCount} levels done</p><p style={{color:T.muted,fontSize:12}}>{15-completedCount} remaining</p></div>
+          <div style={{textAlign:"right"}}><p style={{color:T.white,fontWeight:700,fontSize:14}}>{completedCount} levels done</p><p style={{color:T.muted,fontSize:12}}>{9-completedCount} remaining</p></div>
         </div>
         <div style={{background:T.surface,borderRadius:99,height:6,overflow:"hidden"}}><div style={{width:`${xpPct}%`,height:"100%",background:`linear-gradient(90deg,${T.teal},${T.purple})`,borderRadius:99}}/></div>
         <p style={{color:T.muted,fontSize:11,marginTop:6}}>{nextM-xp} XP to next milestone</p>
@@ -849,7 +1201,7 @@ function MeTab(){
       <div style={{background:T.card,border:`1px solid ${phaseColor}25`,borderRadius:20,padding:"20px",marginBottom:16}}>
         <p style={{color:phaseColor,fontWeight:800,fontSize:14,marginBottom:6}}>{PE[phase]} {phase}</p>
         <p style={{color:"#C8D8EC",fontSize:13,lineHeight:1.5}}>
-          {phase==="Foundations"?"Getting the real picture of your finances.":phase==="Stabilise"?"Building safety and clearing costly debt.":phase==="Optimise"?"Making your money work harder.":phase==="Grow"?"Growing real wealth for the long term.":"Protecting what you have built."}
+          {phase==="Foundations"?"Getting the real picture of your finances.":phase==="Stabilise"?"Building safety and clearing costly debt.":phase==="Optimise"?"Capturing free money and tax savings.":"Growing real wealth through ISAs and investing."}
         </p>
       </div>
 
