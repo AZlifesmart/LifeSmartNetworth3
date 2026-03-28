@@ -1,665 +1,416 @@
 import { useState, useEffect, useContext, createContext, useMemo, useRef } from "react"
-import { Home, BookOpen, User, Check, X, ChevronLeft, ChevronRight, Pencil, Trash2, Plus, Star, Sparkles, TrendingUp, BarChart2, Shield, Lock, Target, Zap, Info, Clock } from "lucide-react"
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, ReferenceLine } from "recharts"
+import { Home, Map, BookOpen, User, Check, X, ChevronLeft, ChevronRight, Pencil, Trash2, Plus, Lock, Clock, Play, ChevronDown, AlertTriangle, Zap, Award, RotateCcw } from "lucide-react"
 
+/* ════════════════════════════════════════════════════════════════════
+   STYLES
+   ════════════════════════════════════════════════════════════════════ */
 const G = `
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;0,9..40,900;1,9..40,400&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Outfit',system-ui,sans-serif;background:#070D1A;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body{font-family:'DM Sans',system-ui,sans-serif;background:#070D1A;-webkit-font-smoothing:antialiased}
 input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 input[type=number]{-moz-appearance:textfield}
 ::-webkit-scrollbar{width:3px;height:3px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:#1C2D47;border-radius:99px}
-
-/* ── Keyframes ── */
-@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
-@keyframes twinkle{0%,100%{opacity:.08;transform:scale(1)}50%{opacity:.9;transform:scale(1.6)}}
-@keyframes slideIn{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:translateX(0)}}
-@keyframes slideUp{from{opacity:0;transform:translateY(100%)}to{opacity:1;transform:translateY(0)}}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(15,191,184,.35)}70%{box-shadow:0 0 0 12px rgba(15,191,184,0)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes twinkle{0%,100%{opacity:.06;transform:scale(1)}50%{opacity:.8;transform:scale(1.5)}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(15,191,184,.3)}70%{box-shadow:0 0 0 10px rgba(15,191,184,0)}}
 @keyframes shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
-@keyframes countUp{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:scale(1)}}
-@keyframes slideCard{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
 @keyframes confettiFall{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
 @keyframes slideDown{from{transform:translateX(-50%) translateY(-20px);opacity:0}to{transform:translateX(-50%) translateY(0);opacity:1}}
-@keyframes glow{0%,100%{box-shadow:0 0 20px rgba(15,191,184,.15)}50%{box-shadow:0 0 50px rgba(15,191,184,.45)}}
-@keyframes rocketFly{0%{transform:translate(-120px,60px) rotate(-20deg);opacity:0}15%{opacity:1}85%{opacity:1}100%{transform:translate(calc(100vw + 120px),-60px) rotate(-20deg);opacity:0}}
-@keyframes rocketBob{0%,100%{transform:translateY(0) rotate(-18deg)}50%{transform:translateY(-8px) rotate(-18deg)}}
-@keyframes nebulaPulse{0%,100%{opacity:.18;transform:scale(1)}50%{opacity:.28;transform:scale(1.05)}}
-@keyframes numberPop{0%{transform:scale(.7);opacity:0}60%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
-
-/* ── Utility classes ── */
+.ls-fadein{animation:fadeUp .45s ease-out forwards}
 .ls-float{animation:float 5s ease-in-out infinite}
 .ls-star{animation:twinkle var(--d,2.5s) ease-in-out var(--dl,0s) infinite}
-.ls-fadein{animation:fadeUp .5s ease-out forwards}
-.ls-slidein{animation:slideIn .35s ease-out forwards}
-.ls-slidecard{animation:slideCard .4s ease-out forwards}
-.ls-countup{animation:countUp .65s cubic-bezier(.34,1.56,.64,1) forwards}
 .ls-pulse{animation:pulse 2.5s ease-in-out infinite}
-.ls-shimmer{background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.05) 50%,transparent 100%);background-size:200% 100%;animation:shimmer 2.5s linear infinite}
-.ls-glow{animation:glow 4s ease-in-out infinite}
-.ls-rocket-fly{animation:rocketFly 6s ease-in-out forwards}
-.ls-rocket-bob{animation:rocketBob 3s ease-in-out infinite}
-.ls-nebula{animation:nebulaPulse 8s ease-in-out infinite}
-.ls-numpop{animation:numberPop .5s cubic-bezier(.34,1.56,.64,1) forwards}
-
-.ls-card-glass{
-  background: linear-gradient(145deg, rgba(13,25,44,.97) 0%, rgba(9,17,32,.99) 100%);
-  box-shadow: 0 1px 0 rgba(255,255,255,.04) inset, 0 8px 32px rgba(0,0,0,.4);
-}
-.ls-card-lift{
-  transition: transform .18s ease, box-shadow .18s ease;
-}
-.ls-card-lift:hover{
-  transform: translateY(-2px);
-  box-shadow: 0 12px 40px rgba(0,0,0,.4);
-}
 button{-webkit-tap-highlight-color:transparent}
 `
 
-const T = {
-  bg:"#070D1A", surface:"#0B1424", card:"#0F1D32", cardHover:"#142240",
-  border:"#1B2C45", borderLight:"#223A5E",
-  teal:"#0FBFB8", tealMid:"#14D4CC", tealDim:"rgba(15,191,184,.10)", tealBorder:"rgba(15,191,184,.30)",
-  amber:"#F59E0B", amberDim:"rgba(245,158,11,.10)", amberBorder:"rgba(245,158,11,.28)",
-  red:"#F87171", redDim:"rgba(248,113,113,.10)", redBorder:"rgba(248,113,113,.28)",
-  purple:"#A78BFA", purpleDim:"rgba(167,139,250,.12)", purpleBorder:"rgba(167,139,250,.3)",
-  green:"#34D399", greenDim:"rgba(52,211,153,.10)", blue:"#60A5FA", blueDim:"rgba(96,165,250,.1)", blueBorder:"rgba(96,165,250,.3)",
-  white:"#F0F6FF", muted:"#8FA3BE", subtle:"#344D68", faint:"#162038"
+/* ════════════════════════════════════════════════════════════════════
+   THEME
+   ════════════════════════════════════════════════════════════════════ */
+const T={
+  bg:"#070D1A",surface:"#0B1424",card:"#0F1D32",cardHover:"#142240",
+  border:"#1B2C45",borderLight:"#223A5E",
+  teal:"#0FBFB8",tealMid:"#14D4CC",tealDim:"rgba(15,191,184,.10)",tealBorder:"rgba(15,191,184,.30)",
+  amber:"#F59E0B",amberDim:"rgba(245,158,11,.10)",amberBorder:"rgba(245,158,11,.28)",
+  red:"#F87171",redDim:"rgba(248,113,113,.10)",redBorder:"rgba(248,113,113,.28)",
+  purple:"#A78BFA",purpleDim:"rgba(167,139,250,.12)",purpleBorder:"rgba(167,139,250,.3)",
+  green:"#34D399",greenDim:"rgba(52,211,153,.10)",
+  blue:"#60A5FA",blueDim:"rgba(96,165,250,.1)",blueBorder:"rgba(96,165,250,.3)",
+  white:"#F0F6FF",muted:"#7A8FA8",subtle:"#344D68",faint:"#162038"
 }
+
+const PHASE_COLORS={Foundations:T.red,Stabilise:T.amber,Optimise:T.blue,Grow:T.green,Protect:T.purple}
+const PHASE_EMOJIS={Foundations:"🧱",Stabilise:"🛡️",Optimise:"⚙️",Grow:"🌱",Protect:"🔒"}
 
 /* ════════════════════════════════════════════════════════════════════
-   CONSTANTS
+   LEVELS DATA (all 15)
    ════════════════════════════════════════════════════════════════════ */
-/* ════════════════════════════════════════════════════════════════════
-   PRIORITY MODES
-   ════════════════════════════════════════════════════════════════════ */
-const PRIORITY_MODES = [
-  {
-    id:"grow",   icon:"📈", label:"Grow my wealth",
-    sub:"Track everything, grow your net worth, beat the numbers",
-    color:T.teal, dim:T.tealDim, border:T.tealBorder,
-    tagline:(n)=>`${n?n+", your":"Your"} wealth is compounding.`,
-    encouragement:"Every figure you track is a decision made better.",
-    primaryLesson:"compound_interest",
-  },
-  {
-    id:"safety", icon:"🛡️", label:"Feel financially secure",
-    sub:"Understand your safety net, reduce money stress, sleep better",
-    color:T.green, dim:"rgba(52,211,153,.10)", border:"rgba(52,211,153,.30)",
-    tagline:(n)=>`${n?n+", you're":"You're"} more secure than you think.`,
-    encouragement:"Knowing your numbers is the cure for money anxiety.",
-    primaryLesson:"nw_basics",
-  },
-  {
-    id:"learn",  icon:"💡", label:"Learn about money",
-    sub:"Build real financial knowledge from scratch, no jargon",
-    color:T.purple, dim:T.purpleDim, border:T.purpleBorder,
-    tagline:(n)=>`${n?n+", you're":"You're"} building knowledge that pays forever.`,
-    encouragement:"Every lesson makes your next financial decision a better one.",
-    primaryLesson:"nw_basics",
-  },
-  {
-    id:"action", icon:"🎯", label:"Take action on my finances",
-    sub:"Invest, buy a home, clear debt, get a clear plan",
-    color:T.amber, dim:T.amberDim, border:T.amberBorder,
-    tagline:(n)=>`${n?n+", your":"Your"} plan is taking shape.`,
-    encouragement:"A clear plan is worth more than any individual financial decision.",
-    primaryLesson:"pay_off_debt",
-  },
+const LEVELS=[
+  {n:1,phase:"Foundations",title:"Know your actual numbers",
+   hook:"Most people are wrong about their own spending. Find your real gap.",
+   done:"You can write down your monthly take-home, fixed costs, variable spend, and what is left without guessing.",
+   micros:[
+     {q:"You think you spend about £200/month on food. Your bank says £340. Why the gap?",
+      opts:["You eat out more than you realise","Your brain anchors to the number you want, not the one you spend","You forgot about delivery apps and coffees","All of the above"],
+      correct:3,
+      reveal:"Your brain anchors to the number you want, not the one you spend. Most people underestimate variable spending by 30 to 40%. Delivery apps, coffees and impulse buys add up invisibly."},
+     {q:"You earn £2,400/month. Rent £850, bills £180, subscriptions £65, transport £120, food £340, phone £35. What is actually left?",
+      opts:["£810","£610","£510","£410"],
+      correct:0,
+      reveal:"£810 is your gap. That is the number that changes your life. Most people have never calculated it precisely. Knowing it means you can decide what to do with it instead of wondering where it went."}
+   ],
+   videos:[{title:"Tracking Incomes & Outgoings",role:"core",min:3},{title:"Budgeting: 50/30/20",role:"core",min:3},{title:"Know Your Why",role:"deeper",min:3},{title:"The Psychology of Money",role:"deeper",min:4}],
+   action:"Run the gap analysis. Write your actual take-home, fixed costs, variable spend. The gap is the number that changes your life.",
+   xpMicro:15,xpVideo:20,xpAction:50,xpBonus:15},
+
+  {n:2,phase:"Foundations",title:"Separate needs, wants and waste",
+   hook:"You have 9 active subscriptions. You can name 5. What are the other 4 costing you?",
+   done:"You have cancelled at least one forgotten subscription and categorised last month's spending.",
+   micros:[
+     {q:"You have 9 active subscriptions. You can name 5. What are the other 4 probably costing you per year?",
+      opts:["About £50","About £120","About £250","About £400+"],
+      correct:2,
+      reveal:"The average person has £250+ per year in forgotten subscriptions. Apps you downloaded once, free trials that converted, gym memberships you stopped using. Check your bank statement, they are hiding in plain sight."},
+     {q:"£400/month on going out. Is that a need, want, or waste?",
+      opts:["It depends on whether you can afford it","It is always a want","If it makes you happy it is a need","It is waste if you regret it the next day"],
+      correct:0,
+      reveal:"There is no right answer without context. £400 on going out when you have £800 surplus is an intentional choice. £400 when you have £100 surplus and growing debt is a different story. The question is not whether you spend, it is whether you decided to."}
+   ],
+   videos:[{title:"Savings Pots",role:"core",min:3},{title:"Comparison Traps: Financial Freedom",role:"core",min:3},{title:"The Psychology of Money",role:"deeper",min:4}],
+   action:"Go through last month's bank statement. Categorise every transaction as need, want, or waste. Cancel at least one subscription you forgot you were paying for.",
+   xpMicro:15,xpVideo:20,xpAction:50,xpBonus:15},
+
+  {n:3,phase:"Foundations",title:"Read your payslip",
+   hook:"Your payslip says £2,800 gross. You take home £2,190. Where did £610 go?",
+   done:"You know your tax code, what it means, and have confirmed it is correct.",
+   micros:[
+     {q:"Your payslip says £2,800 gross. You take home £2,190. Where did £610 go, and is that right?",
+      opts:["Income tax takes most of it","It is a mix of income tax, National Insurance and pension","Your employer keeps some as profit","You are probably being overcharged"],
+      correct:1,
+      reveal:"Income tax, National Insurance contributions and your pension contribution. Most people never check the breakdown. A wrong tax code alone can cost you hundreds per year."},
+     {q:"Your tax code is 1257L. What does the 1257 mean?",
+      opts:["Your employee number","Your tax-free personal allowance (£12,570)","The percentage of tax you pay","Your National Insurance category"],
+      correct:1,
+      reveal:"1257L means you have a £12,570 personal allowance. The first £12,570 you earn each year is tax-free. If your tax code is wrong, you could be paying too much or too little tax. Check it on the HMRC website."}
+   ],
+   videos:[{title:"Banking Basics",role:"deeper",min:3}],
+   action:"Check your tax code on the HMRC website. Confirm it is 1257L or understand why it is different.",
+   selfEmployedAlt:{title:"Understand your income",action:"Track your income for the last 3 months. Calculate your average monthly take-home after setting aside 30% for tax."},
+   xpMicro:15,xpVideo:20,xpAction:50,xpBonus:15},
+
+  {n:4,phase:"Stabilise",title:"Kill high-interest debt",
+   hook:"The maths will shock you. Interest is probably costing more than you think.",
+   done:"Every debt listed, ranked by rate, with a payoff method chosen and target dates set.",
+   micros:[
+     {q:"You have £2,000 in savings and £1,800 on a credit card at 34% APR. Should you pay off the card or keep the savings?",
+      opts:["Keep the savings for emergencies","Pay off the card immediately","Split it, pay half the card","Move the card balance to a 0% deal first"],
+      correct:1,
+      reveal:"Your savings earn maybe 4%. Your credit card costs 34%. Every day you keep both, you are losing money. Pay it off. Then rebuild your savings without the 34% anchor dragging you down."},
+     {q:"3 debts: £800 at 19%, £2,200 at 34%, £500 at 9%. Which do you pay extra on first?",
+      opts:["The £500 at 9%, it is the smallest","The £800 at 19%, middle ground","The £2,200 at 34%, highest rate","Pay them all equally"],
+      correct:2,
+      reveal:"Avalanche method: attack the highest rate first. The £2,200 at 34% is costing you £748/year in interest. The £500 at 9% costs £45. The maths is clear. Snowball (smallest first) works for motivation, but avalanche saves you the most money."}
+   ],
+   videos:[{title:"Good debt vs. bad debt",role:"core",min:3},{title:"Cost of Borrowing",role:"core",min:3},{title:"Snowball vs. Avalanche payoff methods",role:"core",min:3},{title:"Why Banks Charge Interest",role:"core",min:2},{title:"How Credit Actually Works",role:"deeper",min:3},{title:"Credit Cards Explained",role:"deeper",min:3}],
+   action:"List every debt: balance, interest rate, minimum payment. Rank by rate. Choose avalanche or snowball. Write a payoff order with target dates.",
+   xpMicro:15,xpVideo:20,xpAction:50,xpBonus:15},
+
+  {n:5,phase:"Stabilise",title:"Build a £1,000 starter buffer",
+   hook:"Your boiler breaks. It costs £600. You have no savings. What happens next?",
+   done:"£1,000 sitting in a named, easy-access savings account separate from your current account.",
+   micros:[
+     {q:"Your boiler breaks in January. The repair costs £600. You have no savings. What actually happens?",
+      opts:["You use a credit card at 24% APR","You borrow from family","You skip other bills to cover it","Any of these, none of them are good"],
+      correct:3,
+      reveal:"Without savings, emergencies become debt. A £600 repair on a credit card at 24% APR, paying £50/month, costs you £672 total and takes over a year to clear. A £1,000 buffer prevents this spiral entirely."},
+     {q:"You put £1,000 in a high street savings account at 1.2%. Your mate uses a Marcus account at 5.1%. After one year, what is the difference?",
+      opts:["£12 vs £51","£39 difference","Both are about right","The difference does not matter for £1,000"],
+      correct:1,
+      reveal:"£39 difference on £1,000. Not life-changing, but it is free money for 10 minutes of switching. And the principle matters: as your savings grow to £5,000 or £10,000, that rate difference becomes £195/year. Always check the rate."}
+   ],
+   videos:[{title:"Banking Basics",role:"core",min:3},{title:"Savings Pots",role:"core",min:3},{title:"Inflation",role:"deeper",min:3}],
+   action:"Open a named easy-access savings account (not your main bank if the rate is low). Transfer £1,000 or set up a standing order to get there.",
+   xpMicro:15,xpVideo:20,xpAction:50,xpBonus:15},
+
+  {n:6,phase:"Stabilise",title:"Grow to 3 months of essentials",
+   hook:"How long could you survive if your income stopped tomorrow?",
+   done:"You have calculated your 3-month essential costs number and have an automated standing order running toward it.",
+   micros:[
+     {q:"Essential costs: rent £800, food £200, transport £120, utilities £90, phone £25. What is your 3-month safety net number?",
+      opts:["£2,470","£3,105","£3,705","£4,200"],
+      correct:2,
+      reveal:"£1,235/month × 3 = £3,705. This is your real safety net target. Not a round number you guessed, your actual essential costs times three. Knowing the precise target makes it achievable."},
+     {q:"You save £100/month towards your £3,600 emergency fund. Six months in, you have £600. Car needs £400 repair. Do you dip in?",
+      opts:["Yes, that is what it is for","No, find another way to pay","Use half from the fund, half from elsewhere","It depends on whether the car is essential"],
+      correct:3,
+      reveal:"If the car is essential for getting to work, this is exactly what the fund is for. If you can get a bus for a week while you save, protect the fund. The rule: use it for genuine emergencies, then rebuild it immediately."}
+   ],
+   videos:[],
+   action:"Calculate your 3-month essential costs. Set up a standing order into your easy-access account. Name the pot Emergency Fund.",
+   xpMicro:15,xpVideo:20,xpAction:50,xpBonus:15},
+
+  {n:7,phase:"Optimise",title:"Capture free money at work",
+   hook:"The pay rise you have not claimed. Your employer is offering money you are not taking.",
+   done:"Your pension contribution is high enough to receive your employer's full match.",
+   micros:[
+     {q:"Your employer matches pension up to 5%. You contribute 3%. On a £30,000 salary, how much free money are you leaving on the table per year?",
+      opts:["£300","£600","£900","£1,200"],
+      correct:1,
+      reveal:"£600 per year. Your employer will put in 5% if you put in 5%. At 3%, they only put in 3%. That missing 2% of £30,000 is £600/year of free money you are declining. Over 30 years at 7% growth, that compounds to over £56,000."},
+     {q:"Salary sacrifice vs net pay pension contribution. You earn £35k. Which method also saves you National Insurance?",
+      opts:["Net pay","Salary sacrifice","Both save the same","Neither saves NI"],
+      correct:1,
+      reveal:"Salary sacrifice reduces your gross salary before NI is calculated, saving you an extra 12% in National Insurance on top of the income tax relief. On £200/month contribution, that is an extra £24/month, or £288/year. Ask your employer if they offer it."}
+   ],
+   videos:[{title:"Retirement Toolkit",role:"core",min:3}],
+   action:"Log into your workplace pension portal. Check your current contribution %. Increase it to match your employer's maximum.",
+   selfEmployedAlt:{title:"Set up a SIPP",action:"Research and open a Self-Invested Personal Pension. Set up an initial contribution. Every £100 you contribute becomes £125 with basic rate tax relief."},
+   xpMicro:15,xpVideo:20,xpAction:50,xpBonus:15},
+
+  {n:8,phase:"Optimise",title:"Set up sinking funds",
+   hook:"Christmas, car insurance, a holiday. These are not surprises. Why do most people go into debt for them?",
+   done:"At least one named savings pot with a monthly amount going in for a known future expense.",
+   micros:[
+     {q:"Car insurance renews in 4 months. It was £640 last year. How much should you be setting aside each month?",
+      opts:["£100/month","£160/month","£200/month","£640 when it is due"],
+      correct:1,
+      reveal:"£640 ÷ 4 months = £160/month. If you started when you last renewed, it would be £53/month over 12 months. The longer you plan ahead, the smaller the monthly amount. Sinking funds turn big expenses into small, manageable ones."},
+     {q:"Christmas, a holiday, a new phone. These are not surprises. Why do most people still go into debt for them?",
+      opts:["They cannot afford them","They forget to plan","They know but choose not to save","A mix of forgetting and not having a system"],
+      correct:3,
+      reveal:"Most people know these costs are coming but do not have a system. A named pot with a standing order turns a predictable expense from a crisis into a non-event. Monzo and Starling make this easy with named pots."}
+   ],
+   videos:[{title:"SMART Goal-Setting",role:"core",min:3},{title:"Savings Pots",role:"core",min:3}],
+   action:"Name your next 3 predictable future expenses. Divide each by months until needed. Open named pots and set up monthly transfers.",
+   xpMicro:15,xpVideo:20,xpAction:50,xpBonus:15},
+
+  {n:9,phase:"Optimise",title:"Understand your taxes",
+   hook:"Most people misunderstand how tax bands work. This costs real money.",
+   done:"You can accurately explain your own tax situation in under 60 seconds.",
+   micros:[
+     {q:"You earn £38,000. Someone says that puts you in the 40% tax bracket. Are they right?",
+      opts:["Yes, £38,000 is above the basic rate limit","No, only the amount above £37,700 is taxed at 40%","Partly, your effective rate is about 40%","It depends on your tax code"],
+      correct:1,
+      reveal:"Only £300 of your income is taxed at 40% (the amount above the £37,700 higher rate threshold). The rest is taxed at 20% or is within your personal allowance. Your effective tax rate is about 17%, not 40%. This misunderstanding stops people from seeking pay rises."},
+     {q:"Personal allowance is £12,570. You earn £28,000. What is your actual taxable income?",
+      opts:["£28,000","£15,430","£12,570","£22,430"],
+      correct:1,
+      reveal:"£28,000 minus £12,570 personal allowance = £15,430 taxable. At 20%, that is £3,086 in income tax, plus National Insurance. Your effective tax rate is about 11%, well below what most people assume."}
+   ],
+   videos:[{title:"Credit Scores and Bureaus",role:"deeper",min:3},{title:"Credit Utilisation Ratio",role:"deeper",min:3}],
+   action:"Calculate your effective tax rate. Check whether you are owed any rebates or missing any allowances.",
+   xpMicro:15,xpVideo:20,xpAction:50,xpBonus:15},
+
+  {n:10,phase:"Grow",title:"Open a Stocks & Shares ISA",
+   hook:"The tax wrapper most people wait too long to use. Every year you delay costs you.",
+   done:"You have an open Stocks & Shares ISA, even if you have not yet put money in.",
+   micros:[
+     {q:"Cash ISA vs Stocks & Shares ISA. You are 27 and saving for 20+ years. Which is almost certainly better?",
+      opts:["Cash ISA, no risk of losing money","Stocks & Shares ISA, historically higher returns over long periods","They are about the same over 20 years","Depends entirely on the interest rate"],
+      correct:1,
+      reveal:"Over 20+ years, the stock market has historically returned 7 to 10% annually, far outpacing cash ISA rates of 3 to 5%. Short-term volatility smooths out over long periods. A Cash ISA is for money you need within 5 years. A Stocks & Shares ISA is for money you are growing long-term."},
+     {q:"You have £500/month to invest. General account vs ISA. After 10 years at 7% growth, how much extra tax does the general account cost you?",
+      opts:["About £500","About £2,000","About £5,000","About £8,000+"],
+      correct:2,
+      reveal:"In a general investment account, you pay Capital Gains Tax on profits above £3,000/year. Over 10 years with £500/month at 7%, that could cost you roughly £5,000 in tax that you would have paid zero on inside an ISA. Use your £20,000 annual ISA allowance first, always."}
+   ],
+   videos:[{title:"Asset Types",role:"core",min:3},{title:"Balance-Sheet and net worth check",role:"core",min:3}],
+   action:"Open a Stocks & Shares ISA. Recommended platforms: Vanguard (lowest cost, good for beginners), Freetrade, Trading 212.",
+   xpMicro:15,xpVideo:20,xpAction:50,xpBonus:15},
+
+  {n:11,phase:"Grow",title:"Make your first investment",
+   hook:"£200/month from age 25 vs age 35. Same amount, same return. The difference is life-changing.",
+   done:"Money is leaving your account automatically every month into an index fund. Even £25 counts.",
+   micros:[
+     {q:"You invest £200/month from age 25. Your friend starts at 35. Same amount, same 7% return. At 60, who has more and by how much?",
+      opts:["You: £50,000 more","You: £100,000 more","You: £180,000+ more","About the same, 10 years is not that long"],
+      correct:2,
+      reveal:"You: roughly £380,000. Your friend: roughly £196,000. Same contribution, same return, but you had 10 extra years of compound growth. Those first 10 years are worth almost as much as the next 25 combined. Time is literally money."},
+     {q:"A fund manager charges 1.5%. An index fund charges 0.2%. On £50,000 over 20 years at 7%, what does that fee difference cost you?",
+      opts:["About £5,000","About £15,000","About £30,000","About £50,000"],
+      correct:2,
+      reveal:"The 1.5% fee fund gives you roughly £115,000. The 0.2% fund gives you roughly £145,000. That 1.3% difference costs you about £30,000 on a £50,000 portfolio over 20 years. And 90% of active fund managers underperform the index fund anyway. Fees matter enormously."}
+   ],
+   videos:[{title:"Rate of Return",role:"core",min:3},{title:"Risk and Risk Tolerance",role:"core",min:3},{title:"Funds",role:"core",min:3},{title:"Diversification",role:"core",min:3},{title:"Time horizon and portfolio construction",role:"core",min:3},{title:"Equities",role:"deeper",min:3},{title:"Time Value of Money",role:"deeper",min:3}],
+   action:"Set up a monthly direct debit into a global index fund inside your ISA. The Vanguard FTSE Global All Cap or similar. Automate it, set and forget.",
+   xpMicro:15,xpVideo:20,xpAction:50,xpBonus:15},
+
+  {n:12,phase:"Grow",title:"Build a pension strategy",
+   hook:"Your pension default fund might be wrong for you. Most people never check.",
+   done:"You have logged into your pension, know what fund your money is in, and have made a conscious choice.",
+   micros:[
+     {q:"Your pension default fund is 'Balanced Growth'. Is that right for a 28-year-old?",
+      opts:["Yes, balanced is always sensible","Probably not, a higher growth fund would be better at 28","It does not matter, pension returns are all similar","You should be in the lowest risk fund"],
+      correct:1,
+      reveal:"At 28, you have 30+ years until retirement. A higher-growth fund will almost certainly outperform a balanced fund over that timeframe. Default funds are designed to be safe for everyone, which means they are not optimised for anyone. Check what you are in and make a conscious choice."},
+     {q:"£500/month into a pension with 40% tax relief (higher rate taxpayer). How much does it actually cost you to invest £500?",
+      opts:["£500","£400","£300","£250"],
+      correct:2,
+      reveal:"With 40% tax relief, every £500 in your pension only costs you £300 from your take-home. The government adds £200. If you use salary sacrifice, you also save National Insurance, bringing the real cost even lower. Pensions are the most tax-efficient investment vehicle available."}
+   ],
+   videos:[{title:"Retirement Toolkit",role:"core",min:3},{title:"Time horizon and portfolio construction",role:"core",min:3}],
+   action:"Log into your workplace pension. Find out what fund your money is in. If you are under 40, consider whether a higher-growth fund is appropriate.",
+   xpMicro:15,xpVideo:20,xpAction:50,xpBonus:15},
+
+  {n:13,phase:"Protect",title:"Get income protection",
+   hook:"Statutory sick pay is £116.75/week. Your rent alone is probably more than that.",
+   done:"You know your employer's sick pay policy and have either got cover or made a conscious decision.",
+   micros:[
+     {q:"Statutory sick pay is £116.75/week. Your rent alone is £900/month. If you were off sick for 10 weeks, what actually happens?",
+      opts:["SSP covers your rent","You would be £6,832 short over 10 weeks","Your employer tops it up automatically","You can claim Universal Credit immediately"],
+      correct:1,
+      reveal:"£116.75/week × 10 = £1,167.50 total. Your rent alone for 10 weeks is £2,250. Before food, bills, or anything else, you are already short. Most people assume their employer covers more than they do. Check your contract. Income protection insurance for a 28-year-old costs about £20 to £30/month."},
+     {q:"Income protection for a 28-year-old non-smoker in a desk job costs about £25/month. What does it actually pay out?",
+      opts:["£500/month","Up to 60% of your salary, tax-free","A lump sum after 6 months","Only covers accidents, not illness"],
+      correct:1,
+      reveal:"Income protection typically pays up to 60% of your gross salary, tax-free, until you can return to work or until retirement age. £25/month to protect potentially decades of income. It is the insurance most financial advisers say people should have but almost nobody does."}
+   ],
+   videos:[],
+   action:"Check your employment contract for sick pay terms. If cover is inadequate, get at least one income protection quote.",
+   xpMicro:15,xpVideo:20,xpAction:50,xpBonus:15},
+
+  {n:14,phase:"Protect",title:"Write a will",
+   hook:"You are not married. You have lived with your partner for 6 years. You die without a will. What does your partner legally receive?",
+   done:"You have a signed, witnessed will, even a basic one.",
+   micros:[
+     {q:"You are not married. You have lived with your partner for 6 years. You die without a will. What does your partner legally receive?",
+      opts:["Everything, as your common-law spouse","Half of your estate","Whatever you discussed verbally","Nothing. There is no common-law marriage in England and Wales"],
+      correct:3,
+      reveal:"There is no such thing as common-law marriage in England and Wales. Without a will, intestacy rules apply. Your partner, no matter how long you have been together, receives nothing. Everything goes to your closest blood relatives. This catches thousands of couples every year."},
+     {q:"It takes 30 minutes and costs less than a dinner out. Why do most 20 to 35 year olds not have a will?",
+      opts:["They do not have enough assets","They think it is morbid","They assume the law protects their wishes","A combination of all three"],
+      correct:3,
+      reveal:"A basic will costs from £50 online (Farewill, Wills Online). If you own anything, have a partner, or have dependents, you need one. The cost of not having one is not financial, it is the people you love being left in a legal mess."}
+   ],
+   videos:[],
+   action:"Write a basic will. Online options from £50. If you own property or have dependents, use a solicitor.",
+   xpMicro:15,xpVideo:20,xpAction:50,xpBonus:15},
+
+  {n:15,phase:"Protect",title:"Annual money review",
+   hook:"Your life changed. Did your financial settings change with it?",
+   done:"You have a recurring calendar event, once a year, called Money Review with the checklist saved.",
+   micros:[
+     {q:"It has been 14 months since you last checked your pension. You got a £4,000 pay rise. What did you probably forget to update?",
+      opts:["Your pension contribution percentage","Your emergency fund target","Your budget categories","All of the above"],
+      correct:3,
+      reveal:"A pay rise changes everything: your pension contribution amount (even if the % stays the same), your emergency fund target (3 months of higher expenses), your budget categories (lifestyle inflation is real). An annual review catches all of this."},
+     {q:"Your life last year: same job, same rent. This year: pay rise, new relationship, moving house. How many of your financial settings need updating?",
+      opts:["Just your budget","Your budget and pension","At least 5 things","Nothing, they adjust automatically"],
+      correct:2,
+      reveal:"At minimum: budget, pension contribution, emergency fund target, insurance cover, tax code check, ISA allowance usage, will update. Life changes mean plans must change. A 30-minute annual review prevents years of financial drift."}
+   ],
+   videos:[{title:"Balance-Sheet and net worth check",role:"core",min:3},{title:"SMART Goal-Setting",role:"core",min:3},{title:"Inflation",role:"deeper",min:3}],
+   action:"Book a recurring annual calendar event. The checklist: tax code, pension contribution %, emergency fund level, ISA allowance used, insurance cover, will up to date, net worth snapshot.",
+   xpMicro:15,xpVideo:20,xpAction:50,xpBonus:15},
 ]
 
-/* ════════════════════════════════════════════════════════════════════
-   MONEY PERSONALITY
-   ════════════════════════════════════════════════════════════════════ */
-function calcPersonality(state) {
-  const assets  = state.assets||[]
-  const debts   = state.debts||[]
-  const mode    = state.profile?.mode||"grow"
-  const age     = state.profile?.age||35
-  const totalA  = assets.reduce((s,a)=>s+(a.value||0),0)
-  const savings = assets.filter(a=>["savings","cash"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0)
-  const invested= assets.filter(a=>["investment","stocks"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0)
-  const pension = assets.filter(a=>a.category==="pension").reduce((s,a)=>s+(a.value||0),0)
-  const property= assets.filter(a=>a.category==="property").reduce((s,a)=>s+(a.value||0),0)
-
-  let mindset  = mode==="safety"?"security":mode==="learn"||mode==="action"?"freedom":"growth"
-  if(mindset==="growth" && savings>invested*2) mindset="security"
-
-  let behaviour = "starter"
-  if(totalA>0){
-    const ir = (invested+pension)/Math.max(totalA,1)
-    if(property>0&&(invested+pension)>10000) behaviour="builder"
-    else if(ir>0.5) behaviour="investor"
-    else if(savings>5000) behaviour="saver"
-  }
-
-  let risk = "balanced"
-  const ip = totalA>0?(invested+pension)/totalA:0
-  if(ip>0.6&&age<50) risk="adventurous"
-  else if(ip<0.2&&savings>0&&invested===0) risk="cautious"
-
-  const ARCHETYPES = {
-    "security-saver-cautious":     {name:"The Guardian",    emoji:"🛡️",color:T.green,  summary:"Your priority is protection. You build carefully and steadily and that discipline is a strength most people never develop."},
-    "security-builder-balanced":   {name:"The Cultivator",  emoji:"🌱",color:T.teal,   summary:"You are building solid foundations while staying grounded. Growth is happening even when it feels slow."},
-    "growth-investor-adventurous": {name:"The Accelerator", emoji:"🚀",color:T.teal,   summary:"You think long-term and are not fazed by short-term noise. Your money works as hard as you do."},
-    "freedom-builder-balanced":    {name:"The Navigator",   emoji:"🧭",color:T.purple, summary:"You are working towards options. Every smart decision brings financial independence a step closer."},
-    "freedom-starter-cautious":    {name:"The Learner",     emoji:"💡",color:T.purple, summary:"You are at the start of the journey and you know it. That self-awareness is rarer and more valuable than you think."},
-    "growth-builder-balanced":     {name:"The Grower",      emoji:"⚡",color:T.amber,  summary:"You have real momentum and the habits are forming. The opportunity now is to make sure they are pointed the right way."},
-    "growth-saver-balanced":       {name:"The Architect",   emoji:"🏗️",color:T.blue,   summary:"Strong foundations, but your money is not working hard enough yet. There is a clear and exciting next step available."},
-    "freedom-investor-adventurous":{name:"The Opportunist", emoji:"🌊",color:T.amber,  summary:"You move decisively and back yourself. The opportunity is to make sure your foundations match your ambition."},
-  }
-  const key = `${mindset}-${behaviour}-${risk}`
-  return { mindset, behaviour, risk, archetype:ARCHETYPES[key]||ARCHETYPES["freedom-starter-cautious"] }
-}
-
-const PERSONALITY_LOCKED = [
-  {id:"risk",    icon:"🎯", label:"Your full risk profile",           unlock:"Complete 1 lesson",       check:(s)=>(s.completedLessons||[]).length>=1},
-  {id:"balance", icon:"⚖️", label:"Saving vs investing balance",      unlock:"Add 3 or more assets",    check:(s)=>(s.assets||[]).length>=3},
-  {id:"peers",   icon:"👥", label:"How you compare to your age group", unlock:"Update your figures 3 times", check:(s)=>(s.history||[]).length>=3},
-  {id:"blindspot",icon:"🔍",label:"Your biggest financial blind spot", unlock:"Complete 3 lessons",      check:(s)=>(s.completedLessons||[]).length>=3},
+const QUICK_WINS=[
+  {id:"tax",icon:"🔍",label:"Tax code check",min:5},
+  {id:"subs",icon:"📱",label:"Subscription audit",min:10},
+  {id:"savings",icon:"🏦",label:"Savings rate check",min:3},
+  {id:"pension",icon:"💼",label:"Pension match check",min:5},
+  {id:"personality",icon:"🎯",label:"Money personality quiz",min:4},
 ]
 
-
-/* ════════════════════════════════════════════════════════════════════
-   FINANCIAL PERSONALITY QUIZ
-   12 scenario questions · 6 dimensions · 8 archetypes
-   ════════════════════════════════════════════════════════════════════ */
-const PERSONALITY_QUIZ = [
-  {
-    id:"q1", dimension:"security_growth",
-    headline:"You receive an unexpected £5,000.",
-    sub:"What feels most natural?",
-    options:[
-      { label:"Add it straight to savings for security",             scores:{ security_growth:10, present_future:30, abundance_scarcity:30 } },
-      { label:"Split it: half saved, half invested",                 scores:{ security_growth:45, present_future:60, abundance_scarcity:60 } },
-      { label:"Invest most of it for long-term growth",             scores:{ security_growth:80, present_future:80, abundance_scarcity:80 } },
-      { label:"Use it for something I've been putting off",         scores:{ security_growth:40, present_future:10, abundance_scarcity:70 } },
-    ]
-  },
-  {
-    id:"q2", dimension:"security_growth",
-    headline:"Your investments drop 28% in three months.",
-    sub:"What do you actually do?",
-    options:[
-      { label:"Sell some to limit further losses",                   scores:{ security_growth:10, emotional_risk:15 } },
-      { label:"Do nothing and wait it out",                          scores:{ security_growth:55, emotional_risk:55 } },
-      { label:"Buy more while prices are lower",                     scores:{ security_growth:90, emotional_risk:90 } },
-      { label:"Check obsessively but don't act",                    scores:{ security_growth:35, emotional_risk:30 } },
-    ]
-  },
-  {
-    id:"q3", dimension:"present_future",
-    headline:"You could either...",
-    sub:"Which feels right for you?",
-    options:[
-      { label:"Have £500/month more to enjoy life now",              scores:{ present_future:10 } },
-      { label:"Have £500/month more going into your pension",        scores:{ present_future:90 } },
-      { label:"Pay off debts faster each month",                     scores:{ present_future:50, security_growth:30 } },
-      { label:"Invest it in a Stocks and Shares ISA",               scores:{ present_future:75, security_growth:75 } },
-    ]
-  },
-  {
-    id:"q4", dimension:"present_future",
-    headline:"Pension contributions.",
-    sub:"Which is closest to how you think about yours?",
-    options:[
-      { label:"I contribute the minimum, retirement feels far away", scores:{ present_future:15 } },
-      { label:"I contribute what I can but don't maximise",          scores:{ present_future:50 } },
-      { label:"I maximise contributions, it is a real priority",    scores:{ present_future:90 } },
-      { label:"I have not set one up yet",                           scores:{ present_future:10, abundance_scarcity:25 } },
-    ]
-  },
-  {
-    id:"q5", dimension:"systematic_intuitive",
-    headline:"How do you make big financial decisions?",
-    sub:"Like buying a car, switching mortgage, or making an investment.",
-    options:[
-      { label:"Research thoroughly, compare options, then decide",   scores:{ systematic_intuitive:10, simplicity_complexity:80 } },
-      { label:"Get a gut feel for it and commit fairly quickly",     scores:{ systematic_intuitive:85, simplicity_complexity:30 } },
-      { label:"Ask someone I trust first",                           scores:{ systematic_intuitive:40, independent_collaborative:20 } },
-      { label:"Delay until I feel completely certain",               scores:{ systematic_intuitive:25, abundance_scarcity:25 } },
-    ]
-  },
-  {
-    id:"q6", dimension:"systematic_intuitive",
-    headline:"Your relationship with budgeting.",
-    sub:"Be honest, which is actually true?",
-    options:[
-      { label:"I have a clear budget and I follow it",               scores:{ systematic_intuitive:10 } },
-      { label:"I have a rough idea and check in occasionally",       scores:{ systematic_intuitive:45 } },
-      { label:"I track spending after the fact, loosely",            scores:{ systematic_intuitive:65 } },
-      { label:"I do not track, I just know if I am okay",          scores:{ systematic_intuitive:90 } },
-    ]
-  },
-  {
-    id:"q7", dimension:"independent_collaborative",
-    headline:"When it comes to financial advice.",
-    sub:"What feels most true?",
-    options:[
-      { label:"I research everything myself and decide alone",        scores:{ independent_collaborative:10 } },
-      { label:"I like a sounding board but make my own calls",       scores:{ independent_collaborative:45 } },
-      { label:"I would value a trusted adviser to guide me",         scores:{ independent_collaborative:80 } },
-      { label:"I discuss money openly with my partner or close friends", scores:{ independent_collaborative:65 } },
-    ]
-  },
-  {
-    id:"q8", dimension:"abundance_scarcity",
-    headline:"When you spend money on yourself.",
-    sub:"A meal out, a holiday, something you want.",
-    options:[
-      { label:"I feel good, I work hard for this",                 scores:{ abundance_scarcity:90 } },
-      { label:"Fine, but I am conscious of the cost",               scores:{ abundance_scarcity:60 } },
-      { label:"I often feel slightly guilty afterwards",             scores:{ abundance_scarcity:30 } },
-      { label:"I find it genuinely difficult to justify",            scores:{ abundance_scarcity:10 } },
-    ]
-  },
-  {
-    id:"q9", dimension:"abundance_scarcity",
-    headline:"Do you feel financially behind?",
-    sub:"Compared to where you think you should be at your age.",
-    options:[
-      { label:"Rarely, I feel broadly on track",                   scores:{ abundance_scarcity:85 } },
-      { label:"Sometimes, depending on my mood",                    scores:{ abundance_scarcity:55 } },
-      { label:"Often, I worry I have not done enough",             scores:{ abundance_scarcity:30 } },
-      { label:"Almost always, it is a persistent anxiety",         scores:{ abundance_scarcity:10 } },
-    ]
-  },
-  {
-    id:"q10", dimension:"simplicity_complexity",
-    headline:"Your ideal financial setup.",
-    sub:"If you could design it from scratch.",
-    options:[
-      { label:"One account, one fund, one simple plan",             scores:{ simplicity_complexity:10 } },
-      { label:"A few accounts, clearly organised",                  scores:{ simplicity_complexity:40 } },
-      { label:"Multiple accounts optimised for different purposes", scores:{ simplicity_complexity:75 } },
-      { label:"A fully detailed portfolio I manage actively",        scores:{ simplicity_complexity:95 } },
-    ]
-  },
-  {
-    id:"q11", dimension:"emotional_risk",
-    headline:"You have £20,000 to invest for 15 years.",
-    sub:"Which option would you actually choose?",
-    options:[
-      { label:"Guaranteed 3.5% per year in a cash ISA",            scores:{ emotional_risk:10, security_growth:10 } },
-      { label:"A cautious fund: expected 5%, could drop 15%",      scores:{ emotional_risk:35, security_growth:35 } },
-      { label:"A balanced fund: expected 7%, could drop 30%",      scores:{ emotional_risk:65, security_growth:65 } },
-      { label:"An adventurous fund: expected 9%, could drop 45%",  scores:{ emotional_risk:90, security_growth:90 } },
-    ]
-  },
-  {
-    id:"q12", dimension:"security_growth",
-    headline:"Your honest relationship with money.",
-    sub:"Which comes closest to how you actually feel?",
-    options:[
-      { label:"Money is safety, having enough lets me stop worrying",  scores:{ security_growth:15, abundance_scarcity:25 } },
-      { label:"Money is a tool, I want it working efficiently",        scores:{ security_growth:55, systematic_intuitive:30 } },
-      { label:"Money is opportunity, I want to grow it aggressively",  scores:{ security_growth:85, abundance_scarcity:80 } },
-      { label:"Money is complicated, I wish I understood it better",   scores:{ abundance_scarcity:30, security_growth:40 } },
-    ]
-  },
+const LEARN_THEMES=[
+  {id:"economy",icon:"🌍",title:"How the world economy works",items:[
+    {title:"History of Money",min:4},{title:"Exchange Rates & Global Currencies",min:3},
+    {title:"Supply & Demand",min:3},{title:"Economic Cycles",min:4},
+    {title:"The Federal Reserve 101",min:3},{title:"Economic Indicators in Everyday Life",min:3}]},
+  {id:"investing",icon:"🔮",title:"Beyond the basics (investing)",items:[
+    {title:"Digital Dollars & Stablecoins",min:3},{title:"Commodities",min:3},
+    {title:"Alternatives",min:3},{title:"Real Estate",min:4},{title:"Bonds and fixed income",min:3}]},
+  {id:"psychology",icon:"🧠",title:"Understanding yourself with money",items:[
+    {title:"Know Your Why",min:3},{title:"Comparison Traps: Financial Freedom",min:3},
+    {title:"The Psychology of Money",min:4}]},
+  {id:"credit",icon:"💳",title:"Credit deep dive",items:[
+    {title:"How Credit Actually Works",min:3},{title:"Credit Utilisation Ratio",min:3},
+    {title:"Credit Scores and Bureaus",min:3},{title:"Credit Cards Explained",min:3},
+    {title:'0% vs "0%**" explained',min:3}]},
 ]
-
-// Dimension score ranges 0=fully first pole, 100=fully second pole
-// security_growth:    0=security   100=growth
-// present_future:     0=present    100=future
-// systematic_intuitive: 0=systematic 100=intuitive
-// independent_collaborative: 0=independent 100=collaborative
-// abundance_scarcity: 0=scarcity   100=abundance
-// simplicity_complexity: 0=simplicity 100=complexity
-// emotional_risk:     0=cautious   100=adventurous
-
-function calcQuizPersonality(answers, state) {
-  // answers = { q1: optionIndex, q2: optionIndex, ... }
-  const scores = {
-    security_growth:0, present_future:0, systematic_intuitive:0,
-    independent_collaborative:0, abundance_scarcity:0, simplicity_complexity:0, emotional_risk:0
-  }
-  const counts = { ...scores }
-
-  PERSONALITY_QUIZ.forEach(q => {
-    const ai = answers[q.id]
-    if(ai === undefined || ai === null) return
-    const option = q.options[ai]
-    if(!option) return
-    Object.entries(option.scores).forEach(([dim, val]) => {
-      scores[dim] = (scores[dim]||0) + val
-      counts[dim] = (counts[dim]||0) + 1
-    })
-  })
-
-  // Normalise to 0-100
-  const norm = {}
-  Object.keys(scores).forEach(dim => {
-    norm[dim] = counts[dim] > 0 ? Math.round(scores[dim] / counts[dim]) : 50
-  })
-
-  // Overlay behavioural data from actual assets/debts
-  const assets  = state.assets||[]
-  const totalA  = assets.reduce((s,a)=>s+(a.value||0),0)
-  const savings = assets.filter(a=>["savings","cash"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0)
-  const invested= assets.filter(a=>["investment","stocks"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0)
-  const pension = assets.filter(a=>a.category==="pension").reduce((s,a)=>s+(a.value||0),0)
-  const debts   = state.debts||[]
-  const highRateDebt = debts.filter(d=>(d.interestRate||0)>15).reduce((s,d)=>s+(d.balance||0),0)
-
-  // Blend quiz score with behavioural signal (70% quiz, 30% behaviour)
-  if(totalA > 0) {
-    const investRatio = (invested+pension)/totalA
-    const behaviouralGrowth = Math.round(investRatio*100)
-    norm.security_growth = Math.round(norm.security_growth*0.7 + behaviouralGrowth*0.3)
-  }
-  if(assets.length >= 3) {
-    // Many accounts → complexity leaning
-    norm.simplicity_complexity = Math.min(100, norm.simplicity_complexity + 10)
-  }
-
-  // Classify each dimension
-  const sg  = norm.security_growth > 55 ? "growth" : norm.security_growth < 45 ? "security" : "balanced"
-  const pf  = norm.present_future  > 55 ? "future" : norm.present_future  < 45 ? "present"  : "balanced"
-  const si  = norm.systematic_intuitive > 55 ? "intuitive" : norm.systematic_intuitive < 45 ? "systematic" : "balanced"
-  const ic  = norm.independent_collaborative > 55 ? "collaborative" : "independent"
-  const as  = norm.abundance_scarcity > 55 ? "abundance" : norm.abundance_scarcity < 45 ? "scarcity" : "balanced"
-  const sc  = norm.simplicity_complexity > 55 ? "complexity" : "simplicity"
-  const er  = norm.emotional_risk > 65 ? "adventurous" : norm.emotional_risk < 40 ? "cautious" : "balanced"
-
-  // Derive archetype from primary 3 dimensions
-  const ARCHETYPES = {
-    "security-present-systematic":   { id:"guardian",     name:"The Guardian",     emoji:"🛡️", color:"#34D399",
-      headline:"Protection first. Always.",
-      summary:"Your core belief is that financial security is freedom. You sleep better when the safety net is full, the bills are covered, and there are no nasty surprises waiting. You are methodical, careful, and consistent, which means you build slowly but you build durably.",
-      traits:["Values certainty over upside","Fully funds emergency reserves before investing","Prefers guaranteed returns to market exposure","Tracks spending carefully","Finds financial surprises deeply uncomfortable"],
-      scenarios:["You are very likely to keep 6+ months of expenses in cash savings","You probably feel anxious when your bank balance drops below a mental threshold","An IFA offering a cautious managed portfolio would suit you well","The 50/30/20 budgeting rule would feel natural and reassuring to follow","You would choose a lower fixed-rate mortgage over a cheaper variable rate"],
-      blind_spot:"Your caution protects you but may cost you significantly in long-term returns. The risk of being too safe is real.",
-      next_step:"Consider putting anything above 6 months emergency fund into a low-cost global index fund." },
-
-    "security-future-systematic":    { id:"cultivator",   name:"The Cultivator",   emoji:"🌱", color:"#0FBFB8",
-      headline:"Building carefully, for the long run.",
-      summary:"You have patience and discipline, a rare combination. You think ahead, contribute consistently, and feel most secure when you know the future is being taken care of. You may not be the most adventurous investor but you are one of the most reliable.",
-      traits:["Consistent long-term saver and investor","Prioritises pension and future security","Prefers structured plans over gut feel","Values financial stability deeply","Methodical, you follow through on financial commitments"],
-      scenarios:["You are likely already contributing regularly to a pension or ISA","A financial adviser who provides a clear structured long-term plan would suit you","You would benefit from automated contributions so you never have to decide each month","You probably use a spreadsheet or budgeting app","You are uncomfortable with debt and likely pay more than the minimum"],
-      blind_spot:"Your focus on security can mean you under-invest in growth assets. Your future self would likely be fine with more equity exposure.",
-      next_step:"Review whether your pension contribution rate is genuinely maximising your employer match." },
-
-    "growth-future-intuitive":       { id:"accelerator",  name:"The Accelerator",  emoji:"🚀", color:"#0FBFB8",
-      headline:"Long game. High conviction.",
-      summary:"You think in decades. Short-term noise does not worry you, you see market drops as opportunities and compound growth as the most powerful force in finance. You move decisively and back yourself. Your risk is moving fast without building proper foundations underneath.",
-      traits:["Comfortable with investment volatility","Thinks in long timeframes","Makes financial decisions with confidence","Attracted to growth assets and investment opportunities","Less focused on day-to-day spending tracking"],
-      scenarios:["You have or are actively considering a Stocks and Shares ISA or self-invested pension","You would consider individual stocks or thematic ETFs as well as index funds","You are unlikely to want a financial adviser telling you what to do, but a good one as a sounding board could add real value","During market crashes you either hold firm or buy more","You find detailed budgeting constraining but probably have a strong income-to-investment ratio"],
-      blind_spot:"Your conviction is a strength but can lead to concentrated positions or skipping fundamentals like wills, insurance, or an adequate emergency fund.",
-      next_step:"Check your emergency fund is 3 months covered before adding more to investments." },
-
-    "growth-future-systematic":      { id:"navigator",    name:"The Navigator",    emoji:"🧭", color:"#A78BFA",
-      headline:"Methodical. Growth-focused. In control.",
-      summary:"You have the rare combination of growth ambition and systematic discipline. You research before you act, build structured plans, and then actually follow through. This makes you one of the most effective personal finance profiles, the main risk is over-engineering at the expense of action.",
-      traits:["Research-led investor","Clear financial goals with plans attached","Comfortable with risk when it is well understood","Tracks net worth and financial metrics regularly","Balances short-term structure with long-term growth thinking"],
-      scenarios:["You probably compare ISA platforms before switching and have read about index funds vs active management","You would get real value from a detailed financial plan produced by an IFA","You are the type of person who finds this quiz interesting rather than annoying","You likely already track your net worth or are attracted to doing so","You balance lifestyle spending with serious long-term saving"],
-      blind_spot:"Analysis paralysis is your main risk. You can research indefinitely when taking a reasonable action earlier would have been better.",
-      next_step:"Pick one financial goal and set an automated monthly contribution towards it this week." },
-
-    "growth-present-intuitive":      { id:"grower",       name:"The Grower",       emoji:"⚡", color:"#F59E0B",
-      headline:"Momentum, instinct, opportunity.",
-      summary:"You are entrepreneurial with money. You back yourself, spot opportunities, and are not afraid to act. You live well now and want to grow your wealth too. The tension in your profile is between enjoying the present and building for the future, you are working on getting the balance right.",
-      traits:["Acts on financial instinct rather than lengthy research","Enjoys the present while also thinking about growth","Comfortable with risk and uncertainty","Attracted to investment opportunities and new financial tools","Less likely to follow rigid budgets, prefers to earn more"],
-      scenarios:["You are likely interested in or already have exposure to a range of investments including possibly crypto or individual stocks","You probably spend generously on experiences and lifestyle and feel broadly fine about it","A financial coach rather than a traditional IFA might suit you better","You would benefit from automating your savings so they happen before you can spend","You may have several financial accounts across different apps and platforms"],
-      blind_spot:"Without structure, income can disappear into lifestyle even at high earning levels. Automating savings removes this risk.",
-      next_step:"Set up an automated transfer to a Stocks and Shares ISA on payday before spending decisions happen." },
-
-    "security-future-intuitive":     { id:"architect",    name:"The Architect",    emoji:"🏗️", color:"#60A5FA",
-      headline:"Strong foundations. Deep knowledge.",
-      summary:"You have done the reading. You understand pensions, tax wrappers, compound interest, and the mechanics of personal finance, often better than people earning far more than you. Your challenge is that knowledge does not always translate into action. You can over-analyse or wait for the perfect moment.",
-      traits:["High financial literacy","Security-focused but intellectually curious about growth","Likely researches financial products in depth before choosing","Understands the importance of the long game","Can be slowed by a desire for certainty before acting"],
-      scenarios:["You have probably compared multiple ISA providers or pension platforms","You know what a SIPP is and have considered one","You would find real value in a financial adviser but would interrogate their recommendations rigorously","You are drawn to detailed financial models and projections","You understand the tax efficiency of pensions better than most"],
-      blind_spot:"Knowledge without action is just expensive inaction. The perfect plan started late loses to the good plan started now.",
-      next_step:"Identify the one financial decision you have been researching for more than 3 months and make it this month." },
-
-    "freedom-present-intuitive":     { id:"opportunist",  name:"The Opportunist",  emoji:"🌊", color:"#F59E0B",
-      headline:"Bold. Fast-moving. Opportunity-first.",
-      summary:"You see financial freedom as the goal and you are willing to move decisively to get there. You are not especially interested in rules or conventional wisdom, you back your own judgement. The risk is that ambition without foundation can leave gaps that become expensive later.",
-      traits:["High confidence in financial decision-making","Moves quickly when an opportunity feels right","Less attached to conventional financial planning","Values financial independence and optionality","Can underestimate the importance of boring fundamentals"],
-      scenarios:["You have likely made at least one significant financial move others would consider bold","You are attracted to investments with high upside potential","You find traditional financial planning advice cautious to the point of being unhelpful","You would benefit most from a financial adviser who challenges you rather than validates you","Your emergency fund may not be fully funded because the money feels better deployed elsewhere"],
-      blind_spot:"A single bad financial decision without adequate foundations underneath can undo years of bold gains. Foundations are not boring, they are leverage.",
-      next_step:"Check: do you have 3 months expenses in accessible cash? If not, build that first." },
-
-    "freedom-present-systematic":    { id:"learner",      name:"The Learner",      emoji:"💡", color:"#A78BFA",
-      headline:"Curious. Growing. Getting started.",
-      summary:"You are building your financial foundations and you are doing it with self-awareness, which puts you ahead of most people who never examine their money relationship at all. You are at the most important stage, the habits you build now will compound for decades.",
-      traits:["Open to learning and improving financial knowledge","May feel behind peers financially, though often this is not true","Values simplicity and clear guidance over complexity","Wants a plan but is not sure where to start","Responds well to encouragement and small wins"],
-      scenarios:["This app and a book like The Psychology of Money would genuinely shift your thinking","You would benefit enormously from a basic financial plan even a simple one","A financial adviser who specialises in early-stage financial planning would be valuable","Automating savings even £50 per month would build a habit that compounds significantly","Understanding ISAs and pension basics is the single best use of your financial education time right now"],
-      blind_spot:"Waiting until you understand everything perfectly before acting. Starting small and imperfectly now beats a perfect plan started later.",
-      next_step:"Open a Stocks and Shares ISA this month, even with a small amount. The habit matters more than the amount right now." },
-  }
-
-  // Match archetype by primary signals
-  const key = `${sg === "balanced" ? "growth" : sg}-${pf === "balanced" ? "future" : pf}-${si === "balanced" ? "systematic" : si}`
-  const archetype = ARCHETYPES[key] || ARCHETYPES["freedom-present-systematic"]
-
-  return {
-    scores: norm,
-    dimensions: { sg, pf, si, ic, as, sc, er },
-    archetype,
-    completedAt: new Date().toISOString(),
-  }
-}
-
-
-const ASSET_TYPES = [
-  { id:"property",    label:"Property",     icon:"🏠", cat:"primary_residence", desc:"Home, flat, land",         hint:"Check Zoopla or Rightmove",          bucket:"life"   },
-  { id:"savings",     label:"Savings",      icon:"💰", cat:"savings",           desc:"Cash, ISA, current acct",  hint:"Check your banking app",             bucket:"safety" },
-  { id:"pension",     label:"Pension",      icon:"🏛️", cat:"pension",           desc:"Workplace or personal",    hint:"Your pension provider app or letter", bucket:"wealth" },
-  { id:"investments", label:"Investments",  icon:"📈", cat:"investments",       desc:"Stocks, funds, S&S ISA",   hint:"Your ISA or investment platform",    bucket:"wealth" },
-  { id:"vehicle",     label:"Vehicle",      icon:"🚗", cat:"vehicle",           desc:"Car, motorbike",           hint:"Check AutoTrader with your reg plate",bucket:"life"   },
-  { id:"gold",        label:"Gold/Crypto",  icon:"✨", cat:"other",             desc:"Precious metals, crypto",  hint:"Your exchange or wallet balance",     bucket:"wealth" },
-  { id:"business",    label:"Business",     icon:"💼", cat:"business",          desc:"Business equity",          hint:"Estimated value of your stake",       bucket:"wealth" },
-  { id:"other",       label:"Other",        icon:"📦", cat:"other",             desc:"Art, collectibles, other", hint:"Estimated resale value",              bucket:"life"   },
-]
-
-const DEBT_TYPES = [
-  { id:"mortgage",    label:"Mortgage",          icon:"🏠", cat:"mortgage",      assumedRate:4.5,  desc:"Home loan" },
-  { id:"credit_card", label:"Credit Cards",      icon:"💳", cat:"credit_card",   assumedRate:24.0, desc:"Balance you're carrying" },
-  { id:"car_finance", label:"Car Finance",       icon:"🚗", cat:"car_loan",      assumedRate:9.0,  desc:"PCP or HP agreement" },
-  { id:"personal",    label:"Personal Loan",     icon:"👤", cat:"personal_loan", assumedRate:11.0, desc:"Bank or P2P loan" },
-  { id:"bnpl",        label:"Buy Now Pay Later", icon:"🛍️", cat:"personal_loan", assumedRate:29.0, desc:"Klarna, Laybuy etc." },
-  { id:"overdraft",   label:"Overdraft",         icon:"🏦", cat:"personal_loan", assumedRate:19.0, desc:"Bank overdraft" },
-  { id:"other_debt",  label:"Other Debt",        icon:"📦", cat:"personal_loan", assumedRate:15.0, desc:"Any other borrowing" },
-]
-
-const PRIORITY_GOALS = [
-  { id:"pay_debt",   icon:"💳", label:"Pay off debt",              color:T.red,    lesson:"good_bad_debt" },
-  { id:"invest",     icon:"📈", label:"Start investing",           color:T.purple, lesson:"isa_basics" },
-  { id:"net_worth",  icon:"📊", label:"Grow my net worth",         color:T.teal,   lesson:"nw_basics" },
-  { id:"save",       icon:"🎯", label:"Save for something",        color:T.green,  lesson:"nw_basics" },
-  { id:"pension",    icon:"🏛️", label:"Sort my pension",           color:T.blue,   lesson:"nw_basics" },
-  { id:"budget",     icon:"🥧", label:"Budget better",             color:T.amber,  lesson:"nw_basics" },
-  { id:"calm",       icon:"😌", label:"Stop worrying about money", color:"#F9A8D4",lesson:"nw_basics" },
-  { id:"learn",      icon:"💡", label:"Learn how money works",     color:T.teal,   lesson:"compound_interest" },
-  { id:"house",      icon:"🏠", label:"Buy a house",               color:T.amber,  lesson:"isa_basics" },
-]
-
-const GOAL_TYPES = [
-  { id:"emergency",   label:"Emergency fund",   icon:"🛡️", color:T.teal,   dim:T.tealDim,   border:T.tealBorder },
-  { id:"home",        label:"Buy a home",        icon:"🏠", color:T.blue,   dim:T.blueDim,   border:T.blueBorder },
-  { id:"holiday",     label:"Holiday",           icon:"✈️", color:T.amber,  dim:T.amberDim,  border:T.amberBorder },
-  { id:"invest",      label:"Start investing",   icon:"📈", color:T.purple, dim:T.purpleDim, border:T.purpleBorder },
-  { id:"retirement",  label:"Retirement pot",    icon:"🏖️", color:T.green,  dim:T.greenDim,  border:"rgba(52,211,153,.3)" },
-  { id:"debt",        label:"Clear debt",        icon:"💳", color:T.red,    dim:T.redDim,    border:T.redBorder },
-  { id:"education",   label:"Education",         icon:"📚", color:T.blue,   dim:T.blueDim,   border:T.blueBorder },
-  { id:"other_goal",  label:"Something else",    icon:"⭐", color:T.muted,  dim:T.faint,     border:T.border },
-]
-
-const ACTION_GOALS = new Set(["invest","retirement"])
-
-const GOAL_ACTIONS = {
-  invest:[
-    { id:"open_isa",    label:"Open a Stocks & Shares ISA",    desc:"The most tax-efficient way to invest in the UK.", lessonId:"isa_basics" },
-    { id:"choose_fund", label:"Choose a low-cost index fund",  desc:"A global tracker gives you thousands of companies at minimal cost.", lessonId:"nw_basics" },
-    { id:"set_dd",      label:"Set up a monthly direct debit", desc:"Automate it so you never miss.", lessonId:"nw_basics" },
-    { id:"dca_habit",   label:"Keep it going for 3 months",    desc:"After 90 days it becomes automatic.", lessonId:"compound_interest" },
-  ],
-  retirement:[
-    { id:"check_pension",    label:"Find your current pension value",   desc:"Log in to your pension provider.", lessonId:"nw_basics" },
-    { id:"increase_contrib", label:"Increase your contribution by 1%",  desc:"Even 1% extra makes a significant difference over decades.", lessonId:"nw_basics" },
-    { id:"employer_match",   label:"Check your employer match limit",   desc:"You may be leaving free money on the table.", lessonId:"nw_basics" },
-    { id:"fire_number",      label:"Calculate your retirement number",  desc:"25× annual spending = the amount you need invested.", lessonId:"nw_basics" },
-  ]
-}
-
-const XP_LEVELS = [
-  { level:1, label:"Newcomer",  min:0,   emoji:"🌱" },
-  { level:2, label:"Explorer",  min:50,  emoji:"🧭" },
-  { level:3, label:"Builder",   min:120, emoji:"🏗️" },
-  { level:4, label:"Grower",    min:220, emoji:"🌿" },
-  { level:5, label:"Achiever",  min:360, emoji:"⭐" },
-  { level:6, label:"Free",      min:550, emoji:"🔥" },
-]
-
-const BADGES = [
-  { id:"first_lesson",   emoji:"📖", label:"First lesson",    desc:"Completed your first lesson",       condition: s => (s.completedLessons||[]).length >= 1 },
-  { id:"five_lessons",   emoji:"🎓", label:"Five lessons",    desc:"Completed 5 lessons",                condition: s => (s.completedLessons||[]).length >= 5 },
-  { id:"first_goal",     emoji:"🎯", label:"Goal setter",     desc:"Created your first goal",           condition: s => (s.goals||[]).length >= 1 },
-  { id:"net_worth_pos",  emoji:"💚", label:"In the green",    desc:"Positive net worth",                 condition: s => { const { netWorth } = calcTotals(s.assets||[],s.debts||[]); return netWorth > 0 } },
-  { id:"has_investment", emoji:"📈", label:"Investor",        desc:"Have an investment asset",           condition: s => (s.assets||[]).some(a=>a.category==="investments") },
-  { id:"has_pension",    emoji:"🏛️", label:"Pension holder",  desc:"Have a pension asset",               condition: s => (s.assets||[]).some(a=>a.category==="pension") },
-  { id:"three_assets",   emoji:"🏦", label:"Asset collector", desc:"3 or more assets tracked",          condition: s => (s.assets||[]).length >= 3 },
-  { id:"streak_3",       emoji:"🔥", label:"3-week streak",   desc:"Checked in 3 weeks running",        condition: s => (s.profile?.streakWeeks||0) >= 3 },
-  { id:"picked_goals",   emoji:"🧭", label:"Goal seeker",     desc:"Picked your priorities",            condition: s => (s.priorityGoals||[]).length > 0 },
-]
-
-const DEFAULTS = {
-  profile: { name:"", age:null, onboardingComplete:false, points:0, streakWeeks:0, lastCheckIn:null },
-  assets:[], debts:[],
-  income: { primary:0, primarySource:"Salary", additional:[] },
-  spending: { monthly:0, breakdown:{} },
-  goals:[], history:[], completedLessons:[], badges:[],
-  priorityGoals: [],
-  dashboardTiles: []
-}
-
-const load = () => { try { const s=localStorage.getItem("ls_v1"); return s?{...DEFAULTS,...JSON.parse(s)}:DEFAULTS } catch { return DEFAULTS } }
 
 /* ════════════════════════════════════════════════════════════════════
-   UTILITIES
+   SUMMARY SCREEN CONTENT
    ════════════════════════════════════════════════════════════════════ */
-const fmt  = v => { if(v==null||isNaN(v)) return "£0"; const a=Math.abs(Math.round(v)).toLocaleString("en-GB"); return v<0?`-£${a}`:`£${a}` }
-const fmtK = v => { if(v==null||isNaN(v)) return "£0"; const a=Math.abs(v); return a>=1000000?`£${(a/1e6).toFixed(1)}M`:a>=1000?`£${(a/1000).toFixed(0)}k`:`£${Math.round(a)}` }
-
-const calcTotals  = (assets,debts) => {
-  const ta=assets.reduce((s,a)=>s+(a.value||0),0)
-  const td=debts.reduce((s,d)=>s+(d.balance||0),0)
-  return { totalAssets:ta, totalDebts:td, netWorth:ta-td }
-}
-const calcIncome  = (inc,assets) => (inc.primary||0)+(inc.additional||[]).reduce((s,i)=>s+(i.amount||0),0)+assets.reduce((s,a)=>s+(a.monthlyIncome||0),0)
-const calcSurplus = (inc,assets,sp) => calcIncome(inc,assets)-(sp.monthly||0)
-
-const DEFAULT_RATES = { mortgage:4.5, credit_card:24, personal_loan:11, car_loan:9, student_loan:7.3, business_loan:8, other:15 }
-const annualInterest    = d => (d.balance||0)*((d.interestRate ?? DEFAULT_RATES[d.category] ?? 10)/100)
-const totalInterestDrag = debts => debts.reduce((s,d)=>s+annualInterest(d),0)
-
-const buckets = assets => ({
-  safetyNet:      assets.filter(a=>a.category==="savings").reduce((s,a)=>s+(a.value||0),0),
-  wealthBuilders: assets.filter(a=>["investments","pension","business"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0),
-  lifeAssets:     assets.filter(a=>["primary_residence","other_property","vehicle","other"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0),
-})
-
-/* Jagged projection realistic market-style noise using seeded LCG */
-const calcProjection = (nw, surplus, currentAge) => {
-  const age = currentAge || 35
-  const years = Math.max(70 - age, 5)
-  const data = []
-  let seed = (Math.abs(Math.round(nw)) % 9973) + 1
-  const rand = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return (seed / 0xffffffff) - 0.5 }
-
-  // Baselines: optimistic 8%, conservative 5%
-  const optBase = [nw], conBase = [nw]
-  let o = nw, c = nw
-  for (let y = 1; y <= years; y++) {
-    const s = Math.max(0, surplus) * 12
-    o = (o + s) * 1.08
-    c = (c + s) * 1.05
-    optBase.push(o)
-    conBase.push(c)
-  }
-
-  // More jagged noise mean-reverting random walk with higher amplitude
-  let oNoise = 0, cNoise = 0
-  for (let y = 0; y <= years; y++) {
-    oNoise = oNoise * 0.55 + rand() * 0.18  // ±9% noise with persistence
-    cNoise = cNoise * 0.55 + rand() * 0.13  // ±6.5%
-    const jOpt = Math.round(optBase[y] * (1 + oNoise))
-    const jCon = Math.round(conBase[y] * (1 + cNoise))
-    data.push({ age: age + y, optimistic: Math.max(-500000, jOpt), conservative: Math.max(-500000, jCon) })
-  }
-  return data
+const GOAL_CONTENT={
+  understand:{
+    headline:"Nobody taught you this. Most adults are still figuring it out. That changes now.",
+    cards:[
+      {color:T.blue,text:"You will understand how money actually works: inflation, interest, tax, in plain language."},
+      {color:T.green,text:"Starting now, even before you are earning much, puts you years ahead of most people your age."},
+      {color:T.amber,text:"You will never have to nod along pretending you understood something you did not."}],
+    bullets:["Explain how your payslip works to someone else","Know exactly what your money is doing each month","Make financial decisions with confidence, not guesswork"]},
+  budgeting:{
+    headline:"You earn money. It disappears. We are going to find it.",
+    cards:[
+      {color:T.blue,text:"Most people find £50 to £150/month in forgotten subscriptions and direct debits in the first session."},
+      {color:T.green,text:"Once you know your gap, what is actually left each month, everything else becomes possible."},
+      {color:T.amber,text:"A budget you can stick to is not about restriction. It is about knowing which spending is intentional."}],
+    bullets:["Track every pound without it feeling like a chore","Cut spending you do not even notice","Build savings automatically from the gap you find"]},
+  debt:{
+    headline:"You are not in a hole. You are at the start of getting out of one.",
+    cards:[
+      {color:T.blue,text:"Most people who clear debt do it faster than expected once they have a real plan, not a rough intention."},
+      {color:T.green,text:"You will know your exact debt-free date before you finish your first session."},
+      {color:T.amber,text:"Interest is probably costing you more than you realise. We will show you the real number."}],
+    bullets:["List every debt with its true cost","Have a payoff plan with actual dates","Stop paying interest you do not need to"]},
+  investing:{
+    headline:"You have got income coming in. Right now it is just sitting there.",
+    cards:[
+      {color:T.blue,text:"Starting at 27 vs 37 is a £180,000+ difference at retirement. You still have time."},
+      {color:T.green,text:"90% of professional fund managers underperform a simple index fund. You do not need to pick stocks."},
+      {color:T.amber,text:"Your employer may be offering free money you have not claimed yet. We check this in step one."}],
+    bullets:["Open a Stocks & Shares ISA and understand why","Set up automated investing that runs without you","Know the difference between good fees and bad fees"]},
+  home:{
+    headline:"You have a goal. Let us build the path backwards from it.",
+    cards:[
+      {color:T.blue,text:"You will know exactly how much you need, by when, and what needs to happen each month."},
+      {color:T.green,text:"Most people overestimate how long it takes when they have a plan."},
+      {color:T.amber,text:"There are government bonuses and tax wrappers most first-time buyers do not know exist."}],
+    bullets:["Calculate your exact savings target","Use the right accounts to get government bonuses","Build a realistic timeline that actually works"]},
+  admin:{
+    headline:"Most people overpay tax and underpay themselves. Let us fix both.",
+    cards:[
+      {color:T.blue,text:"A wrong tax code costs real money. HMRC will not always tell you. We check this in the first session."},
+      {color:T.green,text:"If your employer matches pension contributions and you are not maximising it, you are turning down part of your salary."},
+      {color:T.amber,text:"30 minutes in this app will be worth more than most financial decisions you will make this year."}],
+    bullets:["Confirm your tax code is correct and understand it","Maximise your employer pension match","Know exactly what you are entitled to and claim it"]},
 }
 
-function calcGoalProgress(goal, surplus) {
-  const now = new Date()
-  const start = goal.createdAt ? new Date(goal.createdAt) : now
-  const monthsElapsed = Math.max(0,(now-start)/(1000*60*60*24*30.4))
-  const monthly = goal.monthlyAmount || Math.max(0,surplus*0.3)
-  const current = Math.min(goal.startAmount+monthly*monthsElapsed, goal.targetAmount)
-  const pct = goal.targetAmount>0 ? Math.min((current/goal.targetAmount)*100,100) : 0
-  const remaining = Math.max(0,goal.targetAmount-current)
-  const monthsLeft = monthly>0 ? Math.ceil(remaining/monthly) : null
-  const eta = monthsLeft!=null ? (()=>{ const d=new Date(); d.setMonth(d.getMonth()+monthsLeft); return d.toLocaleDateString("en-GB",{month:"short",year:"numeric"}) })() : null
-  return { current:Math.round(current), pct:Math.round(pct), monthsLeft, eta, monthly }
-}
+const GOAL_KEYS={understand:"understand",budgeting:"budgeting",debt:"debt",investing:"investing",home:"home",admin:"admin"}
 
-function getLevelInfo(xp) { return XP_LEVELS.slice().reverse().find(l=>xp>=l.min)||XP_LEVELS[0] }
-function getNextLevel(xp) { const i=XP_LEVELS.findIndex(l=>l===getLevelInfo(xp)); return i<XP_LEVELS.length-1?XP_LEVELS[i+1]:null }
-
-/* Age-based net worth benchmark (non-judgmental framing) */
-function ageBenchmark(age) {
-  if (!age) return null
-  const a = parseInt(age)
-  if (a < 25) return { median: 5000,   tracked: 18000  }
-  if (a < 30) return { median: 25000,  tracked: 52000  }
-  if (a < 35) return { median: 60000,  tracked: 105000 }
-  if (a < 40) return { median: 110000, tracked: 185000 }
-  if (a < 50) return { median: 185000, tracked: 290000 }
-  if (a < 60) return { median: 310000, tracked: 460000 }
-  return        { median: 420000, tracked: 610000 }
-}
 
 /* ════════════════════════════════════════════════════════════════════
-   CONTEXT
+   STATE & CONTEXT
    ════════════════════════════════════════════════════════════════════ */
-const AppCtx = createContext(null)
-const useApp = () => useContext(AppCtx)
+const DEFAULTS={
+  profile:{name:"",age:null,onboardingComplete:false,goal:null,situations:[],
+    currentLevel:1,completedLevels:[],phaseTag:"Foundations",personalityResult:null,
+    xp:0,levelProgress:{}},
+  assets:[],debts:[],income:{primary:0},spending:{monthly:0},goals:[],history:[],completedLessons:[],badges:[]
+}
+const load=()=>{try{const s=localStorage.getItem("ls_v2");return s?{...DEFAULTS,...JSON.parse(s)}:DEFAULTS}catch{return DEFAULTS}}
+const fmt=v=>{if(v==null||isNaN(v))return"£0";const a=Math.abs(Math.round(v)).toLocaleString("en-GB");return v<0?`-£${a}`:`£${a}`}
+const getPhase=n=>n<=3?"Foundations":n<=6?"Stabilise":n<=9?"Optimise":n<=12?"Grow":"Protect"
 
-function AppProvider({ children }) {
-  const [state, setState] = useState(load)
-  const [tab, setTab] = useState(0)
-  const [toastMsg, setToastMsg] = useState(null)
+const AppCtx=createContext(null)
+const useApp=()=>useContext(AppCtx)
 
-  function save(ns) {
-    const merged = { ...DEFAULTS, ...ns }
-    setState(merged)
-    try { localStorage.setItem("ls_v1", JSON.stringify(merged)) } catch {}
-  }
-
-  function reset() {
-    setState(DEFAULTS)
-    try { localStorage.removeItem("ls_v1") } catch {}
-  }
-
-  function toast(msg, dur=2400) {
-    setToastMsg(msg)
-    setTimeout(() => setToastMsg(null), dur)
-  }
-
-  return (
-    <AppCtx.Provider value={{ state, save, reset, tab, setTab, toast }}>
+function AppProvider({children}){
+  const[state,setState]=useState(load)
+  const[tab,setTab]=useState(0)
+  const[toastMsg,setToastMsg]=useState(null)
+  function save(ns){const m={...DEFAULTS,...ns};setState(m);try{localStorage.setItem("ls_v2",JSON.stringify(m))}catch{}}
+  function reset(){setState(DEFAULTS);try{localStorage.removeItem("ls_v2")}catch{}}
+  function toast(msg,dur=2400){setToastMsg(msg);setTimeout(()=>setToastMsg(null),dur)}
+  return(
+    <AppCtx.Provider value={{state,save,reset,tab,setTab,toast}}>
       <style>{G}</style>
       {children}
-      {toastMsg && (
-        <div className="ls-fadein" style={{ position:"fixed",bottom:90,left:"50%",transform:"translateX(-50%)",background:T.teal,color:"#070D1A",fontWeight:700,fontSize:14,padding:"10px 20px",borderRadius:99,zIndex:9999,whiteSpace:"nowrap",pointerEvents:"none" }}>
-          {toastMsg}
-        </div>
-      )}
+      {toastMsg&&<div className="ls-fadein" style={{position:"fixed",bottom:90,left:"50%",transform:"translateX(-50%)",background:`linear-gradient(135deg,${T.teal},${T.tealMid})`,color:"#070D1A",fontWeight:700,fontSize:14,padding:"12px 24px",borderRadius:99,zIndex:9999,whiteSpace:"nowrap",pointerEvents:"none",boxShadow:`0 8px 32px rgba(15,191,184,.4)`}}>{toastMsg}</div>}
     </AppCtx.Provider>
   )
 }
@@ -667,4708 +418,779 @@ function AppProvider({ children }) {
 /* ════════════════════════════════════════════════════════════════════
    SHARED UI
    ════════════════════════════════════════════════════════════════════ */
-function Btn({ children, onClick, disabled, variant="primary", style:sx={} }) {
-  const base = { width:"100%", padding:"15px 20px", borderRadius:14, fontFamily:"inherit", fontWeight:700, fontSize:15, cursor:disabled?"not-allowed":"pointer", opacity:disabled?.5:1, transition:"all .15s", border:"none" }
-  const styles = {
-    primary:   { background:disabled?T.subtle:`linear-gradient(135deg,${T.teal},${T.tealMid})`, color:"#070D1A" },
-    secondary: { background:T.card, border:`1.5px solid ${T.border}`, color:T.muted },
-    danger:    { background:T.redDim, border:`1.5px solid ${T.redBorder}`, color:T.red },
-  }
-  return <button onClick={disabled?undefined:onClick} style={{ ...base, ...styles[variant], ...sx }}>{children}</button>
+function Btn({children,onClick,disabled,style:sx={}}){
+  return<button onClick={disabled?undefined:onClick} style={{width:"100%",padding:"16px 20px",borderRadius:16,fontFamily:"inherit",fontWeight:700,fontSize:15,cursor:disabled?"not-allowed":"pointer",opacity:disabled?.4:1,transition:"all .15s",border:"none",background:disabled?T.subtle:`linear-gradient(135deg,${T.teal},${T.tealMid})`,color:"#070D1A",letterSpacing:.3,...sx}}>{children}</button>
 }
 
-function Input({ label, value, onChange, placeholder, type="text", min, max, helper }) {
-  return (
-    <div>
-      {label && <p style={{ fontSize:12,color:T.muted,fontWeight:600,marginBottom:7,letterSpacing:.3 }}>{label}</p>}
-      <input type={type} value={value} placeholder={placeholder||""} min={min} max={max}
-        onChange={e=>onChange(type==="number"?e.target.value:e.target.value)}
-        style={{ width:"100%",background:T.card,border:`1.5px solid ${T.border}`,borderRadius:12,outline:"none",color:T.white,fontSize:15,padding:"12px 14px",fontFamily:"inherit",transition:"border-color .15s" }}
-        onFocus={e=>e.target.style.borderColor=T.teal}
-        onBlur={e=>e.target.style.borderColor=T.border}
-      />
-      {helper && <p style={{ fontSize:11,color:T.subtle,marginTop:5 }}>{helper}</p>}
-    </div>
-  )
-}
-
-function CurrencyInput({ label, value, onChange, placeholder, helper }) {
-  const [raw, setRaw] = useState(value>0?String(value):"")
-  useEffect(()=>{ if(value===0&&raw!=="0") setRaw("") },[value])
-  function handle(v) { setRaw(v); const n=parseFloat(v)||0; onChange(Math.max(0,n)) }
-  return (
-    <div>
-      {label && <p style={{ fontSize:12,color:T.muted,fontWeight:600,marginBottom:7 }}>{label}</p>}
-      <div style={{ display:"flex",alignItems:"center",background:T.card,border:`1.5px solid ${T.border}`,borderRadius:12,overflow:"hidden",transition:"border-color .15s" }}
-        onFocus={()=>{}} tabIndex={-1}>
-        <span style={{ padding:"0 12px",color:T.muted,fontSize:17,fontWeight:700,userSelect:"none",flexShrink:0 }}>£</span>
-        <input type="number" min="0" value={raw} placeholder={placeholder||"0"}
-          onChange={e=>handle(e.target.value)}
-          style={{ flex:1,background:"transparent",border:"none",outline:"none",color:T.white,fontSize:15,fontWeight:600,padding:"12px 12px 12px 0",fontFamily:"inherit",fontVariantNumeric:"tabular-nums" }}/>
-      </div>
-      {helper && <p style={{ fontSize:11,color:T.subtle,marginTop:5 }}>{helper}</p>}
-    </div>
-  )
-}
-
-function Toggle({ label, value, onChange }) {
-  return (
-    <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px 16px" }}>
-      <p style={{ color:T.white,fontSize:14,fontWeight:600,flex:1,marginRight:12 }}>{label}</p>
-      <button onClick={()=>onChange(!value)} style={{ width:48,height:26,borderRadius:13,background:value?T.teal:T.surface,border:`2px solid ${value?T.teal:T.border}`,cursor:"pointer",position:"relative",transition:"all .2s",flexShrink:0 }}>
-        <div style={{ position:"absolute",top:2,left:value?24:2,width:18,height:18,borderRadius:"50%",background:"#fff",transition:"left .2s" }}/>
-      </button>
-    </div>
-  )
-}
-
-function Tag({ children, color="teal" }) {
-  const cols = { teal:{ bg:T.tealDim,border:T.tealBorder,c:T.teal }, amber:{ bg:T.amberDim,border:T.amberBorder,c:T.amber }, red:{ bg:T.redDim,border:T.redBorder,c:T.red } }
-  const s = cols[color]||cols.teal
-  return <span style={{ display:"inline-flex",alignItems:"center",background:s.bg,border:`1px solid ${s.border}`,borderRadius:6,padding:"2px 8px",fontSize:11,fontWeight:700,color:s.c }}>{children}</span>
-}
-
-function Sheet({ title, onClose, children }) {
-  return (
-    <div className="ls-fadein" style={{ position:"fixed",inset:0,background:"rgba(7,13,26,.75)",backdropFilter:"blur(6px)",zIndex:1000,display:"flex",alignItems:"flex-end",justifyContent:"center" }}
-      onClick={e=>{ if(e.target===e.currentTarget) onClose() }}>
-      <div className="ls-fadein" style={{ background:T.surface,borderRadius:"20px 20px 0 0",width:"100%",maxWidth:600,maxHeight:"92vh",overflow:"hidden",display:"flex",flexDirection:"column" }}>
-        <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"18px 20px",borderBottom:`1px solid ${T.border}`,flexShrink:0 }}>
-          <p style={{ color:T.white,fontWeight:800,fontSize:16 }}>{title}</p>
-          <button onClick={onClose} style={{ background:"none",border:"none",color:T.muted,cursor:"pointer",padding:4 }}><X size={20}/></button>
-        </div>
-        <div style={{ flex:1,overflowY:"auto",padding:"20px" }}>{children}</div>
-      </div>
-    </div>
-  )
-}
-
-function StarField({ count=40 }) {
-  // Deterministic but visually sparse and spaced, no flying rocket
-  const stars = useMemo(()=>Array.from({length:Math.min(count,28)},(_,i)=>({
-    x: (i*137.508)%100, y: (i*93.7+17)%100,
-    size: i%9===0 ? 2.2 : i%5===0 ? 1.6 : 1,
-    delay: (i*0.6)%6, dur: 2+((i*0.9)%4),
-    tint: i%13===0 ? "rgba(15,191,184,.7)" : i%9===0 ? "rgba(167,139,250,.6)" : "rgba(255,255,255,.7)"
+function StarField({count=28}){
+  const stars=useMemo(()=>Array.from({length:Math.min(count,28)},(_,i)=>({
+    x:(i*137.508)%100,y:(i*93.7+17)%100,
+    size:i%9===0?2.2:i%5===0?1.6:1,
+    delay:(i*0.6)%6,dur:2+((i*0.9)%4),
+    tint:i%13===0?"rgba(15,191,184,.7)":i%9===0?"rgba(167,139,250,.6)":"rgba(255,255,255,.7)"
   })),[count])
-  return (
-    <div style={{ position:"absolute",inset:0,overflow:"hidden",pointerEvents:"none" }}>
-      {/* Subtle nebula, very soft, just depth */}
-      <div className="ls-nebula" style={{ position:"absolute",top:"-30%",left:"-20%",width:"80%",height:"80%",
-        background:"radial-gradient(ellipse,rgba(167,139,250,.06) 0%,transparent 65%)",pointerEvents:"none" }}/>
-      <div className="ls-nebula" style={{ position:"absolute",bottom:"-25%",right:"-15%",width:"70%",height:"70%",
-        background:"radial-gradient(ellipse,rgba(15,191,184,.04) 0%,transparent 65%)",pointerEvents:"none",animationDelay:"5s" }}/>
-      {stars.map((s,i)=>(
-        <div key={i} className="ls-star" style={{ position:"absolute",left:`${s.x}%`,top:`${s.y}%`,
-          width:s.size,height:s.size,borderRadius:"50%",background:s.tint,
-          "--d":`${s.dur}s`,"--dl":`${s.delay}s` }}/>
-      ))}
+  return(
+    <div style={{position:"absolute",inset:0,overflow:"hidden",pointerEvents:"none"}}>
+      <div style={{position:"absolute",top:"-30%",left:"-20%",width:"80%",height:"80%",background:"radial-gradient(ellipse,rgba(167,139,250,.05) 0%,transparent 65%)",pointerEvents:"none"}}/>
+      {stars.map((s,i)=><div key={i} className="ls-star" style={{position:"absolute",left:`${s.x}%`,top:`${s.y}%`,width:s.size,height:s.size,borderRadius:"50%",background:s.tint,"--d":`${s.dur}s`,"--dl":`${s.delay}s`}}/>)}
     </div>
   )
 }
 
-function LockedCard({ icon, title, description, unlock, onUnlock }) {
-  return (
-    <div className="ls-shimmer" style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:18,padding:"20px 22px",position:"relative",overflow:"hidden" }}>
-      <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:12 }}>
-        <div style={{ width:38,height:38,borderRadius:11,background:T.faint,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,filter:"grayscale(1)",opacity:.5 }}>{icon}</div>
-        <div>
-          <p style={{ color:T.subtle,fontWeight:700,fontSize:14 }}>{title}</p>
-          <div style={{ display:"flex",alignItems:"center",gap:5 }}><Lock size={11} color={T.subtle}/><span style={{ color:"#8FA3BE",fontSize:12 }}>Locked</span></div>
+function Sheet({title,onClose,children}){
+  return(
+    <div className="ls-fadein" style={{position:"fixed",inset:0,background:"rgba(7,13,26,.8)",backdropFilter:"blur(8px)",zIndex:1000,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={e=>{if(e.target===e.currentTarget)onClose()}}>
+      <div className="ls-fadein" style={{background:T.surface,borderRadius:"24px 24px 0 0",width:"100%",maxWidth:600,maxHeight:"92vh",overflow:"hidden",display:"flex",flexDirection:"column",border:`1px solid ${T.border}`,borderBottom:"none"}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"20px 22px",borderBottom:`1px solid ${T.border}`,flexShrink:0}}>
+          <p style={{color:T.white,fontWeight:800,fontSize:17}}>{title}</p>
+          <button onClick={onClose} style={{background:"none",border:"none",color:T.muted,cursor:"pointer",padding:4}}><X size={20}/></button>
         </div>
+        <div style={{flex:1,overflowY:"auto",padding:"22px"}}>{children}</div>
       </div>
-      <p style={{ color:"#D8E8F8",fontSize:14,lineHeight:1.65,marginBottom:14 }}>{description}</p>
-      {onUnlock && <button onClick={onUnlock} style={{ background:"none",border:`1px solid ${T.border}`,borderRadius:8,padding:"7px 14px",color:T.muted,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>{unlock}</button>}
     </div>
   )
 }
 
-function InfoTooltip({ text, color=T.teal }) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef(null)
-
-  useEffect(()=>{
-    if(!open) return
-    function handler(e) {
-      if(ref.current && !ref.current.contains(e.target)) setOpen(false)
-    }
-    document.addEventListener("mousedown", handler, true)
-    document.addEventListener("touchstart", handler, true)
-    return ()=>{ document.removeEventListener("mousedown", handler, true); document.removeEventListener("touchstart", handler, true) }
-  },[open])
-
-  return (
-    <div ref={ref} style={{ position:"relative",display:"inline-flex" }}>
-      <button onClick={e=>{ e.stopPropagation(); setOpen(v=>!v) }} style={{ background:"none",border:"none",cursor:"pointer",padding:0,display:"flex",alignItems:"center" }}>
-        <div style={{ width:20,height:20,borderRadius:"50%",background:`${color}20`,border:`1px solid ${color}40`,display:"flex",alignItems:"center",justifyContent:"center" }}>
-          <span style={{ fontSize:10,color,fontWeight:800 }}>?</span>
-        </div>
-      </button>
-      {open && (
-        <div style={{ position:"absolute",bottom:"calc(100% + 8px)",right:0,width:240,background:T.card,border:`1px solid ${T.tealBorder}`,borderRadius:12,padding:"14px 16px",zIndex:200,boxShadow:"0 8px 32px rgba(0,0,0,.6)",pointerEvents:"auto" }}>
-          <p style={{ color:"#D8E8F8",fontSize:14,lineHeight:1.65,fontWeight:500 }}>{text}</p>
-        </div>
-      )}
-    </div>
-  )
+function Confetti({active}){
+  if(!active)return null
+  const pieces=Array.from({length:30},(_,i)=>({id:i,x:Math.random()*100,color:[T.teal,T.purple,T.amber,T.green,T.blue,"#F472B6"][Math.floor(Math.random()*6)],delay:Math.random()*0.4,size:6+Math.random()*6}))
+  return(<div style={{position:"fixed",inset:0,zIndex:999,pointerEvents:"none",overflow:"hidden"}}>{pieces.map(p=><div key={p.id} style={{position:"absolute",left:`${p.x}%`,top:"-20px",width:p.size,height:p.size,background:p.color,borderRadius:Math.random()>0.5?"50%":"2px",animation:`confettiFall 1.4s ${p.delay}s ease-in forwards`}}/>)}</div>)
 }
 
 /* ════════════════════════════════════════════════════════════════════
-   ONBOARDING CONTROLLER
+   ONBOARDING (3 screens + summary)
    ════════════════════════════════════════════════════════════════════ */
-function Onboarding() {
-  const { state, save } = useApp()
-  const [screen,   setScreen]  = useState("welcome")
-  const [assets,   setAssets]  = useState({})
-  const [debts,    setDebts]   = useState({})
-  const [income,   setIncome]  = useState(state.income.primary||0)
-  const [spending, setSpending]= useState(state.spending.monthly||0)
-  const [name,     setName]    = useState(state.profile.name||"")
-  const [age,      setAge]     = useState(state.profile.age||"")
+function Onboarding(){
+  const{state,save}=useApp()
+  const[screen,setScreen]=useState("goal")
+  const[goal,setGoal]=useState(null)
+  const[situations,setSituations]=useState([])
+  const[name,setName]=useState("")
+  const[age,setAge]=useState("")
 
-  function finishOnboarding() {
-    const newAssets = Object.entries(assets).filter(([,v])=>v>0).map(([typeId,val])=>{
-      const t = ASSET_TYPES.find(a=>a.id===typeId)
-      return { id:`a_${typeId}`, category:t.cat, name:t.label, value:val, monthlyIncome:0, linkedDebtId:null }
-    })
-    const newDebts = Object.entries(debts).filter(([,v])=>v>0).map(([typeId,bal])=>{
-      const t = DEBT_TYPES.find(d=>d.id===typeId)
-      return { id:`d_${typeId}`, category:t.cat, name:t.label, balance:bal, interestRate:t.assumedRate, linkedAssetId:null, isAutoCreated:false }
-    })
-    save({
-      ...state,
-      profile:{ ...state.profile, name:name||"Friend", age:parseInt(age)||null, onboardingComplete:true, points:20, lastCheckIn:new Date().toISOString(), mode:state.profile?.mode||"grow" },
-      assets: newAssets, debts: newDebts,
-      income: { ...state.income, primary:income },
-      spending: { ...state.spending, monthly:spending },
-    })
-  }
-
-  if(screen==="welcome")   return <WelcomeScreen  onNext={({mode,name:n,age:a})=>{ save({...state,profile:{...state.profile,mode:mode||"grow"}}); if(n) setName(n); if(a) setAge(a); setScreen("assets") }} />
-  if(screen==="assets")    return <AssetChecklistScreen values={assets} setValues={setAssets} onNext={()=>setScreen("debts")} onBack={()=>setScreen("welcome")} />
-  if(screen==="debts")     return <DebtChecklistScreen values={debts} setValues={setDebts} assets={assets} age={age} onNext={()=>setScreen("income")} onBack={()=>setScreen("assets")} />
-  if(screen==="income")    return <IncomeOnboardScreen income={income} setIncome={setIncome} onNext={()=>setScreen("spending")} onBack={()=>setScreen("debts")} />
-  if(screen==="spending")  return <SpendingOnboardScreen spending={spending} setSpending={setSpending} income={income} onNext={()=>setScreen("wow")} onBack={()=>setScreen("income")} />
-  if(screen==="wow")       return <WowScreen assets={assets} debts={debts} income={income} spending={spending} name={name} onFinish={finishOnboarding} />
-  return null
-}
-
-/* ════════════════════════════════════════════════════════════════════
-   WELCOME SCREENS (Splash + About/Name combined)
-   ════════════════════════════════════════════════════════════════════ */
-
-function WelcomeScreen({ onNext }) {
-  const [screen, setScreen] = useState("splash")
-  const [name, setNameLocal] = useState("")
-  const [age, setAgeLocal] = useState("")
-  const [mode, setMode] = useState(null)
-
-  const MODES = [
-    { id:"grow",   icon:"📈", label:"Grow my wealth",              sub:"Track everything, grow your net worth, beat the numbers", color:T.teal },
-    { id:"safety", icon:"🛡️", label:"Feel financially secure",     sub:"Understand your safety net, reduce money stress, sleep better", color:T.green },
-    { id:"learn",  icon:"💡", label:"Learn about money",           sub:"Build real financial knowledge from scratch, no jargon", color:T.purple },
-    { id:"action", icon:"🎯", label:"Take action on my finances",  sub:"Invest, buy a home, clear debt, get a clear plan", color:T.amber },
+  const GOALS=[
+    {id:"understand",emoji:"🗺️",label:"Understand money",sub:"Nobody ever taught me"},
+    {id:"budgeting",emoji:"💸",label:"Know where my money goes",sub:"Each month"},
+    {id:"debt",emoji:"🧯",label:"Get out of debt",sub:""},
+    {id:"investing",emoji:"📈",label:"Start investing or grow savings",sub:""},
+    {id:"home",emoji:"🏠",label:"Buy a home or reach a big goal",sub:""},
+    {id:"admin",emoji:"📋",label:"Sort my tax, pension or admin",sub:""},
   ]
 
-  if(screen === "splash") return (
-    <div style={{ minHeight:"100dvh", background:T.bg, display:"flex", flexDirection:"column",
-      position:"relative", overflow:"hidden", alignItems:"center", justifyContent:"center" }}>
-      <StarField count={28}/>
-      <div style={{ position:"absolute", top:"30%", left:"50%", transform:"translateX(-50%)",
-        width:300, height:300, borderRadius:"50%",
-        background:"radial-gradient(circle, rgba(15,191,184,.15) 0%, transparent 70%)",
-        pointerEvents:"none" }}/>
-      <div className="ls-fadein" style={{ position:"relative", zIndex:1, textAlign:"center", padding:"0 36px", maxWidth:420 }}>
-        <div className="ls-float" style={{ fontSize:72, marginBottom:24, lineHeight:1,
-          filter:"drop-shadow(0 0 40px rgba(15,191,184,.5))" }}>🚀</div>
-        <p style={{ color:T.teal, fontSize:12, fontWeight:800, letterSpacing:5,
-          textTransform:"uppercase", marginBottom:16 }}>LifeSmart</p>
-        <h1 style={{ color:"#FFFFFF", fontWeight:900, fontSize:"clamp(34px,9vw,48px)",
-          lineHeight:1.05, marginBottom:14, letterSpacing:-1 }}>
-          Finance.<br/>For everyone.
-        </h1>
-        <p style={{ color:"#8FA3BE", fontSize:16, lineHeight:1.5, marginBottom:48, fontWeight:400 }}>
-          The financial knowledge you were never taught.
-        </p>
-        <button onClick={()=>setScreen("priority")} style={{ background:`linear-gradient(135deg,${T.teal},${T.purple})`,
-          border:"none", borderRadius:20, padding:"18px 52px", color:"#FFFFFF",
-          fontWeight:900, fontSize:17, cursor:"pointer", fontFamily:"inherit",
-          boxShadow:"0 8px 40px rgba(15,191,184,.35)", letterSpacing:.3 }}>
-          Get started
-        </button>
-      </div>
-    </div>
-  )
+  const SITS=[
+    {id:"employed",emoji:"💼",label:"Employed or in a career"},
+    {id:"student",emoji:"🎓",label:"Student or just graduated"},
+    {id:"selfemployed",emoji:"🧾",label:"Self-employed or freelance"},
+    {id:"faith",emoji:"🌙",label:"My faith shapes my finances"},
+    {id:"family",emoji:"👨‍👩‍👧",label:"Family situation just changed"},
+    {id:"newuk",emoji:"🌍",label:"New to the UK"},
+  ]
 
-  if(screen === "priority") return (
-    <div style={{ minHeight:"100dvh", background:T.bg, display:"flex", flexDirection:"column",
-      position:"relative", overflow:"hidden" }}>
-      <StarField count={18}/>
-      <div className="ls-fadein" style={{ position:"relative", zIndex:1, flex:1, overflowY:"auto",
-        padding:"50px 28px 20px", maxWidth:460, margin:"0 auto", width:"100%" }}>
-        <h1 style={{ color:"#FFFFFF", fontWeight:900, fontSize:"clamp(26px,6vw,34px)",
-          lineHeight:1.1, marginBottom:10, letterSpacing:-.5 }}>
-          Take control of your money
-        </h1>
-        <p style={{ color:"#8FA3BE", fontSize:15, lineHeight:1.55, marginBottom:8 }}>
-          People who track their finances build <strong style={{ color:T.teal }}>4× more wealth</strong>. Not because they earn more, because they make better decisions.
-        </p>
-        <p style={{ color:"#8FA3BE", fontSize:15, lineHeight:1.55, marginBottom:28 }}>
-          We will teach you the key concepts and give you the tools to act on them.
-        </p>
-        <p style={{ color:"#FFFFFF", fontWeight:800, fontSize:15, marginBottom:14 }}>
-          What matters most to you right now?
-        </p>
-        <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-          {MODES.map(m=>{
-            const sel = mode === m.id
-            return (
-              <button key={m.id} onClick={()=>setMode(m.id)}
-                style={{
-                  background: sel ? `linear-gradient(135deg,${m.color}15,${m.color}08)` : "rgba(255,255,255,.03)",
-                  border: `2px solid ${sel ? m.color : "rgba(255,255,255,.06)"}`,
-                  borderRadius:18, padding:"16px 18px",
-                  cursor:"pointer", textAlign:"left", fontFamily:"inherit",
-                  transition:"all .15s",
-                  display:"flex", alignItems:"center", gap:16 }}>
-                <div style={{ width:44,height:44,borderRadius:13,background:sel?`${m.color}20`:"rgba(255,255,255,.04)",
-                  border:`1px solid ${sel?`${m.color}40`:"rgba(255,255,255,.06)"}`,
-                  display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0,
-                  transition:"all .15s" }}>
-                  {m.icon}
+  function toggleSit(id){setSituations(prev=>prev.includes(id)?prev.filter(x=>x!==id):[...prev,id])}
+
+  function finish(){
+    save({...state,profile:{...state.profile,name:name||"Friend",age:parseInt(age)||null,onboardingComplete:true,goal,situations,currentLevel:1,completedLevels:[],phaseTag:"Foundations",xp:0}})
+  }
+
+  // Screen 1: Goal
+  if(screen==="goal") return(
+    <div style={{minHeight:"100dvh",background:T.bg,display:"flex",flexDirection:"column",position:"relative",overflow:"hidden"}}>
+      <StarField count={20}/>
+      <div className="ls-fadein" style={{position:"relative",zIndex:1,flex:1,overflowY:"auto",padding:"60px 24px 20px",maxWidth:480,margin:"0 auto",width:"100%"}}>
+        <div className="ls-float" style={{fontSize:48,marginBottom:20,textAlign:"center"}}>🚀</div>
+        <h1 style={{color:"#FFFFFF",fontWeight:900,fontSize:"clamp(24px,6vw,32px)",lineHeight:1.1,marginBottom:8,textAlign:"center",letterSpacing:-.5}}>What do you most want to sort out?</h1>
+        <p style={{color:T.muted,fontSize:14,textAlign:"center",marginBottom:28}}>Your starting point. Everything else is still here.</p>
+        <div style={{display:"flex",flexDirection:"column",gap:10}}>
+          {GOALS.map(g=>{
+            const sel=goal===g.id
+            return(
+              <button key={g.id} onClick={()=>setGoal(g.id)} style={{background:sel?`${T.teal}12`:"rgba(255,255,255,.03)",border:`2px solid ${sel?T.teal:"rgba(255,255,255,.06)"}`,borderRadius:18,padding:"16px 18px",cursor:"pointer",textAlign:"left",fontFamily:"inherit",transition:"all .15s",display:"flex",alignItems:"center",gap:16}}>
+                <span style={{fontSize:26,flexShrink:0}}>{g.emoji}</span>
+                <div style={{flex:1}}>
+                  <p style={{color:sel?"#FFFFFF":"#C8D8EC",fontWeight:700,fontSize:15}}>{g.label}</p>
+                  {g.sub&&<p style={{color:sel?"#8FA3BE":"#4A6080",fontSize:12,marginTop:2}}>{g.sub}</p>}
                 </div>
-                <div style={{ flex:1 }}>
-                  <p style={{ color:sel?"#FFFFFF":"#C8D8EC", fontWeight:700, fontSize:15, marginBottom:2 }}>
-                    {m.label}
-                  </p>
-                  <p style={{ color:sel?"#8FA3BE":"#4A6080", fontSize:12, lineHeight:1.35 }}>{m.sub}</p>
+                <div style={{width:22,height:22,borderRadius:"50%",border:`2px solid ${sel?T.teal:"rgba(255,255,255,.15)"}`,background:sel?T.teal:"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .15s"}}>
+                  {sel&&<div style={{width:8,height:8,borderRadius:"50%",background:"#070D1A"}}/>}
                 </div>
-                {sel && <div style={{ width:22,height:22,borderRadius:"50%",background:m.color,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
-                  <Check size={13} color="#060C18"/>
-                </div>}
               </button>
             )
           })}
         </div>
       </div>
-      <div style={{ position:"relative", zIndex:1, padding:"0 28px 48px", maxWidth:460, margin:"0 auto", width:"100%" }}>
-        <button onClick={()=>{ if(mode) setScreen("name") }}
-          disabled={!mode}
-          style={{ width:"100%", padding:"17px",
-            background: mode ? `linear-gradient(135deg,${T.teal},${T.purple})` : "rgba(255,255,255,.05)",
-            border:"none", borderRadius:18,
-            color: mode ? "#FFFFFF" : "#344D68",
-            fontWeight:900, fontSize:17,
-            cursor: mode ? "pointer" : "default",
-            fontFamily:"inherit",
-            boxShadow: mode ? "0 4px 24px rgba(15,191,184,.3)" : "none",
-            transition:"all .2s" }}>
-          Continue
-        </button>
-        <button onClick={()=>setScreen("splash")} style={{ background:"none", border:"none", color:"#344D68",
-          fontSize:13, cursor:"pointer", fontFamily:"inherit", width:"100%", marginTop:12, padding:8, fontWeight:500 }}>
-          Back
-        </button>
+      <div style={{position:"relative",zIndex:1,padding:"0 24px 48px",maxWidth:480,margin:"0 auto",width:"100%"}}>
+        <Btn onClick={()=>{if(goal)setScreen("situation")}} disabled={!goal}>Continue</Btn>
       </div>
     </div>
   )
 
-  if(screen === "name") return (
-    <div style={{ minHeight:"100dvh", background:T.bg, display:"flex", flexDirection:"column",
-      position:"relative", overflow:"hidden" }}>
-      <StarField count={16}/>
-      <div className="ls-fadein" style={{ position:"relative", zIndex:1, flex:1, display:"flex", flexDirection:"column", justifyContent:"center",
-        padding:"50px 28px 20px", maxWidth:460, margin:"0 auto", width:"100%" }}>
-        <h1 style={{ color:"#FFFFFF", fontWeight:900, fontSize:"clamp(26px,6vw,34px)",
-          lineHeight:1.1, marginBottom:6, letterSpacing:-.5 }}>
-          About you
-        </h1>
-        <p style={{ color:"#5A7A9A", fontSize:14, marginBottom:28, fontWeight:500 }}>
-          We will personalise everything to you.
-        </p>
-        <div style={{ display:"flex",flexDirection:"column",gap:12 }}>
-          <input type="text" value={name} onChange={e=>setNameLocal(e.target.value)}
-            placeholder="First name" autoFocus
-            style={{ width:"100%", background:"rgba(255,255,255,.04)",
-              border:`2px solid ${name ? T.teal : "rgba(255,255,255,.08)"}`,
-              borderRadius:16, padding:"17px 20px", color:"#FFFFFF",
-              fontSize:19, fontWeight:700, fontFamily:"inherit",
-              outline:"none", transition:"border .15s" }}/>
-          <input type="number" value={age} onChange={e=>setAgeLocal(e.target.value)}
-            placeholder="Your age" min="16" max="80"
-            style={{ width:"100%", background:"rgba(255,255,255,.04)",
-              border:`2px solid ${age ? T.teal : "rgba(255,255,255,.08)"}`,
-              borderRadius:16, padding:"17px 20px", color:"#FFFFFF",
-              fontSize:19, fontWeight:700, fontFamily:"inherit",
-              outline:"none", transition:"border .15s" }}/>
-          <p style={{ color:"#3A5575", fontSize:12, paddingLeft:4 }}>Used to compare you against your age group.</p>
+  // Screen 2: Situation (multi-select)
+  if(screen==="situation") return(
+    <div style={{minHeight:"100dvh",background:T.bg,display:"flex",flexDirection:"column",position:"relative",overflow:"hidden"}}>
+      <StarField count={18}/>
+      <div className="ls-fadein" style={{position:"relative",zIndex:1,flex:1,overflowY:"auto",padding:"50px 24px 20px",maxWidth:480,margin:"0 auto",width:"100%"}}>
+        <h1 style={{color:"#FFFFFF",fontWeight:900,fontSize:"clamp(24px,6vw,32px)",lineHeight:1.1,marginBottom:8,letterSpacing:-.5}}>What describes you right now?</h1>
+        <p style={{color:T.muted,fontSize:14,marginBottom:6}}>Select everything that applies.</p>
+        <span style={{display:"inline-block",background:T.amberDim,color:T.amber,fontSize:11,fontWeight:700,padding:"4px 12px",borderRadius:99,border:`1px solid ${T.amberBorder}`,marginBottom:24}}>Pick as many as you like</span>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+          {SITS.map(s=>{
+            const sel=situations.includes(s.id)
+            return(
+              <button key={s.id} onClick={()=>toggleSit(s.id)} style={{background:sel?`${T.teal}10`:"rgba(255,255,255,.03)",border:`2px solid ${sel?T.teal:"rgba(255,255,255,.06)"}`,borderRadius:18,padding:"20px 14px",cursor:"pointer",textAlign:"center",fontFamily:"inherit",transition:"all .15s",position:"relative"}}>
+                <div style={{position:"absolute",top:10,right:10,width:20,height:20,borderRadius:"50%",border:`2px solid ${sel?T.teal:"rgba(255,255,255,.12)"}`,background:sel?T.teal:"transparent",display:"flex",alignItems:"center",justifyContent:"center",transition:"all .15s"}}>
+                  {sel&&<Check size={12} color="#070D1A"/>}
+                </div>
+                <span style={{fontSize:32,display:"block",marginBottom:8}}>{s.emoji}</span>
+                <p style={{color:sel?"#FFFFFF":"#8FA3BE",fontWeight:600,fontSize:13,lineHeight:1.3}}>{s.label}</p>
+              </button>
+            )
+          })}
         </div>
       </div>
-      <div style={{ position:"relative", zIndex:1, padding:"0 28px 48px", maxWidth:460, margin:"0 auto", width:"100%" }}>
-        <button onClick={()=>{ if(name && age) onNext({ mode:mode||"grow", name, age }) }}
-          disabled={!name || !age}
-          style={{ width:"100%", padding:"17px",
-            background: (name && age) ? `linear-gradient(135deg,${T.teal},${T.purple})` : "rgba(255,255,255,.05)",
-            border:"none", borderRadius:18,
-            color: (name && age) ? "#FFFFFF" : "#344D68",
-            fontWeight:900, fontSize:17,
-            cursor: (name && age) ? "pointer" : "default",
-            fontFamily:"inherit",
-            boxShadow: (name && age) ? "0 4px 24px rgba(15,191,184,.3)" : "none",
-            transition:"all .2s" }}>
-          {name ? `Let's go, ${name}` : "Enter your details"}
-        </button>
-        <button onClick={()=>setScreen("priority")} style={{ background:"none", border:"none", color:"#344D68",
-          fontSize:13, cursor:"pointer", fontFamily:"inherit", width:"100%", marginTop:12, padding:8, fontWeight:500 }}>
-          Back
-        </button>
+      <div style={{position:"relative",zIndex:1,padding:"0 24px 48px",maxWidth:480,margin:"0 auto",width:"100%"}}>
+        <Btn onClick={()=>setScreen("name")}>Continue</Btn>
+        <button onClick={()=>setScreen("goal")} style={{background:"none",border:"none",color:"#344D68",fontSize:13,cursor:"pointer",fontFamily:"inherit",width:"100%",marginTop:12,padding:8}}>Back</button>
       </div>
     </div>
   )
+
+  // Screen 3: Name + Age
+  if(screen==="name") return(
+    <div style={{minHeight:"100dvh",background:T.bg,display:"flex",flexDirection:"column",position:"relative",overflow:"hidden"}}>
+      <StarField count={16}/>
+      <div className="ls-fadein" style={{position:"relative",zIndex:1,flex:1,display:"flex",flexDirection:"column",justifyContent:"center",padding:"50px 28px 20px",maxWidth:460,margin:"0 auto",width:"100%"}}>
+        <h1 style={{color:"#FFFFFF",fontWeight:900,fontSize:"clamp(24px,6vw,32px)",lineHeight:1.1,marginBottom:6,letterSpacing:-.5}}>Last one. Make this yours.</h1>
+        <p style={{color:T.muted,fontSize:14,marginBottom:28}}>No email. No password. Just your name and age so we can personalise everything.</p>
+        <div style={{display:"flex",gap:12,marginBottom:12}}>
+          <input type="text" value={name} onChange={e=>setName(e.target.value)} placeholder="First name" autoFocus style={{flex:2,background:"rgba(255,255,255,.04)",border:`2px solid ${name?T.teal:"rgba(255,255,255,.08)"}`,borderRadius:16,padding:"17px 20px",color:"#FFFFFF",fontSize:18,fontWeight:700,fontFamily:"inherit",outline:"none",transition:"border .15s"}}/>
+          <input type="number" value={age} onChange={e=>setAge(e.target.value)} placeholder="Age" min="16" max="80" style={{flex:1,background:"rgba(255,255,255,.04)",border:`2px solid ${age?T.teal:"rgba(255,255,255,.08)"}`,borderRadius:16,padding:"17px 16px",color:"#FFFFFF",fontSize:18,fontWeight:700,fontFamily:"inherit",outline:"none",transition:"border .15s",textAlign:"center"}}/>
+        </div>
+        <p style={{color:"#344D68",fontSize:12,marginBottom:20}}>Age matters. A 22-year-old and a 34-year-old need genuinely different advice.</p>
+
+        {/* Show their selections back */}
+        {(goal||situations.length>0)&&(
+          <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:20}}>
+            {goal&&<span style={{background:T.tealDim,color:T.teal,fontSize:11,fontWeight:700,padding:"4px 12px",borderRadius:99,border:`1px solid ${T.tealBorder}`}}>{GOALS.find(g=>g.id===goal)?.emoji} {GOALS.find(g=>g.id===goal)?.label}</span>}
+            {situations.map(s=>{const sit=SITS.find(x=>x.id===s);return sit?<span key={s} style={{background:T.purpleDim,color:T.purple,fontSize:11,fontWeight:700,padding:"4px 12px",borderRadius:99,border:`1px solid ${T.purpleBorder}`}}>{sit.emoji} {sit.label}</span>:null})}
+          </div>
+        )}
+      </div>
+      <div style={{position:"relative",zIndex:1,padding:"0 28px 48px",maxWidth:460,margin:"0 auto",width:"100%"}}>
+        <Btn onClick={()=>{if(name&&age)setScreen("summary")}} disabled={!name||!age}>Show me my plan →</Btn>
+        <button onClick={()=>setScreen("situation")} style={{background:"none",border:"none",color:"#344D68",fontSize:13,cursor:"pointer",fontFamily:"inherit",width:"100%",marginTop:12,padding:8}}>Back</button>
+        <p style={{color:"#344D68",fontSize:11,textAlign:"center",marginTop:12}}>We never sell your data. Ever.</p>
+      </div>
+    </div>
+  )
+
+  // Summary / Results screen
+  if(screen==="summary"){
+    const gc=GOAL_CONTENT[goal]||GOAL_CONTENT.understand
+    const isHalal=situations.includes("faith")
+    return(
+      <div style={{minHeight:"100dvh",background:T.bg,display:"flex",flexDirection:"column",position:"relative",overflow:"hidden"}}>
+        <StarField count={24}/>
+        <div className="ls-fadein" style={{position:"relative",zIndex:1,flex:1,overflowY:"auto",padding:"50px 24px 20px",maxWidth:500,margin:"0 auto",width:"100%"}}>
+          <span style={{display:"inline-block",background:T.greenDim,color:T.green,fontSize:12,fontWeight:700,padding:"5px 14px",borderRadius:99,border:`1px solid rgba(52,211,153,.3)`,marginBottom:20}}>Your plan is ready, {name}</span>
+          <h1 style={{color:"#FFFFFF",fontWeight:900,fontSize:"clamp(22px,5vw,28px)",lineHeight:1.2,marginBottom:10,letterSpacing:-.3}}>{gc.headline}</h1>
+          <p style={{color:T.muted,fontSize:14,lineHeight:1.5,marginBottom:24}}>Here is what LifeSmart will help you change, and why it matters more than you might think.</p>
+
+          {/* 3 transformation cards */}
+          <div style={{display:"flex",flexDirection:"column",gap:12,marginBottom:24}}>
+            {gc.cards.map((c,i)=>(
+              <div key={i} style={{background:`${c.color}10`,border:`1.5px solid ${c.color}30`,borderRadius:18,padding:"18px 20px"}}>
+                <p style={{color:"#E2EAF6",fontSize:14,lineHeight:1.55,fontWeight:500}}>{c.text}</p>
+              </div>
+            ))}
+            {isHalal&&(
+              <div style={{background:T.tealDim,border:`1.5px solid ${T.tealBorder}`,borderRadius:18,padding:"18px 20px"}}>
+                <p style={{color:"#E2EAF6",fontSize:14,lineHeight:1.55,fontWeight:500}}>🌙 Your faith shapes your finances, and we have built for that. Halal investing, Islamic mortgages, and shariah-compliant options are explained clearly throughout.</p>
+              </div>
+            )}
+          </div>
+
+          {/* What you'll be able to do */}
+          <p style={{color:T.white,fontWeight:800,fontSize:15,marginBottom:12}}>What you will be able to do</p>
+          <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:28}}>
+            {gc.bullets.map((b,i)=>(
+              <div key={i} style={{display:"flex",alignItems:"flex-start",gap:10}}>
+                <div style={{width:22,height:22,borderRadius:"50%",background:T.tealDim,border:`1px solid ${T.tealBorder}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1}}><Check size={12} color={T.teal}/></div>
+                <p style={{color:"#E2EAF6",fontSize:14,lineHeight:1.5}}>{b}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div style={{position:"relative",zIndex:1,padding:"0 24px 48px",maxWidth:500,margin:"0 auto",width:"100%"}}>
+          <Btn onClick={finish}>Let's start →</Btn>
+          <p style={{color:"#344D68",fontSize:11,textAlign:"center",marginTop:14}}>First step takes 10 minutes. The impact lasts decades.</p>
+        </div>
+      </div>
+    )
+  }
 
   return null
 }
 
 
-/* ── Asset Checklist ──────────────────────────────────────────────── */
-function AssetChecklistScreen({ values, setValues, onNext, onBack }) {
-  const hasAny = Object.values(values).some(v=>v>0)
-  const total  = Object.entries(values).reduce((s,[,v])=>s+(v||0),0)
+/* ════════════════════════════════════════════════════════════════════
+   LEVEL PLAYER (micro lessons + videos + action)
+   ════════════════════════════════════════════════════════════════════ */
+function LevelPlayer({level,onBack,onComplete}){
+  const{state,save,toast}=useApp()
+  const prog=state.profile.levelProgress?.[level.n]||{microsDone:[],videosDone:[],actionDone:false}
+  const[step,setStep]=useState("overview") // overview|micro_N|videos|action|done
+  const[microIdx,setMicroIdx]=useState(0)
+  const[answer,setAnswer]=useState(null)
+  const[showConfetti,setShowConfetti]=useState(false)
+  const isSelfEmployed=state.profile.situations?.includes("selfemployed")
+  const title=(isSelfEmployed&&level.selfEmployedAlt)?level.selfEmployedAlt.title:level.title
+  const actionText=(isSelfEmployed&&level.selfEmployedAlt)?level.selfEmployedAlt.action:level.action
 
-  return (
-    <div style={{ minHeight:"100vh",background:T.bg,display:"flex",flexDirection:"column" }}>
-      <StarField count={15}/>
-      <div className="ls-fadein" style={{ position:"relative",flex:1,overflowY:"auto",padding:"44px 22px 20px",maxWidth:540,margin:"0 auto",width:"100%" }}>
-        <button onClick={onBack} style={{ background:"none",border:"none",color:T.muted,cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontSize:14,fontWeight:600,marginBottom:28,padding:0 }}>
-          <ChevronLeft size={16}/> Back
-        </button>
+  function saveProg(updates){
+    const np={...prog,...updates}
+    save({...state,profile:{...state.profile,levelProgress:{...state.profile.levelProgress,[level.n]:np}}})
+  }
 
-        {/* Step indicator */}
-        <div style={{ display:"flex",gap:6,marginBottom:24 }}>
-          {["Assets","Debts","Income","Spending"].map((s,i)=>(
-            <div key={s} style={{ flex:1 }}>
-              <div style={{ height:4,borderRadius:2,background:i===0?T.teal:T.border,marginBottom:4 }}/>
-              <p style={{ color:i===0?T.teal:T.subtle,fontSize:10,fontWeight:700,textAlign:"center" }}>{s}</p>
-            </div>
+  function completeMicro(idx){
+    const done=[...(prog.microsDone||[])]
+    if(!done.includes(idx)){done.push(idx);saveProg({microsDone:done});addXP(level.xpMicro)}
+  }
+
+  function completeVideo(title){
+    const done=[...(prog.videosDone||[])]
+    if(!done.includes(title)){done.push(title);saveProg({videosDone:done});addXP(level.xpVideo)}
+  }
+
+  function completeAction(){
+    saveProg({actionDone:true})
+    addXP(level.xpAction)
+    // Check if full level done for bonus
+    const allMicros=level.micros.every((_,i)=>[...(prog.microsDone||[]),].includes(i)||(prog.microsDone||[]).length>=level.micros.length)
+    if(allMicros)addXP(level.xpBonus)
+    // Mark level complete
+    const cl=[...(state.profile.completedLevels||[])]
+    if(!cl.includes(level.n))cl.push(level.n)
+    const nextLevel=Math.max(level.n+1,state.profile.currentLevel)
+    save({...state,profile:{...state.profile,completedLevels:cl,currentLevel:Math.min(nextLevel,15),phaseTag:getPhase(Math.min(nextLevel,15)),levelProgress:{...state.profile.levelProgress,[level.n]:{...prog,actionDone:true}}}})
+    setShowConfetti(true)
+    setTimeout(()=>setShowConfetti(false),2000)
+    setStep("done")
+    toast("🎉 Level complete! +"+level.xpAction+" XP")
+  }
+
+  function addXP(amt){save({...state,profile:{...state.profile,xp:(state.profile.xp||0)+amt}})}
+
+  const phaseColor=PHASE_COLORS[level.phase]||T.teal
+  const microsDoneCount=(prog.microsDone||[]).length
+  const videosDoneCount=(prog.videosDone||[]).length
+  const totalSteps=level.micros.length+(level.videos.length>0?1:0)+1
+  const doneSteps=Math.min(microsDoneCount,level.micros.length)+(videosDoneCount>0?1:0)+(prog.actionDone?1:0)
+
+  // Overview
+  if(step==="overview") return(
+    <div style={{minHeight:"100dvh",background:T.bg,display:"flex",flexDirection:"column"}}>
+      <div style={{background:"rgba(11,20,36,.95)",backdropFilter:"blur(20px)",padding:"14px 20px",display:"flex",alignItems:"center",gap:12,borderBottom:`1px solid rgba(255,255,255,.05)`,flexShrink:0}}>
+        <button onClick={onBack} style={{background:"none",border:"none",color:T.muted,cursor:"pointer",padding:4}}><ChevronLeft size={22}/></button>
+        <div style={{flex:1}}>
+          <p style={{color:phaseColor,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase"}}>{level.phase} · Level {level.n}</p>
+          <p style={{color:T.white,fontWeight:800,fontSize:15}}>{title}</p>
+        </div>
+      </div>
+
+      <div style={{flex:1,overflowY:"auto",padding:"24px 20px 100px",maxWidth:600,margin:"0 auto",width:"100%"}}>
+        {/* Progress pips */}
+        <div style={{display:"flex",gap:4,marginBottom:24}}>
+          {Array.from({length:totalSteps}).map((_,i)=>(
+            <div key={i} style={{flex:1,height:4,borderRadius:2,background:i<doneSteps?T.teal:T.border}}/>
           ))}
         </div>
 
-        <div style={{ display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:6 }}>
-          <h2 style={{ color:T.white,fontSize:"clamp(20px,4vw,26px)",fontWeight:900,lineHeight:1.2 }}>What do you own?</h2>
-          {total>0 && <p style={{ color:T.teal,fontWeight:800,fontSize:16 }}>{fmtK(total)}</p>}
-        </div>
-        <p style={{ color:"#E2EAF6",fontSize:14,marginBottom:6,lineHeight:1.5 }}>Tap each one. Rough estimates are totally fine.</p>
+        <p style={{color:"#E2EAF6",fontSize:15,lineHeight:1.6,marginBottom:8}}>{level.hook}</p>
+        <p style={{color:T.muted,fontSize:13,marginBottom:28}}>Done when: {level.done}</p>
 
-        {/* Helpful hint */}
-        <div style={{ background:T.tealDim,border:`1px solid ${T.tealBorder}`,borderRadius:10,padding:"8px 14px",marginBottom:18,display:"flex",gap:8,alignItems:"center" }}>
-          <span style={{ fontSize:13,flexShrink:0 }}>💡</span>
-          <p style={{ color:T.teal,fontSize:12 }}>Estimates are fine. Tap any type to see where to find the number.</p>
-        </div>
-
-        <div style={{ display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10,marginBottom:28 }}>
-          {ASSET_TYPES.map(t=>(
-            <AssetTypeCard key={t.id} type={t} value={values[t.id]||0} selected={(values[t.id]||0)>0}
-              onChange={v=>setValues(prev=>({...prev,[t.id]:v}))}/>
-          ))}
-        </div>
-
-        <Btn onClick={onNext} disabled={!hasAny} style={{ marginBottom:8 }}>
-          {hasAny ? `Continue with ${fmtK(total)} in assets →` : "Tap an asset type above"}
-        </Btn>
-        {!hasAny && <button onClick={onNext} style={{ background:"none",border:"none",color:"#E2EAF6",fontSize:13,cursor:"pointer",width:"100%",padding:"8px",fontFamily:"inherit" }}>Skip add later</button>}
-      </div>
-    </div>
-  )
-}
-
-function AssetTypeCard({ type, value, selected, onChange }) {
-  const [open, setOpen] = useState(selected)
-  const [rawVal, setRawVal] = useState(value>0?String(value):"")
-
-  function handleChange(v) { const n=parseFloat(v)||0; setRawVal(v); onChange(Math.max(0,n)) }
-
-  return (
-    <div style={{ background:selected?`rgba(15,191,184,.08)`:T.card, border:`2px solid ${selected?T.teal:T.border}`,borderRadius:16,padding:"14px",transition:"all .2s",cursor:!open?"pointer":"default" }}
-      onClick={!open?()=>setOpen(true):undefined}>
-      <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:open?10:0 }}>
-        <span style={{ fontSize:24 }}>{type.icon}</span>
-        <div style={{ flex:1,minWidth:0 }}>
-          <p style={{ color:selected?T.teal:T.white,fontWeight:700,fontSize:13 }}>{type.label}</p>
-          <p style={{ color:T.muted,fontSize:10,lineHeight:1.3 }}>{type.desc}</p>
-        </div>
-        {selected && <Check size={13} color={T.teal} style={{ flexShrink:0 }}/>}
-      </div>
-      {open && (
-        <>
-          <div style={{ display:"flex",alignItems:"center",background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,overflow:"hidden" }}>
-            <span style={{ padding:"0 10px",color:"#E2EAF6",fontSize:15,fontWeight:700,userSelect:"none" }}>£</span>
-            <input type="number" min="0" value={rawVal} placeholder="0" autoFocus
-              onChange={e=>handleChange(e.target.value)}
-              onBlur={()=>{ if(!value) setOpen(false) }}
-              style={{ flex:1,background:"transparent",border:"none",outline:"none",color:T.white,fontSize:15,fontWeight:600,padding:"10px 8px 10px 0",fontFamily:"inherit",fontVariantNumeric:"tabular-nums" }}/>
-          </div>
-          {type.hint && <p style={{ color:T.subtle,fontSize:10,marginTop:5 }}>🔍 {type.hint}</p>}
-        </>
-      )}
-    </div>
-  )
-}
-
-/* ── Debt Checklist ───────────────────────────────────────────────── */
-function DebtChecklistScreen({ values, setValues, assets, age, onNext, onBack }) {
-  const hasAny = Object.values(values).some(v=>v>0)
-  const totalAssets = Object.values(assets).reduce((s,v)=>s+(v||0),0)
-  const totalDebts  = Object.values(values).reduce((s,v)=>s+(v||0),0)
-  const netWorth    = totalAssets - totalDebts
-  const bench       = ageBenchmark(age)
-
-  return (
-    <div style={{ minHeight:"100vh",background:T.bg,display:"flex",flexDirection:"column" }}>
-      <StarField count={15}/>
-      <div style={{ position:"relative",padding:"14px 22px 0",maxWidth:540,margin:"0 auto",width:"100%",flexShrink:0 }}>
-        <button onClick={onBack} style={{ background:"none",border:"none",color:T.muted,cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontSize:14,fontWeight:600,padding:0 }}>
-          <ChevronLeft size={16}/> Back
-        </button>
-      </div>
-      <div className="ls-fadein" style={{ position:"relative",flex:1,overflowY:"auto",padding:"16px 22px 20px",maxWidth:540,margin:"0 auto",width:"100%" }}>
-
-        {/* Step indicator */}
-        <div style={{ display:"flex",gap:6,marginBottom:24 }}>
-          {["Assets","Debts","Income","Spending"].map((s,i)=>(
-            <div key={s} style={{ flex:1 }}>
-              <div style={{ height:4,borderRadius:2,background:i===1?T.red:i<1?T.teal:T.border,marginBottom:4 }}/>
-              <p style={{ color:i===1?T.red:i<1?T.teal:T.subtle,fontSize:10,fontWeight:700,textAlign:"center" }}>{s}</p>
-            </div>
-          ))}
-        </div>
-
-        <div style={{ display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:6 }}>
-          <h2 style={{ color:T.white,fontSize:"clamp(20px,4vw,26px)",fontWeight:900,lineHeight:1.2 }}>What do you owe?</h2>
-          {totalDebts>0 && <p style={{ color:T.red,fontWeight:800,fontSize:16 }}>{fmtK(totalDebts)}</p>}
-        </div>
-        <p style={{ color:"#E2EAF6",fontSize:14,marginBottom:6,lineHeight:1.5 }}>Tap what applies. No debt? Just hit Continue.</p>
-
-        <div style={{ background:T.faint,border:`1px solid ${T.border}`,borderRadius:10,padding:"8px 14px",marginBottom:18,display:"flex",gap:8,alignItems:"center" }}>
-          <span style={{ fontSize:13,flexShrink:0 }}>💡</span>
-          <p style={{ color:T.muted,fontSize:12 }}>Knowing your debts is the first step to clearing them. We use estimated rates, update any time.</p>
-        </div>
-
-        <div style={{ display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10,marginBottom:16 }}>
-          {DEBT_TYPES.map(t=>{
-            const val = values[t.id]||0
-            const sel = val > 0
-            return <DebtTypeCard key={t.id} type={t} value={val} selected={sel} onChange={v=>setValues(prev=>({...prev,[t.id]:v}))}/>
+        {/* Micro lessons */}
+        <p style={{color:T.white,fontWeight:800,fontSize:15,marginBottom:12}}>⚡ Quick Lessons</p>
+        <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:24}}>
+          {level.micros.map((m,i)=>{
+            const done=(prog.microsDone||[]).includes(i)
+            return(
+              <button key={i} onClick={()=>{setMicroIdx(i);setAnswer(null);setStep("micro")}}
+                style={{background:done?`${T.teal}08`:T.card,border:`1.5px solid ${done?T.tealBorder:T.border}`,borderRadius:16,padding:"16px 18px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",display:"flex",alignItems:"center",gap:14}}>
+                <div style={{width:36,height:36,borderRadius:10,background:done?T.tealDim:T.faint,border:`1px solid ${done?T.tealBorder:T.border}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                  {done?<Check size={16} color={T.teal}/>:<Zap size={16} color={T.muted}/>}
+                </div>
+                <div style={{flex:1}}>
+                  <p style={{color:done?T.teal:T.white,fontWeight:600,fontSize:13,lineHeight:1.4}}>{m.q.length>80?m.q.slice(0,78)+"...":m.q}</p>
+                  <p style={{color:T.muted,fontSize:11,marginTop:2}}>{done?"Completed":"~1 min · +15 XP"}</p>
+                </div>
+              </button>
+            )
           })}
         </div>
 
-        {/* Net worth preview + benchmark */}
-        {totalAssets > 0 && (
-          <div style={{ background:T.card,border:`1px solid ${netWorth>=0?T.tealBorder:T.redBorder}`,borderRadius:16,padding:"16px 18px",marginBottom:20 }}>
-            <p style={{ color:T.muted,fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1,marginBottom:10 }}>Your picture so far</p>
-            <div style={{ display:"flex",gap:20,marginBottom:bench?12:0 }}>
-              <div><p style={{ color:T.green,fontWeight:800,fontSize:16 }}>{fmtK(totalAssets)}</p><p style={{ color:"#8FA3BE",fontSize:12 }}>Assets</p></div>
-              <div style={{ width:1,background:T.border }}/>
-              <div><p style={{ color:totalDebts>0?T.red:T.muted,fontWeight:800,fontSize:16 }}>{fmtK(totalDebts)}</p><p style={{ color:"#8FA3BE",fontSize:12 }}>Debts</p></div>
-              <div style={{ width:1,background:T.border }}/>
-              <div><p style={{ color:netWorth>=0?T.teal:T.red,fontWeight:800,fontSize:16 }}>{fmtK(netWorth)}</p><p style={{ color:"#8FA3BE",fontSize:12 }}>Net worth</p></div>
+        {/* Videos */}
+        {level.videos.length>0&&(
+          <>
+            <p style={{color:T.white,fontWeight:800,fontSize:15,marginBottom:12}}>🎬 Videos</p>
+            <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:24}}>
+              {level.videos.map((v,i)=>{
+                const done=(prog.videosDone||[]).includes(v.title)
+                return(
+                  <div key={i} style={{background:done?`${T.purple}08`:T.card,border:`1.5px solid ${done?T.purpleBorder:T.border}`,borderRadius:16,padding:"14px 18px",display:"flex",alignItems:"center",gap:14}}>
+                    <div style={{width:36,height:36,borderRadius:10,background:done?T.purpleDim:T.faint,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                      {done?<Check size={16} color={T.purple}/>:<Play size={16} color={T.muted}/>}
+                    </div>
+                    <div style={{flex:1}}>
+                      <p style={{color:done?"#8FA3BE":T.white,fontWeight:600,fontSize:13}}>{v.title}</p>
+                      <p style={{color:T.muted,fontSize:11,marginTop:2}}>{v.role==="core"?"Core":"Go deeper"} · {v.min} min</p>
+                    </div>
+                    {!done&&<button onClick={()=>completeVideo(v.title)} style={{background:T.purpleDim,border:`1px solid ${T.purpleBorder}`,borderRadius:10,padding:"6px 14px",color:T.purple,fontWeight:700,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>Watched</button>}
+                  </div>
+                )
+              })}
             </div>
-            {bench && (
-              <div style={{ background:T.surface,borderRadius:10,padding:"10px 12px" }}>
-                <p style={{ color:T.muted,fontSize:12,lineHeight:1.6 }}>
-                  💭 At your age, people who actively track their finances typically have around <strong style={{ color:T.teal }}>{fmtK(bench.tracked)}</strong>. The fact you're measuring puts you ahead of those who don't.
-                </p>
-              </div>
-            )}
-          </div>
+          </>
         )}
 
-        <Btn onClick={onNext}>
-          {hasAny ? "Continue →" : "No debt continue →"}
-        </Btn>
+        {/* Action */}
+        <p style={{color:T.white,fontWeight:800,fontSize:15,marginBottom:12}}>✅ Action</p>
+        <div style={{background:prog.actionDone?`${T.green}08`:T.card,border:`1.5px solid ${prog.actionDone?`rgba(52,211,153,.3)`:T.amberBorder}`,borderRadius:18,padding:"20px"}}>
+          <p style={{color:"#E2EAF6",fontSize:14,lineHeight:1.6,marginBottom:14}}>{actionText}</p>
+          <p style={{color:T.muted,fontSize:12,marginBottom:16}}>This is the only thing required to complete this level.</p>
+          {!prog.actionDone?
+            <Btn onClick={completeAction}>I have done this ✓</Btn>:
+            <div style={{display:"flex",alignItems:"center",gap:10}}><Check size={18} color={T.green}/><p style={{color:T.green,fontWeight:700,fontSize:14}}>Action completed</p></div>
+          }
+        </div>
       </div>
     </div>
   )
-}
 
-function DebtTypeCard({ type, value, selected, onChange }) {
-  const [open, setOpen] = useState(selected)
-  const [rawVal, setRawVal] = useState(value>0?String(value):"")
-  function handleChange(v) { const n=parseFloat(v)||0; setRawVal(v); onChange(Math.max(0,n)) }
-  return (
-    <div style={{ background:selected?T.redDim:T.card,border:`2px solid ${selected?T.red:T.border}`,borderRadius:16,padding:"14px",transition:"all .2s",cursor:!open?"pointer":"default" }}
-      onClick={!open?()=>setOpen(true):undefined}>
-      <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:open?10:0 }}>
-        <span style={{ fontSize:22 }}>{type.icon}</span>
-        <div style={{ flex:1,minWidth:0 }}>
-          <p style={{ color:selected?T.red:T.white,fontWeight:700,fontSize:13 }}>{type.label}</p>
-          <p style={{ color:T.muted,fontSize:10 }}>~{type.assumedRate}% APR</p>
+  // Micro lesson
+  if(step==="micro"){
+    const micro=level.micros[microIdx]
+    if(!micro){setStep("overview");return null}
+    return(
+      <div style={{minHeight:"100dvh",background:T.bg,display:"flex",flexDirection:"column"}}>
+        <div style={{background:"rgba(11,20,36,.95)",backdropFilter:"blur(20px)",padding:"14px 20px",display:"flex",alignItems:"center",gap:12,borderBottom:`1px solid rgba(255,255,255,.05)`,flexShrink:0}}>
+          <button onClick={()=>{setStep("overview");setAnswer(null)}} style={{background:"none",border:"none",color:T.muted,cursor:"pointer",padding:4}}><ChevronLeft size={22}/></button>
+          <p style={{color:T.white,fontWeight:700,fontSize:14}}>Quick Lesson {microIdx+1} of {level.micros.length}</p>
         </div>
-        {selected && <Check size={13} color={T.red} style={{ flexShrink:0 }}/>}
-      </div>
-      {open && (
-        <div style={{ display:"flex",alignItems:"center",background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,overflow:"hidden" }}>
-          <span style={{ padding:"0 10px",color:"#E2EAF6",fontSize:15,fontWeight:700,userSelect:"none" }}>£</span>
-          <input type="number" min="0" value={rawVal} placeholder="0" autoFocus
-            onChange={e=>handleChange(e.target.value)}
-            onBlur={()=>{ if(!value) setOpen(false) }}
-            style={{ flex:1,background:"transparent",border:"none",outline:"none",color:T.white,fontSize:15,fontWeight:600,padding:"10px 8px 10px 0",fontFamily:"inherit",fontVariantNumeric:"tabular-nums" }}/>
-        </div>
-      )}
-    </div>
-  )
-}
-
-/* ── Income ───────────────────────────────────────────────────────── */
-function IncomeOnboardScreen({ income, setIncome, onNext, onBack }) {
-  return (
-    <div style={{ minHeight:"100vh",background:T.bg,display:"flex",flexDirection:"column" }}>
-      <StarField count={15}/>
-      <div className="ls-fadein" style={{ position:"relative",flex:1,overflowY:"auto",padding:"44px 24px 32px",maxWidth:480,margin:"0 auto",width:"100%" }}>
-        <button onClick={onBack} style={{ background:"none",border:"none",color:T.muted,cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontSize:14,fontWeight:600,marginBottom:28,padding:0 }}>
-          <ChevronLeft size={16}/> Back
-        </button>
-
-        {/* Step indicator */}
-        <div style={{ display:"flex",gap:6,marginBottom:28 }}>
-          {["Assets","Debts","Income","Spending"].map((s,i)=>(
-            <div key={s} style={{ flex:1 }}>
-              <div style={{ height:4,borderRadius:2,background:i<=1?T.teal:i===2?T.amber:T.border,marginBottom:4 }}/>
-              <p style={{ color:i<=1?T.teal:i===2?T.amber:T.subtle,fontSize:10,fontWeight:700,textAlign:"center" }}>{s}</p>
-            </div>
-          ))}
-        </div>
-
-        <div style={{ fontSize:42,textAlign:"center",marginBottom:16 }}>💼</div>
-        <h2 style={{ color:T.white,fontSize:"clamp(20px,4vw,26px)",fontWeight:900,marginBottom:8,lineHeight:1.2,textAlign:"center" }}>What's your monthly take-home?</h2>
-        <p style={{ color:"#E2EAF6",fontSize:15,marginBottom:24,lineHeight:1.6,textAlign:"center" }}>After tax. This powers your projections.</p>
-
-        <div style={{ marginBottom:20 }}>
-          <CurrencyInput label="Monthly take-home pay (after tax)" value={income} onChange={setIncome} placeholder="e.g. 2,800"/>
-        </div>
-
-        {/* Helpful context */}
-        <div style={{ display:"flex",flexDirection:"column",gap:8,marginBottom:28 }}>
-          <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px 16px",display:"flex",gap:10,alignItems:"center" }}>
-            <span style={{ fontSize:18 }}>📱</span>
-            <p style={{ color:T.white,fontSize:14,lineHeight:1.4,fontWeight:600 }}>Check your banking app or last payslip, the amount that hits your account each month.</p>
+        <div style={{flex:1,overflowY:"auto",padding:"28px 22px 100px",maxWidth:540,margin:"0 auto",width:"100%"}}>
+          <h2 style={{color:T.white,fontWeight:900,fontSize:"clamp(18px,4vw,22px)",lineHeight:1.3,marginBottom:24}}>{micro.q}</h2>
+          <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:20}}>
+            {micro.opts.map((opt,i)=>{
+              const picked=answer===i
+              const correct=micro.correct===i
+              let bg=T.card,border=T.border,tc=T.muted
+              if(answer!==null&&correct){bg="rgba(52,211,153,.08)";border="rgba(52,211,153,.35)";tc=T.green}
+              if(answer!==null&&picked&&!correct){bg=T.redDim;border=T.redBorder;tc=T.red}
+              return(
+                <button key={i} onClick={()=>{if(answer===null){setAnswer(i);completeMicro(microIdx)}}}
+                  style={{background:bg,border:`2px solid ${border}`,borderRadius:16,padding:"16px 18px",cursor:answer!==null?"default":"pointer",textAlign:"left",fontFamily:"inherit",display:"flex",alignItems:"center",gap:12,transition:"all .2s"}}>
+                  <div style={{width:28,height:28,borderRadius:8,background:answer!==null?(correct?"rgba(52,211,153,.15)":(picked?T.redDim:`${phaseColor}10`)):`${phaseColor}12`,border:`1.5px solid ${answer!==null?(correct?"rgba(52,211,153,.4)":(picked?T.redBorder:`${phaseColor}25`)):T.border}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                    <span style={{color:answer!==null?(correct?T.green:(picked?T.red:T.muted)):phaseColor,fontWeight:800,fontSize:11}}>
+                      {answer!==null?(correct?"✓":(picked?"✗":String.fromCharCode(65+i))):String.fromCharCode(65+i)}
+                    </span>
+                  </div>
+                  <p style={{color:answer!==null?tc:T.white,fontWeight:600,fontSize:14,flex:1,lineHeight:1.4}}>{opt}</p>
+                </button>
+              )
+            })}
           </div>
-        </div>
-
-        {income > 0 && (
-          <div style={{ background:T.tealDim,border:`1px solid ${T.tealBorder}`,borderRadius:12,padding:"12px 16px",marginBottom:20,textAlign:"center" }}>
-            <p style={{ color:T.teal,fontWeight:700,fontSize:15 }}>{fmt(income)}/month</p>
-            <p style={{ color:"#E2EAF6",fontSize:13,marginTop:2 }}>{fmt(income*12)}/year take-home</p>
-          </div>
-        )}
-
-        <Btn onClick={onNext} disabled={income<=0}>Continue →</Btn>
-      </div>
-    </div>
-  )
-}
-
-/* ── Spending ─────────────────────────────────────────────────────── */
-const SPENDING_HINTS = [
-  { icon:"🏠", label:"Housing", ex:"Rent or mortgage" },
-  { icon:"🛒", label:"Food", ex:"Groceries + eating out" },
-  { icon:"🚗", label:"Transport", ex:"Car, fuel, or public transport" },
-  { icon:"⚡", label:"Bills", ex:"Utilities, phone, internet" },
-  { icon:"📱", label:"Subscriptions", ex:"Netflix, gym, etc." },
-  { icon:"🎉", label:"Fun & personal", ex:"Clothes, hobbies, socialising" },
-]
-
-function SpendingOnboardScreen({ spending, setSpending, income, onNext, onBack }) {
-  const surplus = income > 0 ? income - spending : null
-
-  return (
-    <div style={{ minHeight:"100vh",background:T.bg,display:"flex",flexDirection:"column" }}>
-      <StarField count={15}/>
-      <div className="ls-fadein" style={{ position:"relative",flex:1,overflowY:"auto",padding:"44px 24px 32px",maxWidth:480,margin:"0 auto",width:"100%" }}>
-        <button onClick={onBack} style={{ background:"none",border:"none",color:T.muted,cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontSize:14,fontWeight:600,marginBottom:28,padding:0 }}>
-          <ChevronLeft size={16}/> Back
-        </button>
-
-        {/* Step indicator */}
-        <div style={{ display:"flex",gap:6,marginBottom:28 }}>
-          {["Assets","Debts","Income","Spending"].map((s,i)=>(
-            <div key={s} style={{ flex:1 }}>
-              <div style={{ height:4,borderRadius:2,background:i<=3?T.teal:T.border,marginBottom:4 }}/>
-              <p style={{ color:i<=3?T.teal:T.subtle,fontSize:10,fontWeight:700,textAlign:"center" }}>{s}</p>
-            </div>
-          ))}
-        </div>
-
-        <div style={{ fontSize:42,textAlign:"center",marginBottom:16 }}>🛒</div>
-        <h2 style={{ color:T.white,fontSize:"clamp(20px,4vw,26px)",fontWeight:900,marginBottom:8,lineHeight:1.2,textAlign:"center" }}>Monthly spending total</h2>
-        <p style={{ color:"#E2EAF6",fontSize:13,marginBottom:20,lineHeight:1.6,textAlign:"center" }}>Everything out each month, rent, food, bills, fun.</p>
-
-        <p style={{ color:"#E2EAF6",fontSize:14,marginBottom:10,fontWeight:600 }}>What to include:</p>
-        {/* Category hints reference only */}
-        <div style={{ display:"flex",flexWrap:"wrap",gap:8,marginBottom:20 }}>
-          {SPENDING_HINTS.map((h,i)=>(
-            <div key={i} style={{ background:T.faint,border:`1px solid ${T.border}`,borderRadius:99,padding:"6px 12px",display:"flex",alignItems:"center",gap:6 }}>
-              <span style={{ fontSize:14 }}>{h.icon}</span>
-              <p style={{ color:T.muted,fontWeight:600,fontSize:12 }}>{h.label}</p>
-            </div>
-          ))}
-        </div>
-
-        <div style={{ marginBottom:16 }}>
-          <CurrencyInput label="Total monthly spending" value={spending} onChange={setSpending} placeholder="e.g. 1,800"/>
-        </div>
-
-        {/* Live surplus preview */}
-        {surplus !== null && spending > 0 && (
-          <div style={{ background:surplus>0?T.tealDim:T.redDim, border:`1px solid ${surplus>0?T.tealBorder:T.redBorder}`,borderRadius:12,padding:"14px 16px",marginBottom:20 }}>
-            <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4 }}>
-              <p style={{ color:"#E2EAF6",fontSize:13 }}>{fmt(income)} income − {fmt(spending)} spending</p>
-              <p style={{ color:surplus>0?T.teal:T.red,fontWeight:800,fontSize:16 }}>{fmt(Math.abs(surplus))}</p>
-            </div>
-            <p style={{ color:surplus>0?T.teal:T.red,fontSize:12,fontWeight:700 }}>
-              {surplus>0 ? `✓ ${fmt(surplus)}/mo surplus the fuel for your future` : `⚠ ${fmt(Math.abs(surplus))}/mo shortfall we'll help you fix this`}
-            </p>
-          </div>
-        )}
-
-        {income > 0 && spending > 0 && surplus > 0 && (
-          <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"12px 14px",marginBottom:20,display:"flex",gap:10 }}>
-            <span style={{ fontSize:14 }}>💡</span>
-            <p style={{ color:"#E2EAF6",fontSize:13,lineHeight:1.5 }}>
-              That surplus of <strong style={{ color:T.teal }}>{fmt(surplus)}/month</strong> is what builds your net worth. Invested at 7%/yr over 20 years, it could grow to <strong style={{ color:T.teal }}>{fmtK(surplus*12*52.7)}</strong>.
-            </p>
-          </div>
-        )}
-
-        <Btn onClick={onNext} disabled={spending<=0}>Build my picture →</Btn>
-        {spending<=0 && <button onClick={onNext} style={{ background:"none",border:"none",color:"#E2EAF6",fontSize:13,cursor:"pointer",width:"100%",padding:"8px",fontFamily:"inherit" }}>Skip add later</button>}
-      </div>
-    </div>
-  )
-}
-
-/* ── Wow screen ───────────────────────────────────────────────────── */
-function WowScreen({ assets, debts, income, spending, name, onFinish }) {
-  const totalAssets = Object.values(assets).reduce((s,v)=>s+(v||0),0)
-  const totalDebts  = Object.values(debts).reduce((s,v)=>s+(v||0),0)
-  const netWorth    = totalAssets - totalDebts
-  const surplus     = income > 0 && spending > 0 ? income - spending : null
-  const nwPos       = netWorth >= 0
-
-  const getMessage = () => {
-    if(netWorth > 200000) return "Serious wealth. Now let\'s make every pound work harder."
-    if(netWorth > 50000)  return "Solid foundations. From here, everything compounds."
-    if(netWorth > 0)      return "You\'re in the green. Every decision from here matters."
-    if(netWorth > -20000) return "Everyone starts somewhere. Yours starts now."
-    return "More runway than you think. Let\'s use it."
-  }
-
-  return (
-    <div style={{ minHeight:"100vh",background:T.bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"40px 24px",position:"relative",overflow:"hidden" }}>
-      <StarField count={60}/>
-      <div style={{ position:"absolute",top:0,left:0,right:0,height:300,background:`radial-gradient(ellipse at 50% 0%,${nwPos?T.teal:T.red}18 0%,transparent 70%)`,pointerEvents:"none" }}/>
-
-      <div className="ls-fadein" style={{ position:"relative",textAlign:"center",maxWidth:440,width:"100%" }}>
-        <div className="ls-float" style={{ fontSize:64,marginBottom:20 }}>{nwPos?"🚀":"📊"}</div>
-
-        <p style={{ fontSize:12,fontWeight:700,color:T.teal,letterSpacing:2,textTransform:"uppercase",marginBottom:12 }}>
-          {name ? `${name}'s financial picture` : "Your financial picture"}
-        </p>
-
-        <div className="ls-numpop" style={{ marginBottom:12 }}>
-          <div style={{ fontSize:"clamp(44px,10vw,68px)",fontWeight:900,lineHeight:1,
-            color:nwPos?T.teal:T.red, letterSpacing:-1,
-            textShadow:nwPos?`0 0 60px ${T.teal}60`:`0 0 60px ${T.red}40` }}>
-            {fmt(netWorth)}
-          </div>
-          <p style={{ color:"#E2EAF6",fontSize:15,marginTop:6,fontWeight:700 }}>Net worth</p>
-        </div>
-
-        <p style={{ color:"#E2EAF6",fontSize:16,lineHeight:1.7,marginBottom:28,maxWidth:340,margin:"0 auto 28px",fontWeight:500 }}>
-          {getMessage()}
-        </p>
-
-        <div style={{ display:"grid",gridTemplateColumns:surplus!==null?"repeat(3,1fr)":"repeat(2,1fr)",gap:10,marginBottom:36 }}>
-          <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px 10px" }}>
-            <p style={{ color:T.green,fontWeight:900,fontSize:20 }}>{fmtK(totalAssets)}</p>
-            <p style={{ color:T.muted,fontSize:11,marginTop:2 }}>Assets</p>
-          </div>
-          <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px 10px" }}>
-            <p style={{ color:totalDebts>0?T.red:T.muted,fontWeight:900,fontSize:20 }}>{fmtK(totalDebts)}</p>
-            <p style={{ color:T.muted,fontSize:11,marginTop:2 }}>Debts</p>
-          </div>
-          {surplus!==null && (
-            <div style={{ background:T.card,border:`1px solid ${surplus>=0?T.tealBorder:T.redBorder}`,borderRadius:14,padding:"14px 10px" }}>
-              <p style={{ color:surplus>=0?T.teal:T.red,fontWeight:900,fontSize:20 }}>{fmtK(Math.abs(surplus))}</p>
-              <p style={{ color:T.muted,fontSize:11,marginTop:2 }}>{surplus>=0?"/ month surplus":"/ month shortfall"}</p>
+          {answer!==null&&(
+            <div className="ls-fadein" style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:"18px 20px"}}>
+              <p style={{color:T.muted,fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8,marginBottom:8}}>The takeaway</p>
+              <p style={{color:"#E2EAF6",fontSize:14,lineHeight:1.65}}>{micro.reveal}</p>
+              <button onClick={()=>{
+                if(microIdx<level.micros.length-1){setMicroIdx(microIdx+1);setAnswer(null)}
+                else setStep("overview")
+              }} style={{marginTop:16,background:T.teal,border:"none",borderRadius:12,padding:"12px 24px",color:"#070D1A",fontWeight:700,fontSize:14,cursor:"pointer",fontFamily:"inherit"}}>
+                {microIdx<level.micros.length-1?"Next lesson →":"Back to overview"}
+              </button>
             </div>
           )}
         </div>
+      </div>
+    )
+  }
 
-        {/* "What people wish" hook */}
-        <div style={{ background:"linear-gradient(135deg,rgba(167,139,250,.15),rgba(15,191,184,.08))",border:"1px solid rgba(167,139,250,.3)",borderRadius:18,padding:"18px 20px",marginBottom:20 }}>
-          <p style={{ color:"rgba(167,139,250,.8)",fontSize:11,fontWeight:700,letterSpacing:1.2,textTransform:"uppercase",marginBottom:10 }}>What people wish they had done sooner</p>
-          <p style={{ color:"#FFFFFF",fontWeight:700,fontSize:15,fontStyle:"italic",lineHeight:1.5,marginBottom:8 }}>"If I had tracked this 5 years ago, everything would look different now."</p>
-          <p style={{ color:"#8FA3BE",fontSize:13 }}>You are starting today. That already puts you ahead.</p>
-        </div>
-
-        <Btn onClick={onFinish} style={{ fontSize:16,padding:"16px 28px",width:"100%" }}>
-          Go to my dashboard →
-        </Btn>
-        <p style={{ color:"#8FA3BE",fontSize:12,marginTop:12 }}>Your projection and lessons are ready</p>
+  // Done screen
+  if(step==="done") return(
+    <div style={{minHeight:"100dvh",background:T.bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",position:"relative"}}>
+      <Confetti active={showConfetti}/>
+      <div className="ls-fadein" style={{textAlign:"center",padding:"32px",maxWidth:400}}>
+        <div style={{fontSize:64,marginBottom:20}}>🎉</div>
+        <h2 style={{color:T.white,fontWeight:900,fontSize:26,marginBottom:8}}>Level {level.n} Complete!</h2>
+        <p style={{color:T.muted,fontSize:15,marginBottom:32}}>{title}</p>
+        <Btn onClick={onBack}>Continue →</Btn>
       </div>
     </div>
   )
+
+  return null
 }
 
 /* ════════════════════════════════════════════════════════════════════
    HOME TAB
    ════════════════════════════════════════════════════════════════════ */
-function HomeTab() {
-  const { state, save, setTab, toast, reset } = useApp()
-  const { assets, debts, income, spending, goals, profile, completedLessons, priorityGoals } = state
-  const { netWorth, totalAssets, totalDebts } = calcTotals(assets, debts)
-  const surplus    = calcSurplus(income, assets, spending)
-  const drag       = totalInterestDrag(debts)
-  const bk         = buckets(assets)
-  const hasSpending= (spending?.monthly||0) > 0
-  const hasIncome  = (income?.primary||0) > 0
-  const safetyMonths = (bk.safetyNet > 0 && spending.monthly > 0) ? Math.floor(bk.safetyNet / spending.monthly) : null
-  const fireNumber   = hasSpending ? spending.monthly * 12 * 25 : null
-  const [showEdit, setShowEdit] = useState(false)
-  const [showQuiz, setShowQuiz] = useState(false)
-  const [showResult, setShowResult] = useState(false)
+function HomeTab(){
+  const{state,setTab}=useApp()
+  const{profile}=state
+  const currentLevel=profile.currentLevel||1
+  const level=LEVELS.find(l=>l.n===currentLevel)||LEVELS[0]
+  const phase=getPhase(currentLevel)
+  const phaseColor=PHASE_COLORS[phase]||T.teal
+  const completedCount=(profile.completedLevels||[]).length
+  const prog=profile.levelProgress?.[currentLevel]||{microsDone:[],videosDone:[],actionDone:false}
+  const totalSteps=level.micros.length+(level.videos.length>0?1:0)+1
+  const doneSteps=Math.min((prog.microsDone||[]).length,level.micros.length)+((prog.videosDone||[]).length>0?1:0)+(prog.actionDone?1:0)
 
-  const mode      = PRIORITY_MODES.find(m=>m.id===(profile?.mode||"grow")) || PRIORITY_MODES[0]
-  const quizResult= profile?.personalityResult
-  const arch      = quizResult?.archetype
+  const[activeLevel,setActiveLevel]=useState(null)
 
-  const doneSet   = new Set(completedLessons||[])
-  const hasPriorities = (priorityGoals||[]).length > 0
-  const priorityLessonId = (priorityGoals||[]).map(id => PRIORITY_GOALS.find(g=>g.id===id)?.lesson).find(lid=>lid&&!doneSet.has(lid))
-  const modePrimaryLesson = mode.primaryLesson
-  const recLessonId = priorityLessonId || (doneSet.has(modePrimaryLesson)?null:modePrimaryLesson) || LESSONS.find(l=>!doneSet.has(l.id))?.id
-  const recLesson = LESSONS.find(l=>l.id===recLessonId)
+  if(activeLevel){
+    const lv=LEVELS.find(l=>l.n===activeLevel)
+    if(!lv){setActiveLevel(null);return null}
+    return<LevelPlayer level={lv} onBack={()=>setActiveLevel(null)} onComplete={()=>setActiveLevel(null)}/>
+  }
 
-  // Action checklist
-  const hasNumbers  = totalAssets > 0 || totalDebts > 0
-  const hasSpendInc = hasSpending && hasIncome
-  const lessonsCount = (completedLessons||[]).length
-  const actions = [
-    { id:"numbers", done: hasNumbers && hasSpendInc,  emoji:"📊", label:"Add your assets, debts, income and spending", sub:"Takes 5 minutes, gives you your real financial picture", onClick:()=>setTab(2) },
-    { id:"lessons", done: lessonsCount >= 3,           emoji:"📚", label:"Complete 3 lessons",                           sub:`${lessonsCount}/3 done, builds the knowledge that changes decisions`, onClick:()=>setTab(1) },
-    { id:"quiz",    done: !!quizResult,                emoji:"🧠", label:"Discover your money personality",             sub:"4-minute quiz, reveals your archetype and blind spots",  onClick:()=>setShowQuiz(true) },
-  ]
-  const allDone = actions.every(a=>a.done)
+  const nextLevels=LEVELS.filter(l=>l.n>currentLevel).slice(0,3)
 
-  // Compact asset groups for dashboard snapshot
-  const assetRows = [
-    { label:"Savings & Cash",     color:T.teal,   value: assets.filter(a=>["savings","cash"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0) },
-    { label:"Investments & ISA",  color:T.purple, value: assets.filter(a=>["investments","stocks"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0) },
-    { label:"Pension",            color:T.amber,  value: assets.filter(a=>a.category==="pension").reduce((s,a)=>s+(a.value||0),0) },
-    { label:"Property",           color:T.green,  value: assets.filter(a=>["primary_residence","investment_property"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0) },
-    { label:"Other assets",       color:T.blue,   value: assets.filter(a=>!["savings","cash","investments","stocks","pension","primary_residence","investment_property"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0) },
-  ].filter(r=>r.value>0)
+  return(
+    <div style={{flex:1,overflowY:"auto",paddingBottom:100}}>
+      {/* Greeting */}
+      <div style={{position:"relative",background:`linear-gradient(180deg,${phaseColor}12 0%,transparent 100%)`,padding:"28px 20px 20px"}}>
+        <StarField count={8}/>
+        <div style={{position:"relative",maxWidth:600,margin:"0 auto"}}>
+          <p style={{color:T.white,fontWeight:800,fontSize:22,marginBottom:4}}>Hey {profile.name} 👋</p>
+          <p style={{color:T.muted,fontSize:14}}>Level {currentLevel} of 15 · {phase}</p>
+        </div>
+      </div>
 
-  const debtRows = [
-    { label:"Mortgage",           color:T.amber,  value: debts.filter(d=>["mortgage","primary_residence"].includes(d.category)).reduce((s,d)=>s+(d.balance||0),0) },
-    { label:"Personal loans",     color:T.red,    value: debts.filter(d=>["personal_loan","loan"].includes(d.category)).reduce((s,d)=>s+(d.balance||0),0) },
-    { label:"Credit cards",       color:T.red,    value: debts.filter(d=>["credit_card","credit"].includes(d.category)).reduce((s,d)=>s+(d.balance||0),0) },
-    { label:"Student loan",       color:T.muted,  value: debts.filter(d=>["student_loan","student"].includes(d.category)).reduce((s,d)=>s+(d.balance||0),0) },
-    { label:"Other debts",        color:T.muted,  value: debts.filter(d=>!["mortgage","primary_residence","personal_loan","loan","credit_card","credit","student_loan","student"].includes(d.category)).reduce((s,d)=>s+(d.balance||0),0) },
-  ].filter(r=>r.value>0)
+      <div style={{maxWidth:600,margin:"0 auto",padding:"0 18px"}}>
+        {/* Current level hero card */}
+        <div style={{background:`linear-gradient(145deg,${phaseColor}12,${phaseColor}04)`,border:`2px solid ${phaseColor}40`,borderRadius:24,padding:"24px",marginTop:16,marginBottom:24,position:"relative",overflow:"hidden"}}>
+          <div style={{position:"absolute",top:-40,right:-40,width:140,height:140,borderRadius:"50%",background:`radial-gradient(circle,${phaseColor}15 0%,transparent 70%)`,pointerEvents:"none"}}/>
+          <p style={{color:phaseColor,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:6}}>Your focus right now · Level {currentLevel}</p>
 
-  if(showQuiz)   return <PersonalityQuiz state={state} save={save} onClose={()=>setShowQuiz(false)}/>
-  if(showResult) return <div style={{ position:"fixed",inset:0,background:T.bg,zIndex:300,overflowY:"auto" }}>
-    <div style={{ padding:"24px 20px 60px",maxWidth:520,margin:"0 auto" }}>
-      <button onClick={()=>setShowResult(false)} style={{ background:"none",border:"none",cursor:"pointer",color:T.muted,fontSize:20,padding:4,marginBottom:16 }}>←</button>
-      <PersonalityResult result={quizResult} onClose={()=>setShowResult(false)}/>
-    </div>
-  </div>
-
-  return (
-    <div style={{ flex:1,overflowY:"auto",paddingBottom:100 }}>
-
-      {/* ── Hero strip ──────────────────────────────────────────────── */}
-      <div style={{ position:"relative",background:`linear-gradient(180deg,${mode.color}14 0%,transparent 100%)`,padding:"28px 20px 20px" }}>
-        <StarField count={10}/>
-        <div style={{ position:"relative",maxWidth:1100,margin:"0 auto" }}>
-          <div style={{ display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10 }}>
-            <div>
-              <p style={{ fontSize:11,fontWeight:700,color:mode.color,letterSpacing:1.5,textTransform:"uppercase",marginBottom:4 }}>
-                {mode.tagline(profile.name||"")}
-              </p>
-              <div style={{ fontSize:"clamp(34px,8vw,52px)",fontWeight:900,lineHeight:1,
-                color:netWorth>=0?T.teal:T.red,
-                textShadow:netWorth>=0?`0 0 40px ${T.teal}40`:`0 0 40px ${T.red}30` }}>
-                {fmt(netWorth)}
-              </div>
-            </div>
-            <div style={{ display:"flex",flexDirection:"column",gap:6,alignItems:"flex-end" }}>
-              <button onClick={()=>setShowEdit(!showEdit)}
-                style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:10,padding:"7px 12px",cursor:"pointer",color:T.muted,fontSize:12,fontWeight:700,fontFamily:"inherit" }}>
-                Update ✎
-              </button>
-              {arch && (
-                <button onClick={()=>setShowResult(true)}
-                  style={{ background:`${arch.color}18`,border:`1px solid ${arch.color}40`,borderRadius:10,padding:"6px 10px",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:5 }}>
-                  <span style={{ fontSize:14 }}>{arch.emoji}</span>
-                  <span style={{ color:arch.color,fontSize:11,fontWeight:700 }}>{arch.name}</span>
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div style={{ display:"flex",gap:18,flexWrap:"wrap" }}>
-            {[
-              { val:fmtK(totalAssets), label:"Assets", color:T.green },
-              { val:fmtK(totalDebts),  label:"Debts",  color:totalDebts>0?T.red:T.muted },
-              ...(surplus!==0?[{ val:`${fmtK(Math.abs(surplus))}/mo`, label:surplus>0?"Surplus":"Shortfall", color:surplus>0?T.teal:T.red }]:[]),
-            ].map((item,i)=>(
-              <div key={i} style={{ display:"flex",alignItems:"center",gap:6 }}>
-                {i>0 && <div style={{ width:1,height:28,background:T.border }}/>}
-                <div style={{ paddingLeft:i>0?6:0 }}>
-                  <p style={{ color:item.color,fontWeight:800,fontSize:15 }}>{item.val}</p>
-                  <p style={{ color:"#6B8CB8",fontSize:12,fontWeight:500 }}>{item.label}</p>
-                </div>
-              </div>
+          {/* Step pips */}
+          <div style={{display:"flex",gap:4,marginBottom:14}}>
+            {Array.from({length:totalSteps}).map((_,i)=>(
+              <div key={i} style={{flex:1,height:4,borderRadius:2,background:i<doneSteps?T.teal:T.border}}/>
             ))}
           </div>
 
-          {showEdit && (
-            <div className="ls-fadein" style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px 16px",marginTop:14 }}>
-              <p style={{ color:"#E2EAF6",fontSize:13,lineHeight:1.5,marginBottom:10 }}>
-                Update your numbers in <strong style={{ color:T.white }}>Analytics</strong>, or reset and start fresh.
-              </p>
-              <div style={{ display:"flex",gap:10 }}>
-                <button onClick={()=>{setTab(2);setShowEdit(false)}} style={{ flex:1,background:T.tealDim,border:`1px solid ${T.tealBorder}`,borderRadius:8,padding:"8px 12px",color:T.teal,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>Go to Analytics →</button>
-                <button onClick={()=>{ if(window.confirm("Restart from scratch? All data will be cleared.")) reset() }}
-                  style={{ background:"none",border:`1px solid ${T.border}`,borderRadius:8,padding:"8px 12px",color:T.muted,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>🔄 Restart</button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
+          <h2 style={{color:T.white,fontWeight:900,fontSize:20,lineHeight:1.2,marginBottom:8}}>{level.title}</h2>
+          <p style={{color:"#C8D8EC",fontSize:14,lineHeight:1.5,marginBottom:18}}>{level.hook}</p>
 
-      <div style={{ maxWidth:1100,margin:"0 auto",padding:"0 18px" }}>
-
-        {/* ── LifeSmart Wealth Projection, first thing ─────────────── */}
-        <div style={{ paddingTop:18,marginBottom:20 }}>
-          {netWorth!==0 && hasIncome && (
-            <ProjectionHeroCard nw={netWorth} surplus={surplus} age={profile?.age} />
-          )}
-          {(netWorth===0 || !hasIncome) && (
-            <LockedCard icon="🔮" title="LifeSmart Wealth Projection"
-              description="Add your assets and income in Analytics to unlock your personalised wealth projection."
-              unlock="Go to Analytics →" onUnlock={()=>setTab(2)}/>
-          )}
-        </div>
-
-        {/* ── Personality quiz, hero discovery card ──────────────────── */}
-        {!quizResult && (
-          <button onClick={()=>setShowQuiz(true)}
-            style={{ width:"100%",background:"linear-gradient(145deg,rgba(88,28,252,.22) 0%,rgba(15,191,184,.12) 100%)",border:`1.5px solid rgba(167,139,250,.4)`,borderRadius:22,padding:"22px 20px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",marginBottom:20,overflow:"hidden",position:"relative",boxShadow:"0 8px 40px rgba(88,28,252,.18)" }}>
-            {/* Glow orb */}
-            <div style={{ position:"absolute",top:-30,right:-30,width:120,height:120,borderRadius:"50%",background:"radial-gradient(circle,rgba(167,139,250,.35) 0%,transparent 70%)",pointerEvents:"none" }}/>
-            {/* Top row */}
-            <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14 }}>
-              <div style={{ display:"flex",alignItems:"center",gap:10 }}>
-                <span style={{ fontSize:28 }}>🧠</span>
-                <div>
-                  <p style={{ color:"rgba(167,139,250,.8)",fontSize:11,fontWeight:700,letterSpacing:1.2,textTransform:"uppercase" }}>4 minute quiz</p>
-                  <p style={{ color:"#FFFFFF",fontWeight:900,fontSize:18,lineHeight:1.2,marginTop:2 }}>What type of investor are you?</p>
-                </div>
-              </div>
-              <div style={{ background:T.purple,borderRadius:12,padding:"8px 16px",flexShrink:0 }}>
-                <p style={{ color:"#FFFFFF",fontSize:13,fontWeight:800 }}>Start →</p>
-              </div>
-            </div>
-            {/* Archetype emoji teasers */}
-            <p style={{ color:"rgba(167,139,250,.7)",fontSize:12,fontWeight:600,marginBottom:10 }}>8 types. Which one are you?</p>
-            <div style={{ display:"flex",gap:8 }}>
-              {["🛡️","🌱","🚀","🧭","⚡","🏗️","🌊","💡"].map((e,i)=>(
-                <div key={i} style={{ width:36,height:36,borderRadius:10,background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.1)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,filter:i>2?"blur(3px) brightness(.5)":"none",transition:"filter .2s" }}>
-                  {e}
-                </div>
-              ))}
-              <div style={{ display:"flex",alignItems:"center",paddingLeft:4 }}>
-                <p style={{ color:"rgba(167,139,250,.6)",fontSize:11,fontWeight:700 }}>Locked</p>
-              </div>
-            </div>
-          </button>
-        )}
-        {quizResult && arch && (
-          <button onClick={()=>setShowResult(true)}
-            style={{ width:"100%",background:`${arch.color}10`,border:`1.5px solid ${arch.color}30`,borderRadius:20,padding:"16px 20px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",marginBottom:20,display:"flex",alignItems:"center",gap:14,boxShadow:`0 4px 20px ${arch.color}15` }}>
-            <div style={{ width:48,height:48,borderRadius:14,background:`${arch.color}20`,border:`1.5px solid ${arch.color}50`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0 }}>{arch.emoji}</div>
-            <div style={{ flex:1 }}>
-              <p style={{ color:arch.color,fontWeight:700,fontSize:11,letterSpacing:.5,textTransform:"uppercase",marginBottom:3 }}>Your money personality</p>
-              <p style={{ color:T.white,fontWeight:800,fontSize:15,marginBottom:2 }}>{arch.name}</p>
-              <p style={{ color:"#8FA3BE",fontSize:12 }}>{arch.headline}</p>
-            </div>
-            <span style={{ color:arch.color,fontSize:12,fontWeight:700 }}>View →</span>
-          </button>
-        )}
-
-        {/* ── Live snapshot: Assets + Debts line items ─────────────── */}
-        <div style={{ marginBottom:20 }}>
-          <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12 }}>
-            <p style={{ color:"#6B8CB8",fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase" }}>Your money right now</p>
-            <button onClick={()=>setTab(2)} style={{ background:"none",border:"none",cursor:"pointer",color:T.teal,fontSize:12,fontWeight:700,fontFamily:"inherit" }}>Update →</button>
-          </div>
-
-          <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:18,overflow:"hidden" }}>
-            {/* Assets */}
-            <div style={{ padding:"14px 16px",borderBottom:`1px solid ${T.border}` }}>
-              <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:assetRows.length?10:0 }}>
-                <p style={{ color:T.green,fontWeight:800,fontSize:13 }}>Assets</p>
-                <p style={{ color:T.green,fontWeight:900,fontSize:15 }}>{fmtK(totalAssets)}</p>
-              </div>
-              {assetRows.length > 0 ? assetRows.map((r,i)=>(
-                <div key={i} style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"5px 0",borderTop:i>0?`1px solid ${T.border}`:undefined }}>
-                  <div style={{ display:"flex",alignItems:"center",gap:8 }}>
-                    <div style={{ width:8,height:8,borderRadius:"50%",background:r.color,flexShrink:0 }}/>
-                    <p style={{ color:"#E2EAF6",fontSize:13 }}>{r.label}</p>
-                  </div>
-                  <p style={{ color:T.white,fontWeight:700,fontSize:13 }}>{fmtK(r.value)}</p>
-                </div>
-              )) : (
-                <button onClick={()=>setTab(2)} style={{ background:"none",border:`1px dashed ${T.border}`,borderRadius:8,padding:"10px",width:"100%",cursor:"pointer",color:T.muted,fontSize:12,fontFamily:"inherit" }}>
-                  + Add your first asset in Analytics
-                </button>
-              )}
-            </div>
-
-            {/* Debts */}
-            <div style={{ padding:"14px 16px" }}>
-              <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:debtRows.length?10:0 }}>
-                <p style={{ color:totalDebts>0?T.red:T.muted,fontWeight:800,fontSize:13 }}>Debts</p>
-                <p style={{ color:totalDebts>0?T.red:T.muted,fontWeight:900,fontSize:15 }}>{fmtK(totalDebts)}</p>
-              </div>
-              {debtRows.length > 0 ? debtRows.map((r,i)=>(
-                <div key={i} style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"5px 0",borderTop:i>0?`1px solid ${T.border}`:undefined }}>
-                  <div style={{ display:"flex",alignItems:"center",gap:8 }}>
-                    <div style={{ width:8,height:8,borderRadius:"50%",background:r.color,flexShrink:0 }}/>
-                    <p style={{ color:"#E2EAF6",fontSize:13 }}>{r.label}</p>
-                  </div>
-                  <p style={{ color:T.white,fontWeight:700,fontSize:13 }}>{fmtK(r.value)}</p>
-                </div>
-              )) : (
-                <p style={{ color:T.muted,fontSize:13 }}>No debts recorded.</p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* ── Key financial metrics ─────────────────────────────── */}
-        <div style={{ display:"flex",flexDirection:"column",gap:12,marginBottom:24 }}>
-          {/* Financial Freedom Number */}
-          <div style={{ background:`linear-gradient(145deg,${T.amberDim},rgba(245,158,11,.02))`,border:`1.5px solid ${T.amberBorder}`,borderRadius:20,padding:"20px 22px",position:"relative",overflow:"hidden" }}>
-            <div style={{ position:"absolute",top:-30,right:-30,width:100,height:100,borderRadius:"50%",background:"rgba(245,158,11,.06)",pointerEvents:"none" }}/>
-            <div style={{ display:"flex",alignItems:"center",gap:14,position:"relative" }}>
-              <div style={{ width:52,height:52,borderRadius:15,background:"rgba(245,158,11,.12)",border:`1px solid ${T.amberBorder}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,flexShrink:0 }}>🔥</div>
-              <div style={{ flex:1 }}>
-                <p style={{ color:"#C8D8EC",fontSize:14,fontWeight:700,marginBottom:6 }}>Financial Freedom Number</p>
-                <p style={{ color:T.amber,fontWeight:900,fontSize:28,lineHeight:1 }}>{fireNumber ? fmt(fireNumber) : "?"}</p>
-              </div>
-            </div>
-            <div style={{ background:"rgba(0,0,0,.2)",borderRadius:12,padding:"12px 14px",marginTop:14 }}>
-              <p style={{ color:"#C8D8EC",fontSize:13,lineHeight:1.5 }}>
-                {fireNumber
-                  ? `This is 25× your annual spending (${fmt(spending.monthly * 12)}/yr). Once you have ${fmt(fireNumber)} invested, your money can cover your lifestyle indefinitely.`
-                  : "Add your monthly spending to calculate this. It shows the total amount you would need invested to be financially independent."}
-              </p>
-            </div>
-          </div>
-
-          <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:12 }}>
-            {/* Safety Net */}
-            <div style={{ background:T.card,border:`1.5px solid ${T.tealBorder}`,borderRadius:20,padding:"18px" }}>
-              <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:10 }}>
-                <span style={{ fontSize:20 }}>🛡️</span>
-                <p style={{ color:"#C8D8EC",fontSize:13,fontWeight:700 }}>Safety Net</p>
-              </div>
-              <p style={{ color:T.teal,fontWeight:900,fontSize:26,lineHeight:1,marginBottom:6 }}>
-                {safetyMonths!=null ? `${safetyMonths} mo` : "?"}
-              </p>
-              <p style={{ color:T.muted,fontSize:12,lineHeight:1.4 }}>
-                {safetyMonths!=null
-                  ? safetyMonths >= 6 ? "Solid safety net. Well above the 3 month minimum."
-                    : safetyMonths >= 3 ? "Meets the minimum 3 month recommendation."
-                    : "Below the 3 month recommended minimum. Building this should be a priority."
-                  : "How many months your savings would cover your expenses."}
-              </p>
-            </div>
-
-            {/* Interest Drag */}
-            <div style={{ background:T.card,border:`1.5px solid ${drag>0?T.redBorder:T.border}`,borderRadius:20,padding:"18px" }}>
-              <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:10 }}>
-                <span style={{ fontSize:20 }}>💸</span>
-                <p style={{ color:"#C8D8EC",fontSize:13,fontWeight:700 }}>Interest Drag</p>
-              </div>
-              <p style={{ color:drag>0?T.red:T.green,fontWeight:900,fontSize:26,lineHeight:1,marginBottom:6 }}>
-                {drag>0 ? `${fmt(Math.round(drag))}/yr` : "£0"}
-              </p>
-              <p style={{ color:T.muted,fontSize:12,lineHeight:1.4 }}>
-                {drag>0
-                  ? `That is ${fmt(Math.round(drag/12))}/month leaving your wealth in interest payments.`
-                  : "No interest leaving your pocket. Any debt you have is interest free."}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* ── Learn section, hero redesign ──────────────────────────── */}
-        <div style={{ marginBottom:20 }}>
-          <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14 }}>
-            <div>
-              <p style={{ color:"#FFFFFF",fontWeight:800,fontSize:17 }}>Lessons</p>
-              <p style={{ color:"#6B8CB8",fontSize:12 }}>
-                {(completedLessons||[]).length}/{LESSONS.length} complete · knowledge that compounds
-              </p>
-            </div>
-            <button onClick={()=>setTab(1)} style={{ background:"rgba(167,139,250,.12)",border:"1px solid rgba(167,139,250,.25)",borderRadius:10,padding:"6px 14px",cursor:"pointer",fontFamily:"inherit" }}>
-              <p style={{ color:T.purple,fontSize:12,fontWeight:700 }}>See all →</p>
+          <div style={{display:"flex",gap:10}}>
+            <button onClick={()=>setActiveLevel(currentLevel)}
+              style={{flex:1,background:T.teal,border:"none",borderRadius:14,padding:"14px",color:"#070D1A",fontWeight:800,fontSize:14,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+              <Zap size={16}/>Quick lesson
+            </button>
+            <button onClick={()=>setActiveLevel(currentLevel)}
+              style={{flex:1,background:"rgba(255,255,255,.06)",border:`1.5px solid rgba(255,255,255,.1)`,borderRadius:14,padding:"14px",color:T.white,fontWeight:700,fontSize:14,cursor:"pointer",fontFamily:"inherit"}}>
+              Continue →
             </button>
           </div>
-
-          {/* Next lesson hero card */}
-          {recLesson && !doneSet.has(recLesson.id) && (
-            <button onClick={()=>setTab(1)}
-              style={{ width:"100%",background:`linear-gradient(145deg,${recLesson.trackColor}20,${recLesson.trackColor}06)`,
-                border:`1.5px solid ${recLesson.trackColor}45`,borderRadius:22,padding:"22px",
-                cursor:"pointer",fontFamily:"inherit",textAlign:"left",marginBottom:12,
-                position:"relative",overflow:"hidden",
-                boxShadow:`0 8px 32px ${recLesson.trackColor}18` }}>
-              {/* Background glow orb */}
-              <div style={{ position:"absolute",top:-40,right:-40,width:160,height:160,borderRadius:"50%",
-                background:`radial-gradient(circle,${recLesson.trackColor}25 0%,transparent 70%)`,
-                pointerEvents:"none" }}/>
-              <div style={{ position:"relative" }}>
-                <div style={{ display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:14 }}>
-                  <div style={{ display:"flex",alignItems:"center",gap:12 }}>
-                    <div style={{ width:52,height:52,borderRadius:16,background:`${recLesson.trackColor}25`,
-                      border:`1.5px solid ${recLesson.trackColor}50`,
-                      display:"flex",alignItems:"center",justifyContent:"center",fontSize:26 }}>
-                      {recLesson.emoji}
-                    </div>
-                    <div>
-                      <span style={{ background:`${recLesson.trackColor}30`,color:recLesson.trackColor,
-                        fontSize:10,fontWeight:800,padding:"3px 10px",borderRadius:99,
-                        letterSpacing:1,textTransform:"uppercase" }}>
-                        {recLesson.track}
-                      </span>
-                      <p style={{ color:"#4A6080",fontSize:11,marginTop:4 }}>
-                        {recLesson.cards?.length} cards · +{recLesson.xp} XP
-                      </p>
-                    </div>
-                  </div>
-                  <div style={{ background:`${recLesson.trackColor}`,borderRadius:12,
-                    padding:"8px 16px",flexShrink:0 }}>
-                    <p style={{ color:"#FFFFFF",fontSize:13,fontWeight:800 }}>Start →</p>
-                  </div>
-                </div>
-                <p style={{ color:"#FFFFFF",fontWeight:800,fontSize:16,lineHeight:1.3 }}>
-                  {recLesson.title}
-                </p>
-              </div>
-            </button>
-          )}
-
-          {/* Horizontal scroll of upcoming lessons */}
-          <div style={{ display:"flex",gap:12,overflowX:"auto",paddingBottom:6,
-            scrollbarWidth:"none",WebkitOverflowScrolling:"touch" }}>
-            {LESSONS.filter(l=>l.id!==recLessonId).slice(0,4).map(l=>{
-              const done = doneSet.has(l.id)
-              return (
-                <button key={l.id} onClick={()=>setTab(1)}
-                  style={{ flexShrink:0,width:155,
-                    background: done ? `${l.trackColor}10` : `linear-gradient(145deg,${l.trackColor}08,rgba(255,255,255,.02))`,
-                    border:`1.5px solid ${done ? l.trackColor+"35" : "rgba(255,255,255,.06)"}`,
-                    borderRadius:20,padding:"16px",cursor:"pointer",
-                    fontFamily:"inherit",textAlign:"left",position:"relative",overflow:"hidden" }}>
-                  {!done && <div style={{ position:"absolute",top:-20,right:-20,width:60,height:60,borderRadius:"50%",background:`${l.trackColor}08`,pointerEvents:"none" }}/>}
-                  <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10 }}>
-                    <div style={{ width:36,height:36,borderRadius:10,background:done?`${l.trackColor}20`:`${l.trackColor}12`,border:`1px solid ${l.trackColor}25`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18 }}>
-                      {done ? "✅" : l.emoji}
-                    </div>
-                    <div style={{ display:"flex",alignItems:"center",gap:4,background:"rgba(255,255,255,.05)",borderRadius:99,padding:"3px 8px" }}>
-                      <Clock size={9} color={T.muted}/>
-                      <span style={{ color:T.muted,fontSize:9,fontWeight:700 }}>{l.cards?.length||5} min</span>
-                    </div>
-                  </div>
-                  <p style={{ color:done ? l.trackColor : T.muted,
-                    fontSize:9,fontWeight:700,letterSpacing:1,
-                    textTransform:"uppercase",marginBottom:4 }}>{l.track}</p>
-                  <p style={{ color:done?"#7A96B5":"#FFFFFF",fontWeight:700,
-                    fontSize:12,lineHeight:1.3 }}>
-                    {l.title.length>40?l.title.slice(0,38)+"…":l.title}
-                  </p>
-                  {done && <p style={{ color:l.trackColor,fontSize:10,fontWeight:700,marginTop:6 }}>✓ Complete</p>}
-                  {!done && <p style={{ color:l.trackColor,fontSize:10,fontWeight:700,marginTop:6 }}>+{l.xp} XP</p>}
-                </button>
-              )
-            })}
-          </div>
         </div>
 
-        {/* ── Goals (always visible, prominent) ───────────────────── */}
-        <DashboardGoals goals={goals} surplus={surplus} save={save} state={state} toast={toast} setTab={setTab}/>
-
-        {/* ── Priority goals ──────────────────────────────────────── */}
-        {!hasPriorities && <GoalPickerSection state={state} save={save} toast={toast}/>}
-        {hasPriorities && (
-          <>
-            <GoalLinkedLessons priorityGoals={priorityGoals} completedLessons={state.completedLessons||[]} setTab={setTab}/>
-          </>
-        )}
-      </div>
-    </div>
-  )
-}
-
-/* ── Dashboard guidance + locked insights ────────────────────────── */
-function DashboardBuilder({ state, setTab }) {
-  const assets = state.assets || []
-  const hasDetailed = assets.some(a=>a.interestRate!==undefined||a.annualReturn!==undefined)
-
-  const LOCKED = [
-    { icon:"📊", label:"Budget breakdown", color:T.teal, colorDim:T.tealDim, colorBorder:T.tealBorder,
-      desc:"How your money is actually split housing, food, fun and more.",
-      req:"Add spending categories in Track →", tab:3 },
-    { icon:"🎯", label:"Debt payoff timeline", color:T.red, colorDim:T.redDim, colorBorder:T.redBorder,
-      desc:"See exactly when each debt clears and how much interest you'll save.",
-      req:"Add your debts with exact rates in Track →", tab:3 },
-    { icon:"📈", label:"Investment growth tracker", color:T.purple, colorDim:T.purpleDim, colorBorder:T.purpleBorder,
-      desc:"Portfolio performance vs benchmarks, with compound projections.",
-      req:"Add investment assets with values in Track →", tab:3 },
-    { icon:"🏛️", label:"Pension projector", color:T.amber, colorDim:T.amberDim, colorBorder:T.amberBorder,
-      desc:"Your pension pot at retirement based on current contributions.",
-      req:"Add your pension in Track →", tab:3 },
-  ]
-
-  return (
-    <div style={{ marginBottom:28 }}>
-      {/* Guidance card */}
-      <div style={{ background:`linear-gradient(135deg,${T.tealDim},${T.purpleDim})`,border:`1px solid ${T.tealBorder}`,borderRadius:18,padding:"18px 20px",marginBottom:20 }}>
-        <p style={{ color:T.teal,fontWeight:800,fontSize:15,marginBottom:8 }}>💡 Get more from LifeSmart</p>
-        <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
-          {[
-            { icon:"📝", text:"Enter your accurate asset and debt figures to get reliable projections approximate numbers give approximate results." },
-            { icon:"📚", text:"Complete the lessons linked to your goals each one gives you a practical edge." },
-            { icon:"📅", text:"Update your figures every month to watch your net worth chart update in real time." },
-            { icon:"🏆", text:"See how you compare to others your age people who track consistently pull ahead." },
-          ].map((g,i)=>(
-            <div key={i} style={{ display:"flex",gap:10,alignItems:"flex-start" }}>
-              <span style={{ fontSize:16,flexShrink:0,marginTop:1 }}>{g.icon}</span>
-              <p style={{ color:"#E2EAF6",fontSize:14,lineHeight:1.5,fontWeight:500 }}>{g.text}</p>
-            </div>
+        {/* Quick wins strip */}
+        <p style={{color:T.white,fontWeight:800,fontSize:15,marginBottom:12}}>Quick wins</p>
+        <div style={{display:"flex",gap:10,overflowX:"auto",paddingBottom:8,marginBottom:24,scrollbarWidth:"none"}}>
+          {QUICK_WINS.map(qw=>(
+            <button key={qw.id} onClick={()=>toast(`${qw.label}: coming soon!`)}
+              style={{flexShrink:0,background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"12px 16px",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:8}}>
+              <span style={{fontSize:16}}>{qw.icon}</span>
+              <div style={{textAlign:"left"}}>
+                <p style={{color:T.white,fontWeight:600,fontSize:12,whiteSpace:"nowrap"}}>{qw.label}</p>
+                <p style={{color:T.muted,fontSize:10}}>{qw.min} min</p>
+              </div>
+            </button>
           ))}
         </div>
-        <button onClick={()=>setTab(2)} style={{ background:T.teal,border:"none",borderRadius:10,padding:"10px 20px",color:T.bg,fontWeight:800,fontSize:14,cursor:"pointer",fontFamily:"inherit",marginTop:14,width:"100%" }}>
-          Update my figures in Track →
-        </button>
-      </div>
 
-      <p style={{ color:"#E2EAF6",fontWeight:700,fontSize:14,marginBottom:12 }}>🔒 Unlock more insights</p>
-      <div style={{ display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10 }}>
-        {LOCKED.map(t=>(
-          <button key={t.label} onClick={()=>setTab(t.tab)}
-            style={{ background:T.faint,border:`1px solid ${T.border}`,borderRadius:16,padding:"14px 14px",textAlign:"left",fontFamily:"inherit",cursor:"pointer",opacity:.75,position:"relative",overflow:"hidden" }}>
-            <div style={{ position:"absolute",top:8,right:10 }}><Lock size={12} color={T.subtle}/></div>
-            <div style={{ width:36,height:36,borderRadius:10,background:t.colorDim,border:`1px solid ${t.colorBorder}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,marginBottom:8 }}>{t.icon}</div>
-            <p style={{ color:"#E2EAF6",fontWeight:700,fontSize:13,marginBottom:4,lineHeight:1.3 }}>{t.label}</p>
-            <p style={{ color:"#8FA3BE",fontSize:12,lineHeight:1.4 }}>{t.req}</p>
-          </button>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-/* ── Reusable insight card wrapper ──────────────────────────────── */
-function InsightCard({ icon, title, sub, iconBg, iconBorder, infoText, children }) {
-  return (
-    <div className="ls-card-glass" style={{ border:`1px solid ${T.border}`,borderRadius:20,padding:"20px 22px",boxShadow:"0 4px 24px rgba(0,0,0,.25)" }}>
-      <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:14 }}>
-        <div style={{ width:38,height:38,borderRadius:11,background:iconBg,border:`1px solid ${iconBorder}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0 }}>{icon}</div>
-        <div style={{ flex:1 }}>
-          <p style={{ color:T.white,fontWeight:700,fontSize:14 }}>{title}</p>
-          <p style={{ color:T.muted,fontSize:12 }}>{sub}</p>
-        </div>
-        {infoText && <InfoTooltip text={infoText}/>}
-      </div>
-      {children}
-    </div>
-  )
-}
-
-/* ── Projection hero card big, jagged, exciting ─────────────── */
-function ProjectionHeroCard({ nw, surplus, age }) {
-  const data = useMemo(()=>calcProjection(nw,surplus,age),[nw,surplus,age])
-  const targetAge = 70
-  const atTarget  = data.find(d=>Math.round(d.age)===targetAge)
-  const fmtAx = v => v>=1e6?`£${(v/1e6).toFixed(1)}M`:v>=1000?`£${(v/1000).toFixed(0)}k`:v<0?`-£${Math.abs(Math.round(v/1000))}k`:""
-
-  return (
-    <div className="ls-card-glass ls-glow" style={{ border:`1.5px solid ${T.tealBorder}`,borderRadius:22,padding:"22px 24px",boxShadow:"0 0 40px rgba(15,191,184,.12), 0 8px 32px rgba(0,0,0,.3)" }}>
-      <p style={{ color:T.teal,fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:6 }}>LifeSmart Wealth Projection</p>
-
-      {atTarget && (
-        <div style={{ marginBottom:16 }}>
-          <p style={{ fontSize:"clamp(28px,6vw,40px)",fontWeight:900,lineHeight:1,color:T.teal,textShadow:`0 0 30px ${T.teal}50`,marginBottom:8 }}>
-            {fmtK(atTarget.conservative)}
-          </p>
-          <p style={{ color:"#E2EAF6",fontSize:14,lineHeight:1.6,marginBottom:6 }}>
-            Based on your current assets, a conservative growth estimate and your financial profile. As you add more information, complete lessons and build your assets, this number will grow.
-          </p>
-          {atTarget.optimistic > atTarget.conservative && (
-            <div style={{ background:"rgba(245,158,11,.12)",border:"1px solid rgba(245,158,11,.25)",borderRadius:10,padding:"10px 14px",marginTop:8 }}>
-              <p style={{ color:T.amber,fontSize:14,fontWeight:700 }}>
-                ✨ Or {fmtK(atTarget.optimistic)} with the right money decisions, optimising your investments and pension could get you there.
-              </p>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Chart */}
-      <div style={{ height:160,margin:"16px 0 10px" }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top:5,right:4,bottom:0,left:0 }}>
-            <defs>
-              <linearGradient id="gCon12" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%"  stopColor={T.teal}  stopOpacity={.3}/>
-                <stop offset="95%" stopColor={T.teal}  stopOpacity={0}/>
-              </linearGradient>
-              <linearGradient id="gOpt12" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%"  stopColor={T.amber} stopOpacity={.08}/>
-                <stop offset="95%" stopColor={T.amber} stopOpacity={0}/>
-              </linearGradient>
-            </defs>
-            <XAxis dataKey="age" tick={{ fontSize:10,fill:"#8FA3BE" }} axisLine={false} tickLine={false} interval={5}/>
-            <YAxis tick={{ fontSize:9,fill:"#344D68" }} axisLine={false} tickLine={false} tickFormatter={fmtAx} width={42}/>
-            <Tooltip
-              formatter={(v,name)=>[fmt(v), name==="conservative"?"Realistic (conservative)":"Optimistic (right decisions)"]}
-              labelFormatter={v=>`Age ${Math.round(v)}`}
-              contentStyle={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:10,fontSize:12,color:T.white }}/>
-            <Area type="monotone" dataKey="optimistic"   stroke={T.amber} strokeWidth={1.5} strokeDasharray="5 4" fill="url(#gOpt12)" dot={false} strokeOpacity={0.5}/>
-            <Area type="monotone" dataKey="conservative" stroke={T.teal}  strokeWidth={2.5} fill="url(#gCon12)"  dot={false}/>
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
-
-      <div style={{ display:"flex",gap:16,flexWrap:"wrap" }}>
-        <div style={{ display:"flex",alignItems:"center",gap:6 }}><div style={{ width:20,height:3,background:T.teal,borderRadius:2 }}/><span style={{ color:"#E2EAF6",fontSize:12,fontWeight:600 }}>Realistic (conservative)</span></div>
-        <div style={{ display:"flex",alignItems:"center",gap:6 }}><div style={{ width:18,height:0,borderTop:`2px dashed ${T.amber}`,opacity:.7 }}/><span style={{ color:"#E2EAF6",fontSize:12 }}>Optimistic (right decisions)</span></div>
-      </div>
-    </div>
-  )
-}
-
-/* ── Wealth breakdown no bar, use visual blocks ─────────────── */
-function WealthBreakdownCard({ bk, totalAssets }) {
-  const segments = [
-    {
-      label:"Safety net", value:bk.safetyNet, color:T.teal, icon:"🛡️",
-      info:"Liquid savings you can access immediately cash, easy-access accounts. This is your financial cushion. Goal: 3to6 months of expenses."
-    },
-    {
-      label:"Working wealth", value:bk.wealthBuilders, color:T.purple, icon:"📈",
-      info:"Investments, pension, and business assets that actively grow over time. This is the engine of long-term wealth money that compounds while you sleep."
-    },
-    {
-      label:"Life assets", value:bk.lifeAssets, color:T.amber, icon:"🏠",
-      info:"Property, vehicles, and other physical assets. These have real value but can't be easily accessed, don't generate income, and typically appreciate slowly."
-    },
-  ].filter(s=>s.value>0)
-
-  if(segments.length===0) return null
-
-  return (
-    <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:18,padding:"20px 22px" }}>
-      <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16 }}>
-        <div>
-          <p style={{ color:T.white,fontWeight:700,fontSize:14 }}>Wealth breakdown</p>
-          <p style={{ color:T.muted,fontSize:12 }}>How your {fmtK(totalAssets)} is split</p>
-        </div>
-        <InfoTooltip text="A healthy wealth breakdown shifts over time: start by building a safety net, then grow your working wealth. Life assets (like property) have value but don't actively compound."/>
-      </div>
-
-      {/* Visual blocks proportional height bars */}
-      <div style={{ display:"grid",gridTemplateColumns:`repeat(${segments.length},1fr)`,gap:8,marginBottom:16,height:80,alignItems:"flex-end" }}>
-        {segments.map(s=>{
-          const pct = Math.max(8, (s.value/totalAssets)*100)
-          return (
-            <div key={s.label} style={{ display:"flex",flexDirection:"column",alignItems:"center",gap:4 }}>
-              <p style={{ color:s.color,fontWeight:800,fontSize:12,textAlign:"center" }}>{Math.round(s.value/totalAssets*100)}%</p>
-              <div style={{ width:"100%",height:`${pct * 0.7}px`,minHeight:12,maxHeight:56,background:s.color,borderRadius:"6px 6px 2px 2px",opacity:.85,transition:"height .6s ease" }}/>
-            </div>
-          )
-        })}
-      </div>
-
-      {/* Legend with info */}
-      <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
-        {segments.map(s=>(
-          <div key={s.label} style={{ display:"flex",alignItems:"center",gap:10,background:T.surface,borderRadius:10,padding:"10px 12px" }}>
-            <span style={{ fontSize:18,flexShrink:0 }}>{s.icon}</span>
-            <div style={{ flex:1,minWidth:0 }}>
-              <p style={{ color:T.white,fontWeight:700,fontSize:13 }}>{s.label}</p>
-              <p style={{ color:"#8FA3BE",fontSize:12,lineHeight:1.4 }}>{s.info.slice(0,60)}…</p>
-            </div>
-            <div style={{ textAlign:"right",flexShrink:0 }}>
-              <p style={{ color:s.color,fontWeight:800,fontSize:14 }}>{fmtK(s.value)}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-/* ── Dashboard Goals (prominent, 3 types) ────────────────────────── */
-function DashboardGoals({ goals, surplus, save, state, toast, setTab }) {
-  const [showSheet, setShowSheet] = useState(null) // "save"|"action"|"learn"|"edit"
-  const [editGoal, setEditGoal] = useState(null)
-  const [saveName, setSaveName] = useState("")
-  const [saveTarget, setSaveTarget] = useState(0)
-  const [saveSaved, setSaveSaved] = useState(0)
-  const [saveMonthly, setSaveMonthly] = useState(0)
-  const [saveType, setSaveType] = useState(null)
-  const [actionType, setActionType] = useState(null)
-
-  const SAVE_OPTIONS = [
-    { id:"emergency", icon:"🛡️", label:"Emergency fund" },
-    { id:"holiday",   icon:"✈️", label:"Holiday" },
-    { id:"home",      icon:"🏠", label:"Buy a home" },
-    { id:"education", icon:"📚", label:"Education" },
-    { id:"other_goal",icon:"⭐", label:"Something else" },
-  ]
-
-  const ACTION_OPTIONS = [
-    { id:"invest",     icon:"📈", label:"Start investing", steps:[
-      "Open a Stocks & Shares ISA",
-      "Choose a low cost global index fund",
-      "Set up a monthly direct debit",
-      "Keep it going for 3 months",
-      "Review and increase when you can",
-    ]},
-    { id:"pension",    icon:"🏛️", label:"Sort my pension", steps:[
-      "Find your current pension value",
-      "Check your employer match limit",
-      "Increase your contribution by 1%",
-      "Consolidate any old pensions",
-    ]},
-    { id:"debt_clear", icon:"💳", label:"Clear my debt", steps:[
-      "List all debts with interest rates",
-      "Pay minimums on everything",
-      "Put extra money into the highest rate debt",
-      "Once cleared, move to the next highest rate",
-    ]},
-    { id:"account",    icon:"🏦", label:"Open an account", steps:[
-      "Research the best accounts for your needs",
-      "Gather your ID and proof of address",
-      "Apply online or in branch",
-      "Set up your direct debits and standing orders",
-    ]},
-  ]
-
-  const LEARN_OPTIONS = [
-    { id:"budgeting",   icon:"🥧", label:"I want to budget better" },
-    { id:"investing",   icon:"📈", label:"I want to understand investing" },
-    { id:"pensions",    icon:"🏛️", label:"I want to understand pensions" },
-    { id:"debt_learn",  icon:"💳", label:"I want to manage debt better" },
-    { id:"tax",         icon:"📋", label:"I want to understand tax wrappers" },
-    { id:"property",    icon:"🏠", label:"I want to learn about property" },
-  ]
-
-  const activeGoals = goals.filter(g=>!ACTION_GOALS.has(g.type)?calcGoalProgress(g,surplus).pct<100:true)
-
-  function saveNewGoal() {
-    if(!saveType || saveTarget<=0) return
-    const cfg = SAVE_OPTIONS.find(o=>o.id===saveType) || SAVE_OPTIONS[4]
-    const newGoal = {
-      id:`goal_${Date.now()}`, type:saveType, name:saveName||cfg.label,
-      targetAmount:saveTarget, startAmount:saveSaved, monthlyAmount:saveMonthly,
-      createdAt:new Date().toISOString(), checkedActions:[]
-    }
-    save({ ...state, goals:[...goals, newGoal] })
-    toast("✓ Goal created")
-    setShowSheet(null); setSaveName(""); setSaveTarget(0); setSaveSaved(0); setSaveMonthly(0); setSaveType(null)
-  }
-
-  function saveActionGoal() {
-    if(!actionType) return
-    const cfg = ACTION_OPTIONS.find(o=>o.id===actionType)
-    const newGoal = {
-      id:`goal_${Date.now()}`, type:actionType, name:cfg?.label||"Action",
-      targetAmount:0, startAmount:0, monthlyAmount:0,
-      createdAt:new Date().toISOString(), checkedActions:[]
-    }
-    save({ ...state, goals:[...goals, newGoal] })
-    toast("✓ Action plan created")
-    setShowSheet(null); setActionType(null)
-  }
-
-  // Dynamic time calculation
-  const monthsNeeded = saveMonthly > 0 && saveTarget > saveSaved ? Math.ceil((saveTarget - saveSaved) / saveMonthly) : null
-  const etaDate = monthsNeeded ? (()=>{ const d = new Date(); d.setMonth(d.getMonth()+monthsNeeded); return d.toLocaleDateString("en-GB",{month:"short",year:"numeric"}) })() : null
-
-  return (
-    <div style={{ marginBottom:24 }}>
-      <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14 }}>
-        <p style={{ color:"#FFFFFF",fontWeight:800,fontSize:17 }}>Your Goals</p>
-      </div>
-
-      {/* Existing goals */}
-      {activeGoals.length > 0 && (
-        <div style={{ display:"flex",flexDirection:"column",gap:10,marginBottom:14 }}>
-          {activeGoals.slice(0,3).map(g=>{
-            const cfg = GOAL_TYPES.find(t=>t.id===g.type) || GOAL_TYPES[GOAL_TYPES.length-1]
-            const isAction = ACTION_GOALS.has(g.type) || ACTION_OPTIONS.some(a=>a.id===g.type)
-            const actions = GOAL_ACTIONS[g.type] || ACTION_OPTIONS.find(a=>a.id===g.type)?.steps?.map((s,i)=>({id:`step_${i}`,label:s})) || []
-            const checked = new Set(g.checkedActions||[])
-            const { pct, current, eta } = isAction ? { pct:actions.length>0?Math.round(checked.size/actions.length*100):0, current:0, eta:null } : calcGoalProgress(g, surplus)
-            return (
-              <div key={g.id} style={{ background:T.card,border:`1.5px solid ${cfg.border||T.border}`,borderRadius:18,padding:"16px 18px" }}>
-                <div style={{ display:"flex",alignItems:"center",gap:12,marginBottom:10 }}>
-                  <span style={{ fontSize:20 }}>{cfg.icon}</span>
-                  <div style={{ flex:1 }}>
-                    <p style={{ color:T.white,fontWeight:700,fontSize:14 }}>{g.name}</p>
-                    {!isAction && <p style={{ color:T.muted,fontSize:12 }}>{fmt(current)} of {fmt(g.targetAmount)}{eta?` · on track for ${eta}`:""}</p>}
-                    {isAction && <p style={{ color:T.muted,fontSize:12 }}>{checked.size}/{actions.length} steps done</p>}
-                  </div>
-                  <span style={{ color:cfg.color||T.teal,fontWeight:900,fontSize:14 }}>{pct}%</span>
+        {/* Coming up */}
+        <p style={{color:T.white,fontWeight:800,fontSize:15,marginBottom:12}}>Coming up</p>
+        <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:24}}>
+          {nextLevels.map((nl,i)=>{
+            const pc=PHASE_COLORS[nl.phase]||T.muted
+            const isNext=i===0
+            return(
+              <div key={nl.n} style={{background:T.card,border:`1px solid ${isNext?`${pc}30`:T.border}`,borderRadius:18,padding:"16px 18px",display:"flex",alignItems:"center",gap:14,opacity:isNext?1:.65}}>
+                <div style={{width:36,height:36,borderRadius:10,background:isNext?`${pc}15`:T.faint,border:`1px solid ${isNext?`${pc}25`:T.border}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                  <p style={{color:isNext?pc:T.subtle,fontWeight:900,fontSize:13}}>{nl.n}</p>
                 </div>
-                <div style={{ background:T.surface,borderRadius:99,height:6,overflow:"hidden" }}>
-                  <div style={{ width:`${pct}%`,height:"100%",background:cfg.color||T.teal,borderRadius:99,transition:"width .6s ease" }}/>
+                <div style={{flex:1}}>
+                  {isNext&&<span style={{background:`${pc}15`,color:pc,fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:99,marginBottom:4,display:"inline-block"}}>Up next</span>}
+                  <p style={{color:isNext?T.white:"#8FA3BE",fontWeight:700,fontSize:13,lineHeight:1.3}}>{nl.title}</p>
+                  <p style={{color:T.muted,fontSize:12,marginTop:2}}>{nl.hook.length>60?nl.hook.slice(0,58)+"...":nl.hook}</p>
                 </div>
               </div>
             )
           })}
         </div>
-      )}
 
-      {/* Add goal buttons (3 types) */}
-      <div style={{ display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10 }}>
-        <button onClick={()=>setShowSheet("save")}
-          style={{ background:`linear-gradient(145deg,${T.tealDim},rgba(15,191,184,.02))`,border:`1.5px solid ${T.tealBorder}`,borderRadius:18,padding:"18px 12px",cursor:"pointer",fontFamily:"inherit",textAlign:"center" }}>
-          <span style={{ fontSize:24,display:"block",marginBottom:6 }}>🎯</span>
-          <p style={{ color:T.teal,fontWeight:800,fontSize:13 }}>Save for</p>
-          <p style={{ color:T.teal,fontWeight:800,fontSize:13 }}>something</p>
-        </button>
-        <button onClick={()=>setShowSheet("action")}
-          style={{ background:`linear-gradient(145deg,${T.amberDim},rgba(245,158,11,.02))`,border:`1.5px solid ${T.amberBorder}`,borderRadius:18,padding:"18px 12px",cursor:"pointer",fontFamily:"inherit",textAlign:"center" }}>
-          <span style={{ fontSize:24,display:"block",marginBottom:6 }}>⚡</span>
-          <p style={{ color:T.amber,fontWeight:800,fontSize:13 }}>Take an</p>
-          <p style={{ color:T.amber,fontWeight:800,fontSize:13 }}>action</p>
-        </button>
-        <button onClick={()=>setShowSheet("learn")}
-          style={{ background:`linear-gradient(145deg,${T.purpleDim},rgba(167,139,250,.02))`,border:`1.5px solid ${T.purpleBorder}`,borderRadius:18,padding:"18px 12px",cursor:"pointer",fontFamily:"inherit",textAlign:"center" }}>
-          <span style={{ fontSize:24,display:"block",marginBottom:6 }}>💡</span>
-          <p style={{ color:T.purple,fontWeight:800,fontSize:13 }}>Learn about</p>
-          <p style={{ color:T.purple,fontWeight:800,fontSize:13 }}>an area</p>
-        </button>
-      </div>
-
-      {/* Save for something sheet */}
-      {showSheet==="save" && (
-        <Sheet title="Save for something" onClose={()=>setShowSheet(null)}>
-          {!saveType ? (
-            <div style={{ display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10 }}>
-              {SAVE_OPTIONS.map(o=>(
-                <button key={o.id} onClick={()=>{ setSaveType(o.id); setSaveName(o.label) }}
-                  style={{ background:T.card,border:`1.5px solid ${T.border}`,borderRadius:16,padding:"16px",cursor:"pointer",fontFamily:"inherit",textAlign:"center",transition:"all .15s" }}>
-                  <span style={{ fontSize:28,display:"block",marginBottom:6 }}>{o.icon}</span>
-                  <p style={{ color:T.white,fontWeight:700,fontSize:13 }}>{o.label}</p>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div>
-              <Input label="Goal name" value={saveName} onChange={setSaveName} placeholder="e.g. Holiday to Spain"/>
-              <div style={{ height:12 }}/>
-              <CurrencyInput label="Target amount" value={saveTarget} onChange={setSaveTarget}/>
-              <div style={{ height:12 }}/>
-              <CurrencyInput label="Already saved" value={saveSaved} onChange={setSaveSaved}/>
-              <div style={{ height:12 }}/>
-              <CurrencyInput label="Monthly contribution" value={saveMonthly} onChange={setSaveMonthly}/>
-
-              {/* Dynamic time calculation */}
-              {saveTarget > 0 && saveMonthly > 0 && (
-                <div style={{ background:`linear-gradient(135deg,${T.tealDim},${T.purpleDim})`,border:`1px solid ${T.tealBorder}`,borderRadius:16,padding:"16px",marginTop:16,textAlign:"center" }}>
-                  {monthsNeeded && (
-                    <>
-                      <p style={{ color:T.teal,fontWeight:900,fontSize:28,lineHeight:1 }}>
-                        {monthsNeeded < 12 ? `${monthsNeeded} months` : `${Math.floor(monthsNeeded/12)} yr ${monthsNeeded%12} mo`}
-                      </p>
-                      <p style={{ color:"#C8D8EC",fontSize:13,marginTop:6 }}>
-                        At {fmt(saveMonthly)}/month you will reach {fmt(saveTarget)} by <strong style={{ color:T.teal }}>{etaDate}</strong>
-                      </p>
-                    </>
-                  )}
-                </div>
-              )}
-
-              <div style={{ height:16 }}/>
-              <Btn onClick={saveNewGoal} disabled={saveTarget<=0}>Create goal</Btn>
-              <button onClick={()=>setSaveType(null)} style={{ background:"none",border:"none",color:T.muted,fontSize:13,cursor:"pointer",width:"100%",padding:8,marginTop:8,fontFamily:"inherit" }}>
-                Back to options
-              </button>
-            </div>
-          )}
-        </Sheet>
-      )}
-
-      {/* Take an action sheet */}
-      {showSheet==="action" && (
-        <Sheet title="Take an action" onClose={()=>setShowSheet(null)}>
-          {!actionType ? (
-            <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
-              {ACTION_OPTIONS.map(o=>(
-                <button key={o.id} onClick={()=>setActionType(o.id)}
-                  style={{ background:T.card,border:`1.5px solid ${T.border}`,borderRadius:16,padding:"16px 18px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",display:"flex",alignItems:"center",gap:14,transition:"all .15s" }}>
-                  <span style={{ fontSize:24 }}>{o.icon}</span>
-                  <div>
-                    <p style={{ color:T.white,fontWeight:700,fontSize:14 }}>{o.label}</p>
-                    <p style={{ color:T.muted,fontSize:12 }}>{o.steps.length} steps</p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div>
-              {(()=>{
-                const cfg = ACTION_OPTIONS.find(o=>o.id===actionType)
-                return (
-                  <>
-                    <div style={{ display:"flex",alignItems:"center",gap:12,marginBottom:20 }}>
-                      <span style={{ fontSize:28 }}>{cfg.icon}</span>
-                      <p style={{ color:T.white,fontWeight:800,fontSize:17 }}>{cfg.label}</p>
-                    </div>
-                    <p style={{ color:T.muted,fontSize:13,marginBottom:16 }}>Here is your step by step plan. Tick each one off as you go.</p>
-                    <div style={{ display:"flex",flexDirection:"column",gap:8,marginBottom:20 }}>
-                      {cfg.steps.map((step,i)=>(
-                        <div key={i} style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px 16px",display:"flex",alignItems:"center",gap:12 }}>
-                          <div style={{ width:24,height:24,borderRadius:7,border:`2px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,color:T.muted,fontSize:11,fontWeight:800 }}>{i+1}</div>
-                          <p style={{ color:"#C8D8EC",fontSize:14,fontWeight:600 }}>{step}</p>
-                        </div>
-                      ))}
-                    </div>
-                    <Btn onClick={saveActionGoal}>Add this to my goals</Btn>
-                    <button onClick={()=>setActionType(null)} style={{ background:"none",border:"none",color:T.muted,fontSize:13,cursor:"pointer",width:"100%",padding:8,marginTop:8,fontFamily:"inherit" }}>
-                      Back to options
-                    </button>
-                  </>
-                )
-              })()}
-            </div>
-          )}
-        </Sheet>
-      )}
-
-      {/* Learn about an area sheet */}
-      {showSheet==="learn" && (
-        <Sheet title="Learn about an area" onClose={()=>setShowSheet(null)}>
-          <p style={{ color:T.muted,fontSize:13,marginBottom:16 }}>Choose what you want to learn about and we will build a personalised plan.</p>
-          <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
-            {LEARN_OPTIONS.map(o=>(
-              <button key={o.id} onClick={()=>{ setTab(1); setShowSheet(null); toast("Head to Learn to start your journey") }}
-                style={{ background:T.card,border:`1.5px solid ${T.purpleBorder}`,borderRadius:16,padding:"16px 18px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",display:"flex",alignItems:"center",gap:14,transition:"all .15s" }}>
-                <div style={{ width:40,height:40,borderRadius:12,background:T.purpleDim,border:`1px solid ${T.purpleBorder}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0 }}>{o.icon}</div>
-                <p style={{ color:T.white,fontWeight:700,fontSize:14 }}>{o.label}</p>
-                <div style={{ marginLeft:"auto" }}>
-                  <ChevronRight size={16} color={T.purple}/>
-                </div>
-              </button>
-            ))}
+        {/* Explore strip */}
+        <button onClick={()=>setTab(2)} style={{width:"100%",background:`linear-gradient(135deg,${T.purpleDim},rgba(167,139,250,.03))`,border:`1px solid ${T.purpleBorder}`,borderRadius:18,padding:"16px 20px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",display:"flex",alignItems:"center",gap:12}}>
+          <span style={{fontSize:20}}>🎓</span>
+          <div style={{flex:1}}>
+            <p style={{color:T.white,fontWeight:700,fontSize:14}}>Want to go deeper?</p>
+            <p style={{color:T.muted,fontSize:12}}>Browse all lessons and extras</p>
           </div>
-        </Sheet>
-      )}
-    </div>
-  )
-}
-
-/* ── Goal priority picker ──────────────────────────────────────── */
-function GoalPickerSection({ state, save, toast }) {
-  const [selected, setSelected] = useState([])
-
-  function toggle(id) {
-    setSelected(prev=>prev.includes(id)?prev.filter(x=>x!==id):[...prev,id])
-  }
-
-  function confirm() {
-    if(selected.length===0) return
-    save({ ...state, priorityGoals:selected, profile:{ ...state.profile, points:(state.profile.points||0)+10 } })
-    toast("✓ Priorities set! +10 XP")
-  }
-
-  return (
-    <div style={{ marginBottom:24,paddingTop:4 }}>
-      <div style={{ marginBottom:14 }}>
-        <p style={{ color:T.white,fontWeight:800,fontSize:18,marginBottom:4 }}>What matters most to you?</p>
-        <p style={{ color:"#E2EAF6",fontSize:13,lineHeight:1.5 }}>Pick your priorities we'll tailor your lessons and goals around them.</p>
-      </div>
-
-      <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(155px,1fr))",gap:10,marginBottom:16 }}>
-        {PRIORITY_GOALS.map(g=>{
-          const sel = selected.includes(g.id)
-          return (
-            <button key={g.id} onClick={()=>toggle(g.id)}
-              style={{ background:sel?`${g.color}15`:T.card,border:`2px solid ${sel?g.color:T.border}`,borderRadius:14,padding:"14px 12px",cursor:"pointer",textAlign:"left",fontFamily:"inherit",transition:"all .15s",display:"flex",alignItems:"center",gap:10 }}>
-              <span style={{ fontSize:20 }}>{g.icon}</span>
-              <p style={{ color:sel?T.white:T.muted,fontWeight:700,fontSize:13,flex:1,lineHeight:1.3 }}>{g.label}</p>
-              {sel && <Check size={14} color={g.color} style={{ flexShrink:0 }}/>}
-            </button>
-          )
-        })}
-      </div>
-
-      <Btn onClick={confirm} disabled={selected.length===0}>
-        {selected.length===0 ? "Pick at least one →" : `Set ${selected.length} priorit${selected.length===1?"y":"ies"} →`}
-      </Btn>
-    </div>
-  )
-}
-
-function GoalLinkedLessons({ priorityGoals, completedLessons, setTab }) {
-  const doneSet = new Set(completedLessons)
-  const linked = LESSONS.filter(l=>l.goalLinks?.some(g=>priorityGoals.includes(g)) && !doneSet.has(l.id)).slice(0,2)
-  if(linked.length===0) return null
-  return (
-    <div style={{ marginBottom:22 }}>
-      <p style={{ color:"#6B8CB8",fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:12 }}>Lessons for your goals</p>
-      <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
-        {linked.map(l=>(
-          <button key={l.id} onClick={()=>setTab(1)} style={{ background:T.card,border:`1.5px solid ${l.trackColor||T.teal}30`,borderRadius:16,padding:"14px 16px",cursor:"pointer",textAlign:"left",fontFamily:"inherit",display:"flex",alignItems:"center",gap:14 }}>
-            <div style={{ width:44,height:44,borderRadius:12,background:`${l.trackColor||T.teal}20`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0 }}>{l.emoji}</div>
-            <div style={{ flex:1 }}>
-              <p style={{ color:l.trackColor||T.teal,fontWeight:700,fontSize:10,letterSpacing:.5,textTransform:"uppercase",marginBottom:3 }}>{l.track} {l.xp} XP</p>
-              <p style={{ color:T.white,fontWeight:700,fontSize:13,lineHeight:1.3 }}>{l.title}</p>
-            </div>
-            <ChevronRight size={16} color={T.subtle}/>
-          </button>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-/* ── Goals on home ─────────────────────────────────────────────── */
-function HomeGoalsSection({ goals, surplus, setTab, save, state, toast, priorityGoals }) {
-  const [showSheet, setShowSheet] = useState(false)
-  const activeGoals = goals.filter(g=>!ACTION_GOALS.has(g.type)?calcGoalProgress(g,surplus).pct<100:true)
-  const displayed = activeGoals.slice(0,3)
-
-  function saveGoal(data) {
-    const existing = goals.find(g=>g.id===data.id)
-    const newGoals = existing ? goals.map(g=>g.id===data.id?data:g) : [...goals,data]
-    save({ ...state, goals:newGoals })
-    toast(existing?"✓ Goal updated":"✓ Goal created")
-    setShowSheet(false)
-  }
-
-  return (
-    <div style={{ marginBottom:22,paddingTop:8 }}>
-      <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12 }}>
-        <p style={{ color:"#6B8CB8",fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase" }}>Your goals</p>
-        <div style={{ display:"flex",gap:10 }}>
-          {goals.length>0 && <button onClick={()=>setTab(0)} style={{ background:"none",border:"none",color:T.teal,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>See all →</button>}
-          <button onClick={()=>setShowSheet(true)} style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:8,padding:"5px 12px",color:T.muted,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:4 }}>
-            <Plus size={12}/>Add
-          </button>
-        </div>
-      </div>
-
-      {displayed.length===0 ? (
-        <button onClick={()=>setShowSheet(true)} style={{ width:"100%",background:T.tealDim,border:`1.5px dashed ${T.tealBorder}`,borderRadius:16,padding:"18px",cursor:"pointer",textAlign:"center",fontFamily:"inherit" }}>
-          <p style={{ color:T.teal,fontWeight:700,fontSize:14,marginBottom:4 }}>🎯 Set your first goal</p>
-          <p style={{ color:T.muted,fontSize:12 }}>Holiday, emergency fund, clear debt people with goals save 2× faster.</p>
+          <ChevronRight size={16} color={T.purple}/>
         </button>
-      ) : (
-        <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))",gap:10 }}>
-          {displayed.map(g=><MiniGoalCard key={g.id} goal={g} surplus={surplus}/>)}
-        </div>
-      )}
-
-      {showSheet && <GoalSheet goal={null} onClose={()=>setShowSheet(false)} onSave={saveGoal}/>}
+      </div>
     </div>
   )
 }
 
-function MiniGoalCard({ goal, surplus }) {
-  const cfg = GOAL_TYPES.find(g=>g.id===goal.type)||GOAL_TYPES[GOAL_TYPES.length-1]
-  const isAction = ACTION_GOALS.has(goal.type)
-  if(isAction) {
-    const actions = GOAL_ACTIONS[goal.type]||[]
-    const checked = new Set(goal.checkedActions||[])
-    const pct = actions.length>0 ? Math.round(checked.size/actions.length*100) : 0
-    return (
-      <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px 16px" }}>
-        <div style={{ display:"flex",alignItems:"center",gap:9,marginBottom:10 }}>
-          <span style={{ fontSize:18 }}>{cfg.icon}</span>
-          <div><p style={{ color:T.white,fontWeight:700,fontSize:13 }}>{goal.name}</p><p style={{ color:"#8FA3BE",fontSize:12 }}>{checked.size}/{actions.length} steps</p></div>
-        </div>
-        <div style={{ background:T.surface,borderRadius:99,height:5,overflow:"hidden" }}>
-          <div style={{ width:`${pct}%`,height:"100%",background:cfg.color,borderRadius:99 }}/>
-        </div>
-      </div>
-    )
-  }
-  const { pct, current, eta } = calcGoalProgress(goal, surplus)
-  return (
-    <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px 16px" }}>
-      <div style={{ display:"flex",alignItems:"center",gap:9,marginBottom:10 }}>
-        <span style={{ fontSize:18 }}>{cfg.icon}</span>
-        <div style={{ flex:1 }}>
-          <p style={{ color:T.white,fontWeight:700,fontSize:13 }}>{goal.name}</p>
-          <p style={{ color:"#8FA3BE",fontSize:12 }}>{fmt(current)} of {fmt(goal.targetAmount)}</p>
-        </div>
-        <span style={{ color:cfg.color,fontWeight:800,fontSize:13 }}>{pct}%</span>
-      </div>
-      <div style={{ background:T.surface,borderRadius:99,height:5,overflow:"hidden" }}>
-        <div style={{ width:`${pct}%`,height:"100%",background:cfg.color,borderRadius:99,transition:"width .6s ease" }}/>
-      </div>
-      {eta && <p style={{ color:T.muted,fontSize:11,marginTop:6 }}>On track for {eta}</p>}
-    </div>
-  )
-}
 
 /* ════════════════════════════════════════════════════════════════════
-   GOAL SHEET
+   PLAN TAB (all 15 levels, journey map)
    ════════════════════════════════════════════════════════════════════ */
-function GoalSheet({ goal, onClose, onSave }) {
-  const editing = !!goal
-  const [type,   setType]   = useState(goal?.type||null)
-  const [name,   setName]   = useState(goal?.name||"")
-  const [target, setTarget] = useState(goal?.targetAmount||0)
-  const [saved,  setSaved]  = useState(goal?.startAmount||0)
-  const [monthly,setMonthly]= useState(goal?.monthlyAmount||0)
-  const [err,    setErr]    = useState("")
+function PlanTab(){
+  const{state,toast}=useApp()
+  const{profile}=state
+  const currentLevel=profile.currentLevel||1
+  const completed=new Set(profile.completedLevels||[])
+  const[activeLevel,setActiveLevel]=useState(null)
+  const[warning,setWarning]=useState(null)
 
-  const cfg = GOAL_TYPES.find(g=>g.id===type)
-  const isAction = ACTION_GOALS.has(type)
-
-  function go() {
-    if(!type)         { setErr("Pick a goal type."); return }
-    if(!isAction && target<=0) { setErr("Enter a target amount."); return }
-    setErr("")
-    onSave({
-      id: goal?.id || `goal_${Date.now()}`,
-      type, name: name||(cfg?.label||"Goal"),
-      targetAmount: isAction ? 0 : target,
-      startAmount: saved||0,
-      monthlyAmount: monthly,
-      createdAt: goal?.createdAt||new Date().toISOString(),
-      checkedActions: goal?.checkedActions||[],
-    })
-  }
-
-  return (
-    <Sheet title={editing?"Edit goal":"Add a goal"} onClose={onClose}>
-      <div style={{ display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:20 }}>
-        {GOAL_TYPES.map(t=>{ const sel=type===t.id; return (
-          <button key={t.id} onClick={()=>{ setType(t.id); setName(t.label) }}
-            style={{ padding:"12px 6px",borderRadius:13,border:`2px solid ${sel?t.color:T.border}`,background:sel?t.dim:T.card,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:7,transition:"all .15s" }}>
-            <span style={{ fontSize:22 }}>{t.icon}</span>
-            <span style={{ fontSize:10,fontWeight:700,color:sel?t.color:"#E2EAF6",textAlign:"center",lineHeight:1.3 }}>{t.label}</span>
-          </button>
-        )})}
-      </div>
-
-      <div style={{ display:"flex",flexDirection:"column",gap:14,marginBottom:16 }}>
-        <Input label="Goal name" value={name} onChange={setName} placeholder={cfg?.label||"e.g. Emergency fund"}/>
-        {!isAction && (
-          <>
-            <CurrencyInput label="Target amount" value={target} onChange={setTarget}/>
-            <CurrencyInput label="Already saved towards this" value={saved} onChange={setSaved} helper="How much you've already put aside for this goal"/>
-            <CurrencyInput label="Monthly contribution (optional)" value={monthly} onChange={setMonthly} helper="How much you plan to add each month"/>
-          </>
-        )}
-      </div>
-      {err&&<p style={{ color:T.red,fontSize:13,marginBottom:12 }}>{err}</p>}
-      <Btn onClick={go}>{editing?"Save changes":"Add goal"}</Btn>
-    </Sheet>
-  )
-}
-
-/* ── Action goal sheet (checklist-based) ─────────────────────── */
-function ActionGoalSheet({ goal, onClose, onSave, setLearnTab }) {
-  const actions = GOAL_ACTIONS[goal.type]||[]
-  const [checked, setChecked] = useState(new Set(goal.checkedActions||[]))
-  const cfg = GOAL_TYPES.find(g=>g.id===goal.type)
-
-  function toggle(id) {
-    setChecked(prev=>{ const n=new Set(prev); n.has(id)?n.delete(id):n.add(id); return n })
-  }
-
-  function save() {
-    onSave({ ...goal, checkedActions:[...checked] })
-  }
-
-  return (
-    <Sheet title={goal.name} onClose={onClose}>
-      <p style={{ color:"#D8E8F8",fontSize:14,lineHeight:1.65,marginBottom:20 }}>Tick each step off as you complete it. Each one moves you closer to your goal.</p>
-      <div style={{ display:"flex",flexDirection:"column",gap:10,marginBottom:20 }}>
-        {actions.map(a=>{
-          const done = checked.has(a.id)
-          return (
-            <div key={a.id} style={{ background:done?T.tealDim:T.card,border:`1.5px solid ${done?T.tealBorder:T.border}`,borderRadius:14,padding:"14px 16px",display:"flex",gap:12,alignItems:"flex-start",transition:"all .2s" }}>
-              <button onClick={()=>toggle(a.id)} style={{ width:24,height:24,borderRadius:7,border:`2px solid ${done?T.teal:T.border}`,background:done?T.teal:"transparent",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1,transition:"all .2s" }}>
-                {done&&<Check size={13} color="#070D1A"/>}
-              </button>
-              <div style={{ flex:1 }}>
-                <p style={{ color:done?T.teal:T.white,fontWeight:700,fontSize:14,marginBottom:3,textDecoration:done?"line-through":undefined }}>{a.label}</p>
-                <p style={{ color:"#E2EAF6",fontSize:13,lineHeight:1.5 }}>{a.desc}</p>
-              </div>
-            </div>
-          )
-        })}
-      </div>
-      <Btn onClick={save}>Save progress</Btn>
-    </Sheet>
-  )
-}
-
-function GoalCard({ goal, surplus, onEdit, onDelete }) {
-  const cfg = GOAL_TYPES.find(g=>g.id===goal.type)||GOAL_TYPES[GOAL_TYPES.length-1]
-  const isAction = ACTION_GOALS.has(goal.type)
-  const { pct, current, eta, monthsLeft } = isAction ? { pct:0,current:0,eta:null,monthsLeft:null } : calcGoalProgress(goal,surplus)
-  const actions = isAction ? GOAL_ACTIONS[goal.type]||[] : []
-  const checkedCount = isAction ? (goal.checkedActions||[]).length : 0
-  const actionPct = isAction && actions.length>0 ? Math.round(checkedCount/actions.length*100) : 0
-
-  const displayPct = isAction ? actionPct : pct
-
-  return (
-    <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:18,padding:"18px 20px",position:"relative" }}>
-      {/* Header */}
-      <div style={{ display:"flex",alignItems:"flex-start",gap:12,marginBottom:14 }}>
-        <div style={{ width:44,height:44,borderRadius:13,background:cfg.dim,border:`1.5px solid ${cfg.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0 }}>{cfg.icon}</div>
-        <div style={{ flex:1 }}>
-          <p style={{ color:T.white,fontWeight:700,fontSize:15 }}>{goal.name}</p>
-          {!isAction && <p style={{ color:T.muted,fontSize:12 }}>Target: {fmt(goal.targetAmount)}</p>}
-          {isAction && <p style={{ color:T.muted,fontSize:12 }}>{checkedCount}/{actions.length} steps completed</p>}
-        </div>
-        <div style={{ display:"flex",gap:6 }}>
-          <button onClick={onEdit} style={{ background:"none",border:"none",color:T.muted,cursor:"pointer",padding:4 }}><Pencil size={14}/></button>
-          <button onClick={onDelete} style={{ background:"none",border:"none",color:T.muted,cursor:"pointer",padding:4 }}><Trash2 size={14}/></button>
-        </div>
-      </div>
-
-      {/* Progress bar */}
-      <div style={{ background:T.surface,borderRadius:99,height:8,overflow:"hidden",marginBottom:8 }}>
-        <div style={{ width:`${displayPct}%`,height:"100%",background:`linear-gradient(90deg,${cfg.color},${cfg.color}bb)`,borderRadius:99,transition:"width .8s ease" }}/>
-      </div>
-
-      {!isAction && (
-        <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
-          <p style={{ color:cfg.color,fontWeight:800,fontSize:14 }}>{displayPct}%</p>
-          <p style={{ color:T.muted,fontSize:12 }}>{fmt(current)} saved{eta?` ${eta}`:""}</p>
-        </div>
-      )}
-      {isAction && (
-        <p style={{ color:cfg.color,fontWeight:800,fontSize:13 }}>{displayPct}% complete</p>
-      )}
-    </div>
-  )
-}
-
-/* ════════════════════════════════════════════════════════════════════
-   GOALS TAB
-   ════════════════════════════════════════════════════════════════════ */
-function GoalsTab() {
-  const { state, save, toast, setTab } = useApp()
-  const { goals, income, assets, spending } = state
-  const surplus = calcSurplus(income, assets, spending)
-  const [sheet, setSheet]     = useState(null)
-  const [editGoal, setEditGoal] = useState(null)
-
-  function saveGoal(data) {
-    const existing = goals.find(g=>g.id===data.id)
-    const newGoals = existing ? goals.map(g=>g.id===data.id?data:g) : [...goals,data]
-    save({ ...state, goals:newGoals })
-    toast(existing?"✓ Goal updated":"✓ Goal added")
-    setSheet(null); setEditGoal(null)
-  }
-
-  function deleteGoal(g) {
-    if(!window.confirm(`Remove "${g.name}"?`)) return
-    save({ ...state, goals:goals.filter(x=>x.id!==g.id) })
-    toast("Goal removed")
-  }
-
-  const active    = goals.filter(g=>!ACTION_GOALS.has(g.type)?calcGoalProgress(g,surplus).pct<100:true)
-  const completed = goals.filter(g=>!ACTION_GOALS.has(g.type)&&calcGoalProgress(g,surplus).pct>=100)
-
-  return (
-    <div style={{ flex:1,overflowY:"auto",paddingBottom:20 }}>
-      <div style={{ padding:"0 18px 24px",maxWidth:900,margin:"0 auto",width:"100%" }}>
-        <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16 }}>
-          <p style={{ color:"#E2EAF6",fontWeight:700,fontSize:16 }}>Goals</p>
-          <button onClick={()=>{ setEditGoal(null); setSheet("new") }}
-            style={{ background:T.tealDim,border:`1.5px solid ${T.tealBorder}`,borderRadius:10,padding:"8px 14px",color:T.teal,fontWeight:700,fontSize:13,cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontFamily:"inherit" }}>
-            <Plus size={13}/>Add goal
-          </button>
-        </div>
-
-        {active.length===0 && completed.length===0 ? (
-          <button onClick={()=>setSheet("new")} style={{ width:"100%",background:T.tealDim,border:`1.5px dashed ${T.tealBorder}`,borderRadius:16,padding:"20px",cursor:"pointer",textAlign:"center",fontFamily:"inherit" }}>
-            <p style={{ color:T.teal,fontWeight:700,fontSize:15,marginBottom:4 }}>Set your first goal</p>
-            <p style={{ color:"#E2EAF6",fontSize:13 }}>Holiday, house deposit, clear debt people with written goals build 2x more wealth.</p>
-          </button>
-        ) : (
-          <div style={{ display:"flex",flexDirection:"column",gap:12,marginBottom:goals.length>0?16:0 }}>
-            {active.map(g=>(
-              <GoalCard key={g.id} goal={g} surplus={surplus}
-                onEdit={()=>{ setEditGoal(g); setSheet(ACTION_GOALS.has(g.type)?"action":"edit") }}
-                onDelete={()=>deleteGoal(g)}/>
-            ))}
-          </div>
-        )}
-
-        {completed.length>0 && (
-          <>
-            <p style={{ color:"#E2EAF6",fontSize:12,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:10,marginTop:16 }}>Completed</p>
-            <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
-              {completed.map(g=>(
-                <div key={g.id} style={{ background:T.faint,border:`1px solid ${T.border}`,borderRadius:14,padding:"12px 16px",display:"flex",alignItems:"center",gap:12 }}>
-                  <span style={{ fontSize:18 }}>✅</span>
-                  <div style={{ flex:1 }}>
-                    <p style={{ color:"#E2EAF6",fontWeight:700,fontSize:14 }}>{g.name}</p>
-                    <p style={{ color:"#8FA3BE",fontSize:12 }}>{fmt(g.targetAmount)} reached</p>
-                  </div>
-                  <button onClick={()=>deleteGoal(g)} style={{ background:"none",border:"none",color:"#8FA3BE",cursor:"pointer",padding:4 }}><Trash2 size={13}/></button>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
-
-      {sheet==="new"    && <GoalSheet goal={null} onClose={()=>setSheet(null)} onSave={saveGoal}/>}
-      {sheet==="edit"   && <GoalSheet goal={editGoal} onClose={()=>{ setSheet(null); setEditGoal(null) }} onSave={saveGoal}/>}
-      {sheet==="action" && <ActionGoalSheet goal={editGoal} onClose={()=>{ setSheet(null); setEditGoal(null) }} onSave={saveGoal}/>}
-    </div>
-  )
-}
-
-
-function AnalyticsTab() {
-  const { state, save, toast } = useApp()
-  const [sheet, setSheet]     = useState(null)
-  const [editItem, setEditItem]= useState(null)
-
-  const { totalAssets, totalDebts } = calcTotals(state.assets, state.debts)
-  const netWorth = totalAssets - totalDebts
-  const drag = totalInterestDrag(state.debts)
-  const surplus = calcSurplus(state.income, state.assets, state.spending)
-
-  function saveAsset({ cat, name, val, monthlyIncome, hasLoan, loanBal, annualReturn, existingId, existingLinkedDebtId }) {
-    let newAssets = [...state.assets]
-    let newDebts  = [...state.debts]
-    const assetId = existingId || `a_${Date.now()}`
-    const assetObj = { id:assetId, category:cat, name, value:val, monthlyIncome:monthlyIncome||0, linkedDebtId:existingLinkedDebtId||null, annualReturn:annualReturn||null }
-
-    if(existingId) newAssets = newAssets.map(a=>a.id===existingId?assetObj:a)
-    else           newAssets.push(assetObj)
-
-    if(hasLoan && loanBal>0) {
-      const t = DEBT_TYPES.find(x=>["mortgage","car_loan"].includes(x.cat) && x.cat===cat) || DEBT_TYPES[0]
-      const debtId = existingLinkedDebtId || `d_linked_${Date.now()}`
-      const debtObj = { id:debtId, category:cat==="primary_residence"?"mortgage":cat, name:`${name} loan`, balance:loanBal, interestRate:t?.assumedRate||4.5, linkedAssetId:assetId, isAutoCreated:true }
-      newAssets = newAssets.map(a=>a.id===assetId?{...a,linkedDebtId:debtId}:a)
-      if(existingLinkedDebtId) newDebts = newDebts.map(d=>d.id===existingLinkedDebtId?debtObj:d)
-      else newDebts.push(debtObj)
+  function handleTap(level){
+    const diff=level.n-currentLevel
+    // No warning for current or next
+    if(diff<=1||completed.has(level.n)){setActiveLevel(level.n);return}
+    // Red warning: investing while in debt
+    if(level.n>=10&&level.n<=12&&!completed.has(4)){
+      setWarning({type:"red",level,msg:"You have high-interest debt at Level 4. Putting money into investments while paying high APR means your debt grows faster than your investments. Sort Level 4 first.",link:4,linkText:"Level 4: the maths will shock you →"})
+      return
     }
-
-    save({ ...state, assets:newAssets, debts:newDebts })
-    toast(existingId?"✓ Asset updated":"✓ Asset added")
-    setSheet(null); setEditItem(null)
+    // Soft nudge: ISA before pension match
+    if(level.n>=10&&level.n<=12&&!completed.has(7)){
+      setWarning({type:"amber",level,msg:"Almost there. Check your pension match at Level 7 before opening an ISA. Free money first.",link:7,linkText:"Level 7: capture free money at work →"})
+      return
+    }
+    // Amber warning: Optimise while in Foundations
+    if(level.n>=7&&currentLevel<=3){
+      setWarning({type:"amber",level,msg:"These lessons land better once your financial foundation is solid.",link:currentLevel,linkText:`Continue with Level ${currentLevel} →`})
+      return
+    }
+    setActiveLevel(level.n)
   }
 
-  function deleteAsset(a) {
-    if(!window.confirm(`Remove "${a.name}"?`)) return
-    const newAssets = state.assets.filter(x=>x.id!==a.id)
-    const newDebts  = a.linkedDebtId ? state.debts.filter(d=>d.id!==a.linkedDebtId) : state.debts
-    save({ ...state, assets:newAssets, debts:newDebts })
-    toast("Asset removed")
+  if(activeLevel){
+    const lv=LEVELS.find(l=>l.n===activeLevel)
+    if(!lv){setActiveLevel(null);return null}
+    return<LevelPlayer level={lv} onBack={()=>setActiveLevel(null)} onComplete={()=>setActiveLevel(null)}/>
   }
 
-  function saveDebt({ cat, name, bal, rate, minPayment, existingId }) {
-    const debtId = existingId || `d_${Date.now()}`
-    const t = DEBT_TYPES.find(x=>x.cat===cat)
-    const debtObj = { id:debtId, category:cat, name, balance:bal, interestRate:rate||t?.assumedRate||10, minPayment:minPayment||0, linkedAssetId:null, isAutoCreated:false }
-    const newDebts = existingId ? state.debts.map(d=>d.id===existingId?debtObj:d) : [...state.debts, debtObj]
-    save({ ...state, debts:newDebts })
-    toast(existingId?"✓ Debt updated":"✓ Debt added")
-    setSheet(null); setEditItem(null)
-  }
+  const phases=["Foundations","Stabilise","Optimise","Grow","Protect"]
 
-  function deleteDebt(d) {
-    if(d.isAutoCreated) { toast("Remove the linked asset to remove this debt"); return }
-    if(!window.confirm(`Remove "${d.name}"?`)) return
-    save({ ...state, debts:state.debts.filter(x=>x.id!==d.id) })
-    toast("Debt removed")
-  }
-
-  function saveIncome(inc) { save({ ...state, income:inc }); toast("✓ Income updated") }
-  function saveSpending(sp){ save({ ...state, spending:sp }); toast("✓ Spending updated") }
-
-  return (
-    <div style={{ flex:1,overflowY:"auto",paddingBottom:100 }}>
-      {/* Header */}
-      <div style={{ background:"rgba(10,19,34,.97)",backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)",padding:"20px 18px 16px",borderBottom:"1px solid rgba(255,255,255,.05)" }}>
-        <div style={{ maxWidth:900,margin:"0 auto" }}>
-          <h2 style={{ color:T.white,fontWeight:900,fontSize:22,marginBottom:4,letterSpacing:-.3 }}>Track & Update</h2>
-          <p style={{ color:T.muted,fontSize:13,marginBottom:16 }}>Keep your figures accurate. 5 minutes a month changes everything.</p>
-
-          {/* Summary strip */}
-          <div style={{ display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8 }}>
-            {[
-              { label:"Net Worth", value:fmt(netWorth), color:netWorth>=0?T.teal:T.red },
-              { label:"Assets", value:fmt(totalAssets), color:T.green },
-              { label:"Debts", value:fmt(totalDebts), color:totalDebts>0?T.red:T.muted },
-            ].map((s,i)=>(
-              <div key={i} style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"12px 14px",textAlign:"center" }}>
-                <p style={{ color:s.color,fontWeight:900,fontSize:18 }}>{s.value}</p>
-                <p style={{ color:T.muted,fontSize:11,fontWeight:600,marginTop:2 }}>{s.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+  return(
+    <div style={{flex:1,overflowY:"auto",paddingBottom:100}}>
+      <div style={{padding:"24px 20px 16px",borderBottom:`1px solid rgba(255,255,255,.05)`}}>
+        <h2 style={{color:T.white,fontWeight:900,fontSize:22,letterSpacing:-.3}}>Your Plan</h2>
+        <p style={{color:T.muted,fontSize:13}}>15 levels. Complete in order. Browse freely.</p>
       </div>
 
-      <div style={{ padding:"20px 18px",maxWidth:900,margin:"0 auto",width:"100%" }}>
-
-        {/* All sections shown inline, no tabs */}
-        {/* ── ASSETS ── */}
-        <AssetsSection assets={state.assets} totalAssets={totalAssets}
-          onAdd={()=>{ setEditItem(null); setSheet("asset") }}
-          onEdit={a=>{ setEditItem(a); setSheet("asset") }}
-          onDelete={deleteAsset}/>
-
-        <div style={{ height:1,background:T.border,margin:"20px 0" }}/>
-
-        {/* ── DEBTS ── */}
-        <DebtsSection debts={state.debts} totalDebts={totalDebts} drag={drag}
-          onAdd={()=>{ setEditItem(null); setSheet("debt") }}
-          onEdit={d=>{ setEditItem(d); setSheet("debt") }}
-          onDelete={deleteDebt}/>
-
-        <div style={{ height:1,background:T.border,margin:"20px 0" }}/>
-
-        {/* ── INCOME & SPENDING ── */}
-        <IncomeSection income={state.income} assets={state.assets} onSave={saveIncome}/>
-
-        <div style={{ height:1,background:T.border,margin:"20px 0" }}/>
-
-        {/* ── Unlock More Insights ── */}
-        <div style={{ position:"relative",marginBottom:20 }}>
-          {/* Hero unlock button */}
-          <button onClick={()=>setSheet("insights")}
-            style={{ width:"100%",background:`linear-gradient(135deg,rgba(15,191,184,.12),rgba(167,139,250,.08))`,
-              border:`1.5px solid ${T.tealBorder}`,borderRadius:22,padding:"20px 22px",
-              cursor:"pointer",fontFamily:"inherit",textAlign:"left",marginBottom:16,
-              boxShadow:`0 8px 32px rgba(15,191,184,.12)`,position:"relative",overflow:"hidden" }}>
-            <div style={{ position:"absolute",top:-30,right:-30,width:120,height:120,borderRadius:"50%",background:"radial-gradient(circle,rgba(15,191,184,.2) 0%,transparent 70%)",pointerEvents:"none" }}/>
-            <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",position:"relative" }}>
-              <div style={{ display:"flex",alignItems:"center",gap:14 }}>
-                <div style={{ width:48,height:48,borderRadius:14,background:"rgba(15,191,184,.15)",border:`1px solid ${T.tealBorder}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24 }}>✨</div>
-                <div>
-                  <p style={{ color:T.white,fontWeight:900,fontSize:16 }}>Unlock More Insights</p>
-                  <p style={{ color:T.muted,fontSize:12,marginTop:2 }}>Add a few more figures to reveal detailed analysis</p>
-                </div>
+      <div style={{padding:"20px 18px",maxWidth:600,margin:"0 auto"}}>
+        {phases.map(phase=>{
+          const phaseLevels=LEVELS.filter(l=>l.phase===phase)
+          const pc=PHASE_COLORS[phase]
+          const pe=PHASE_EMOJIS[phase]
+          return(
+            <div key={phase} style={{marginBottom:28}}>
+              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14}}>
+                <span style={{fontSize:16}}>{pe}</span>
+                <p style={{color:pc,fontWeight:800,fontSize:13,letterSpacing:.5,textTransform:"uppercase"}}>{phase}</p>
               </div>
-              <div style={{ background:T.teal,borderRadius:12,padding:"8px 16px",flexShrink:0 }}>
-                <p style={{ color:"#060C18",fontSize:13,fontWeight:800 }}>Go →</p>
-              </div>
+
+              {phaseLevels.map((level,i)=>{
+                const isDone=completed.has(level.n)
+                const isCurrent=level.n===currentLevel
+                const isFuture=level.n>currentLevel&&!isDone
+                const isLast=i===phaseLevels.length-1
+                return(
+                  <div key={level.n} style={{display:"flex",gap:16,marginBottom:isLast?0:0}}>
+                    {/* Timeline line + node */}
+                    <div style={{display:"flex",flexDirection:"column",alignItems:"center",width:28,flexShrink:0}}>
+                      <div style={{width:isDone?26:isCurrent?28:22,height:isDone?26:isCurrent?28:22,borderRadius:"50%",
+                        background:isDone?T.green:isCurrent?T.teal:T.faint,
+                        border:`2.5px solid ${isDone?T.green:isCurrent?T.teal:T.border}`,
+                        display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,
+                        boxShadow:isCurrent?`0 0 16px ${T.teal}40`:"none",zIndex:1}}>
+                        {isDone?<Check size={13} color="#070D1A"/>:<p style={{color:isCurrent?"#070D1A":T.subtle,fontWeight:900,fontSize:10}}>{level.n}</p>}
+                      </div>
+                      {!isLast&&<div style={{width:2,flex:1,background:isDone?`${T.green}40`:T.border,minHeight:20}}/>}
+                    </div>
+
+                    {/* Card */}
+                    <button onClick={()=>handleTap(level)}
+                      style={{flex:1,background:isCurrent?`${T.teal}08`:T.card,
+                        border:`1.5px solid ${isCurrent?T.tealBorder:isDone?`${T.green}25`:T.border}`,
+                        borderRadius:18,padding:"16px 18px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",
+                        marginBottom:12,opacity:isFuture?.7:1,transition:"all .15s"}}>
+                      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4}}>
+                        <p style={{color:isDone?T.green:isCurrent?T.teal:T.muted,fontSize:11,fontWeight:700,letterSpacing:.5,textTransform:"uppercase"}}>{phase}</p>
+                        {isDone&&<span style={{background:T.greenDim,color:T.green,fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:99}}>Completed</span>}
+                        {isCurrent&&<span style={{background:T.tealDim,color:T.teal,fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:99}}>Current</span>}
+                        {isFuture&&<span style={{background:T.faint,color:T.muted,fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:99}}>Browse</span>}
+                      </div>
+                      <p style={{color:isDone?"#8FA3BE":T.white,fontWeight:700,fontSize:14,lineHeight:1.3,textDecoration:isDone?"line-through":"none"}}>{level.title}</p>
+                      <p style={{color:T.muted,fontSize:12,marginTop:4,lineHeight:1.4}}>{level.hook.length>70?level.hook.slice(0,68)+"...":level.hook}</p>
+                    </button>
+                  </div>
+                )
+              })}
             </div>
-          </button>
+          )
+        })}
+      </div>
 
-          {/* Blurred chart previews grid */}
-          <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:12 }}>
-            {[
-              { icon:"📊", label:"Asset Breakdown", color:T.teal, bars:[65,40,80,30] },
-              { icon:"🥧", label:"Spending Analysis", color:T.purple, bars:[50,30,20,45] },
-              { icon:"👥", label:"Peer Comparison", color:T.blue, bars:[45,70,55,60] },
-              { icon:"📈", label:"Net Worth Trend", color:T.amber, bars:[20,35,45,60,55,70] },
-            ].map((chart,i)=>(
-              <div key={i} style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:18,padding:"16px",position:"relative",overflow:"hidden" }}>
-                <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:12 }}>
-                  <span style={{ fontSize:16 }}>{chart.icon}</span>
-                  <p style={{ color:T.subtle,fontWeight:700,fontSize:12 }}>{chart.label}</p>
+      {/* Warning modal */}
+      {warning&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(7,13,26,.85)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+          <div className="ls-fadein" style={{background:T.surface,border:`1.5px solid ${warning.type==="red"?T.redBorder:T.amberBorder}`,borderRadius:22,padding:"28px 24px",width:"100%",maxWidth:420}}>
+            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+              <AlertTriangle size={22} color={warning.type==="red"?T.red:T.amber}/>
+              <p style={{color:warning.type==="red"?T.red:T.amber,fontWeight:800,fontSize:15}}>{warning.type==="red"?"A couple of things first":"A couple of things to do first"}</p>
+            </div>
+            <p style={{color:"#E2EAF6",fontSize:14,lineHeight:1.6,marginBottom:20}}>{warning.msg}</p>
+            <div style={{display:"flex",flexDirection:"column",gap:10}}>
+              <button onClick={()=>{setWarning(null);setActiveLevel(warning.link)}} style={{width:"100%",background:warning.type==="red"?T.red:T.amber,border:"none",borderRadius:14,padding:"14px",color:"#070D1A",fontWeight:800,fontSize:14,cursor:"pointer",fontFamily:"inherit"}}>{warning.linkText}</button>
+              <button onClick={()=>{setWarning(null);setActiveLevel(warning.level.n)}} style={{width:"100%",background:"none",border:`1px solid ${T.border}`,borderRadius:14,padding:"14px",color:T.muted,fontWeight:700,fontSize:14,cursor:"pointer",fontFamily:"inherit"}}>Browse anyway</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   LEARN TAB (extra content library)
+   ════════════════════════════════════════════════════════════════════ */
+function LearnTab(){
+  const{toast}=useApp()
+  const[expanded,setExpanded]=useState(null)
+  return(
+    <div style={{flex:1,overflowY:"auto",paddingBottom:100}}>
+      <div style={{padding:"24px 20px 16px",borderBottom:`1px solid rgba(255,255,255,.05)`}}>
+        <h2 style={{color:T.white,fontWeight:900,fontSize:22,letterSpacing:-.3}}>Learn</h2>
+        <p style={{color:T.muted,fontSize:13}}>Explore topics beyond your current level. Pure curiosity, no XP.</p>
+      </div>
+      <div style={{padding:"20px 18px",maxWidth:600,margin:"0 auto"}}>
+        {LEARN_THEMES.map(theme=>{
+          const isOpen=expanded===theme.id
+          return(
+            <div key={theme.id} style={{marginBottom:12}}>
+              <button onClick={()=>setExpanded(isOpen?null:theme.id)}
+                style={{width:"100%",background:isOpen?`${T.purpleDim}`:T.card,border:`1.5px solid ${isOpen?T.purpleBorder:T.border}`,borderRadius:18,padding:"18px 20px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",display:"flex",alignItems:"center",gap:14,transition:"all .15s"}}>
+                <span style={{fontSize:24}}>{theme.icon}</span>
+                <div style={{flex:1}}>
+                  <p style={{color:T.white,fontWeight:700,fontSize:15}}>{theme.title}</p>
+                  <p style={{color:T.muted,fontSize:12}}>{theme.items.length} topics</p>
                 </div>
-                {/* Fake blurred chart */}
-                <div style={{ display:"flex",alignItems:"flex-end",gap:4,height:50,filter:"blur(4px)",opacity:.35,pointerEvents:"none" }}>
-                  {chart.bars.map((h,j)=>(
-                    <div key={j} style={{ flex:1,height:`${h}%`,background:chart.color,borderRadius:"3px 3px 0 0" }}/>
+                <ChevronDown size={18} color={T.muted} style={{transform:isOpen?"rotate(180deg)":"none",transition:"transform .2s"}}/>
+              </button>
+              {isOpen&&(
+                <div className="ls-fadein" style={{paddingTop:10,display:"flex",flexDirection:"column",gap:8}}>
+                  {theme.items.map((item,i)=>(
+                    <div key={i} style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px 18px",display:"flex",alignItems:"center",gap:12,marginLeft:20}}>
+                      <Play size={16} color={T.purple}/>
+                      <div style={{flex:1}}>
+                        <p style={{color:T.white,fontWeight:600,fontSize:13}}>{item.title}</p>
+                        <p style={{color:T.muted,fontSize:11}}>{item.min} min</p>
+                      </div>
+                      <button onClick={()=>toast("Video content coming soon")} style={{background:T.purpleDim,border:`1px solid ${T.purpleBorder}`,borderRadius:10,padding:"6px 14px",color:T.purple,fontWeight:700,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>Watch</button>
+                    </div>
                   ))}
                 </div>
-                {/* Lock overlay */}
-                <div style={{ position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(6,12,24,.3)" }}>
-                  <div style={{ background:"rgba(6,12,24,.7)",borderRadius:10,padding:"6px 12px",display:"flex",alignItems:"center",gap:5 }}>
-                    <Lock size={11} color={T.muted}/>
-                    <span style={{ color:T.muted,fontSize:11,fontWeight:700 }}>Locked</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Insights popup */}
-      {sheet==="insights" && (
-        <Sheet title="Unlock Insights" onClose={()=>setSheet(null)}>
-          <p style={{ color:"#C8D8EC",fontSize:14,lineHeight:1.6,marginBottom:20 }}>
-            Get detailed charts and analysis by providing a few more quick figures. Choose which insight to unlock.
-          </p>
-          <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
-            {[
-              { icon:"📊", label:"Asset Breakdown", desc:"See productive vs lifestyle assets", color:T.teal, unlocked:state.assets.length>=2, action:"Add 2+ assets" },
-              { icon:"🥧", label:"Spending Analysis", desc:"Needs, wants and savings ratio", color:T.purple, unlocked:!!(state.spending?.breakdown && Object.keys(state.spending.breakdown).length>0), action:"Categorise spending" },
-              { icon:"👥", label:"Peer Comparison", desc:"Compare to others your age", color:T.blue, unlocked:!!(state.profile?.age && state.assets.length>0), action:"Add age + assets" },
-              { icon:"📈", label:"Net Worth Trend", desc:"Track changes over time", color:T.amber, unlocked:(state.history||[]).length>=2, action:"Update figures monthly" },
-            ].map((insight,i)=>(
-              <div key={i} style={{ background:insight.unlocked?`${insight.color}08`:T.card,border:`1.5px solid ${insight.unlocked?`${insight.color}30`:T.border}`,borderRadius:16,padding:"16px 18px",display:"flex",alignItems:"center",gap:14 }}>
-                <div style={{ width:44,height:44,borderRadius:13,background:insight.unlocked?`${insight.color}18`:T.faint,border:`1px solid ${insight.unlocked?`${insight.color}30`:T.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0 }}>{insight.icon}</div>
-                <div style={{ flex:1 }}>
-                  <p style={{ color:insight.unlocked?T.white:T.muted,fontWeight:700,fontSize:14 }}>{insight.label}</p>
-                  <p style={{ color:insight.unlocked?"#C8D8EC":T.subtle,fontSize:12 }}>{insight.desc}</p>
-                </div>
-                {insight.unlocked
-                  ? <div style={{ background:`${insight.color}20`,borderRadius:8,padding:"5px 10px" }}><Check size={14} color={insight.color}/></div>
-                  : <div style={{ background:T.faint,borderRadius:8,padding:"4px 10px" }}><p style={{ color:T.muted,fontSize:10,fontWeight:700 }}>{insight.action}</p></div>
-                }
-              </div>
-            ))}
-          </div>
-          {state.profile?.age && state.assets.length>0 && (()=>{
-            const bench = ageBenchmark(state.profile.age)
-            if(!bench) return null
-            return (
-              <div style={{ marginTop:20,background:T.surface,borderRadius:14,padding:"16px 18px",border:`1px solid ${T.blueBorder}` }}>
-                <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:10 }}>
-                  <span style={{ fontSize:18 }}>👥</span>
-                  <p style={{ color:T.white,fontWeight:700,fontSize:14 }}>How You Compare</p>
-                </div>
-                <p style={{ color:"#C8D8EC",fontSize:13,lineHeight:1.55 }}>
-                  People your age who track their finances typically have around <strong style={{ color:T.teal }}>{fmtK(bench.tracked)}</strong> in net worth.
-                  The UK median for your age group is <strong style={{ color:T.muted }}>{fmtK(bench.median)}</strong>.
-                  {netWorth >= bench.tracked ? " You are ahead of most people who actively track." : netWorth >= bench.median ? " You are above the national median." : " Tracking is the first step to closing the gap."}
-                </p>
-              </div>
-            )
-          })()}
-        </Sheet>
-      )}
-
-      {sheet==="asset" && <AssetSheet item={editItem} onClose={()=>{ setSheet(null); setEditItem(null) }} onSave={saveAsset}/>}
-      {sheet==="debt"  && <DebtSheet  item={editItem} onClose={()=>{ setSheet(null); setEditItem(null) }} onSave={saveDebt}/>}
-    </div>
-  )
-}
-
-function NetWorthOverviewSection({ state, save, setSection, setSheet, setEditItem }) {
-  function saveFromOverview(newState){ save(newState) }
-  const { totalAssets, totalDebts } = calcTotals(state.assets, state.debts)
-  const netWorth = totalAssets - totalDebts
-  const surplus  = calcSurplus(state.income, state.assets, state.spending)
-  const drag     = totalInterestDrag(state.debts)
-
-  // Asset breakdown
-  const assetGroups = [
-    { label:"Savings & Cash", icon:"💰", color:T.teal,   value: state.assets.filter(a=>a.category==="savings").reduce((s,a)=>s+(a.value||0),0) },
-    { label:"Investments & ISA", icon:"📈", color:T.purple, value: state.assets.filter(a=>a.category==="investments").reduce((s,a)=>s+(a.value||0),0) },
-    { label:"Pension", icon:"🏛️", color:T.amber,  value: state.assets.filter(a=>a.category==="pension").reduce((s,a)=>s+(a.value||0),0) },
-    { label:"Property", icon:"🏠", color:T.green,  value: state.assets.filter(a=>["primary_residence","investment_property"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0) },
-    { label:"Other Assets", icon:"📦", color:T.blue,   value: state.assets.filter(a=>!["savings","investments","pension","primary_residence","investment_property"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0) },
-  ].filter(g=>g.value>0)
-
-  return (
-    <div>
-      {/* Big net worth number */}
-      <div className="ls-card-glass" style={{ border:`1.5px solid ${netWorth>=0?T.tealBorder:T.redBorder}`,borderRadius:22,padding:"22px",marginBottom:16,textAlign:"center",boxShadow:`0 8px 32px rgba(0,0,0,.3)` }}>
-        <p style={{ color:"#E2EAF6",fontSize:14,fontWeight:600,marginBottom:4 }}>Your net worth right now</p>
-        <p style={{ fontSize:"clamp(36px,8vw,56px)",fontWeight:900,color:netWorth>=0?T.teal:T.red,lineHeight:1,textShadow:`0 0 40px ${netWorth>=0?T.teal:T.red}40` }}>{fmt(netWorth)}</p>
-        <p style={{ color:"#8FA3BE",fontSize:12,marginTop:6 }}>Last updated: {new Date().toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}</p>
-        <div style={{ display:"flex",gap:12,justifyContent:"center",marginTop:14 }}>
-          <div style={{ textAlign:"center" }}>
-            <p style={{ color:T.green,fontWeight:800,fontSize:17 }}>{fmt(totalAssets)}</p>
-            <p style={{ color:"#8FA3BE",fontSize:11 }}>Assets</p>
-          </div>
-          <div style={{ width:1,background:T.border }}/>
-          <div style={{ textAlign:"center" }}>
-            <p style={{ color:totalDebts>0?T.red:T.muted,fontWeight:800,fontSize:17 }}>{fmt(totalDebts)}</p>
-            <p style={{ color:"#8FA3BE",fontSize:11 }}>Debts</p>
-          </div>
-          {surplus!==null && <><div style={{ width:1,background:T.border }}/><div style={{ textAlign:"center" }}>
-            <p style={{ color:surplus>=0?T.teal:T.red,fontWeight:800,fontSize:17 }}>{fmt(surplus)}/mo</p>
-            <p style={{ color:"#8FA3BE",fontSize:11 }}>Surplus</p>
-          </div></>}
-        </div>
-      </div>
-
-      {/* Accuracy prompt */}
-      <div style={{ background:T.amberDim,border:`1px solid ${T.amberBorder}`,borderRadius:14,padding:"14px 16px",marginBottom:20,display:"flex",gap:12,alignItems:"flex-start" }}>
-        <span style={{ fontSize:20,flexShrink:0 }}>🎯</span>
-        <div>
-          <p style={{ color:T.amber,fontWeight:700,fontSize:14,marginBottom:4 }}>Keep your figures accurate</p>
-          <p style={{ color:"#E2EAF6",fontSize:13,lineHeight:1.5 }}>Update your asset values and debt balances monthly, even a rough update takes 2 minutes and keeps your projections meaningful.</p>
-        </div>
-      </div>
-
-      {/* ── Analytics Charts ───────────────────────────────────────── */}
-      <p style={{ color:"#6B8CB8",fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:12 }}>Analytics</p>
-
-      <AssetBreakdownChart assets={state.assets} totalAssets={totalAssets} onConfirmAssets={()=>{}}/>
-      <SpendingBreakdownChart state={state} save={saveFromOverview}/>
-      <NetWorthMomentumChart state={state}/>
-
-      <div style={{ height:1,background:T.border,marginBottom:20 }}/>
-      <p style={{ color:"#6B8CB8",fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:14 }}>Your assets & liabilities</p>
-
-      {/* Asset breakdown */}
-      {assetGroups.length>0 && (
-        <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:18,padding:"18px 20px",marginBottom:14 }}>
-          <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14 }}>
-            <p style={{ color:T.white,fontWeight:700,fontSize:15 }}>Assets breakdown</p>
-            <button onClick={()=>setSection("assets")} style={{ background:"none",border:"none",color:T.teal,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>Edit →</button>
-          </div>
-          {assetGroups.map((g,i)=>(
-            <div key={i} style={{ display:"flex",alignItems:"center",gap:12,marginBottom:12 }}>
-              <span style={{ fontSize:18,width:26,textAlign:"center" }}>{g.icon}</span>
-              <div style={{ flex:1 }}>
-                <div style={{ display:"flex",justifyContent:"space-between",marginBottom:4 }}>
-                  <p style={{ color:"#E2EAF6",fontSize:13,fontWeight:600 }}>{g.label}</p>
-                  <p style={{ color:g.color,fontWeight:800,fontSize:13 }}>{fmt(g.value)}</p>
-                </div>
-                <div style={{ background:T.surface,borderRadius:99,height:6,overflow:"hidden" }}>
-                  <div style={{ width:`${totalAssets>0?Math.min(100,(g.value/totalAssets)*100):0}%`,height:"100%",background:g.color,borderRadius:99,transition:"width .6s ease" }}/>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Debt summary */}
-      {state.debts.length>0 && (
-        <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:18,padding:"18px 20px",marginBottom:14 }}>
-          <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14 }}>
-            <p style={{ color:T.white,fontWeight:700,fontSize:15 }}>Debts overview</p>
-            <button onClick={()=>setSection("debts")} style={{ background:"none",border:"none",color:T.red,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>Edit →</button>
-          </div>
-          {state.debts.map((d,i)=>{
-            const t = DEBT_TYPES.find(x=>x.cat===d.category)||DEBT_TYPES[DEBT_TYPES.length-1]
-            const interest = annualInterest(d)
-            return (
-              <div key={d.id} style={{ display:"flex",alignItems:"center",gap:12,marginBottom:i<state.debts.length-1?12:0,paddingBottom:i<state.debts.length-1?12:0,borderBottom:i<state.debts.length-1?`1px solid ${T.border}`:"none" }}>
-                <span style={{ fontSize:18 }}>{t?.icon||"💳"}</span>
-                <div style={{ flex:1 }}>
-                  <p style={{ color:"#E2EAF6",fontSize:13,fontWeight:600 }}>{d.name}</p>
-                  <p style={{ color:"#8FA3BE",fontSize:12 }}>{d.interestRate||t?.assumedRate}% APR {fmt(Math.round(interest/12))}/mo interest</p>
-                </div>
-                <p style={{ color:T.red,fontWeight:800,fontSize:14 }}>{fmt(d.balance)}</p>
-              </div>
-            )
-          })}
-          {drag>0 && <p style={{ color:T.red,fontSize:13,fontWeight:700,marginTop:12,paddingTop:12,borderTop:`1px solid ${T.border}` }}>💸 {fmt(Math.round(drag))}/yr leaving your net worth in interest</p>}
-        </div>
-      )}
-
-      {/* Quick add buttons */}
-      <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10 }}>
-        <button onClick={()=>{ setEditItem(null); setSection("assets"); setSheet("asset") }}
-          style={{ background:T.tealDim,border:`1.5px solid ${T.tealBorder}`,borderRadius:14,padding:"14px",cursor:"pointer",fontFamily:"inherit",textAlign:"center" }}>
-          <p style={{ fontSize:22,marginBottom:4 }}>💰</p>
-          <p style={{ color:T.teal,fontWeight:700,fontSize:13 }}>Add asset</p>
-        </button>
-        <button onClick={()=>{ setEditItem(null); setSection("debts"); setSheet("debt") }}
-          style={{ background:T.redDim,border:`1.5px solid ${T.redBorder}`,borderRadius:14,padding:"14px",cursor:"pointer",fontFamily:"inherit",textAlign:"center" }}>
-          <p style={{ fontSize:22,marginBottom:4 }}>💳</p>
-          <p style={{ color:T.red,fontWeight:700,fontSize:13 }}>Add debt</p>
-        </button>
-      </div>
-    </div>
-  )
-}
-
-
-/* ════════════════════════════════════════════════════════════════════
-   ANALYTICS CHARTS, Asset Breakdown, Spending Breakdown, NW Momentum
-   ════════════════════════════════════════════════════════════════════ */
-
-// PieChart-style donut using SVG (no extra recharts imports needed)
-function DonutChart({ segments, size=120 }) {
-  const total = segments.reduce((s,x)=>s+x.value,0)
-  if(total===0) return null
-  const cx=size/2, cy=size/2, r=size*0.38, strokeW=size*0.18
-  let cumAngle=-90
-  const arcs = segments.map(seg=>{
-    const pct = seg.value/total
-    const startAngle = cumAngle
-    const sweep = pct*360
-    cumAngle += sweep
-    const start = polarToXY(cx,cy,r,startAngle)
-    const end   = polarToXY(cx,cy,r,startAngle+sweep-0.5)
-    const large = sweep>180?1:0
-    return { ...seg, d:`M${start.x},${start.y} A${r},${r} 0 ${large},1 ${end.x},${end.y}`, pct }
-  })
-  return (
-    <svg width={size} height={size} style={{ overflow:"visible" }}>
-      {arcs.map((a,i)=>(
-        <path key={i} d={a.d} fill="none" stroke={a.color} strokeWidth={strokeW} strokeLinecap="butt"/>
-      ))}
-    </svg>
-  )
-}
-function polarToXY(cx,cy,r,angleDeg){
-  const rad=((angleDeg-0)*Math.PI)/180
-  return { x: cx+r*Math.cos(rad), y: cy+r*Math.sin(rad) }
-}
-
-/* ── 1. Asset Breakdown Chart ─────────────────────────────────────── */
-function AssetBreakdownChart({ assets, totalAssets, onConfirmAssets }) {
-  const [confirmed, setConfirmed] = useState(false)
-  const [showConfirm, setShowConfirm] = useState(false)
-
-  const productive = assets.filter(a=>["savings","investments","pension"].includes(a.category))
-    .reduce((s,a)=>s+(a.value||0),0)
-  const lifestyle  = assets.filter(a=>["primary_residence","investment_property","vehicle","other"].includes(a.category)||
-    !["savings","investments","pension"].includes(a.category))
-    .reduce((s,a)=>s+(a.value||0),0)
-
-  const segments = [
-    { label:"Productive assets", value:productive, color:T.teal,   desc:"Cash, investments, pension, grows over time" },
-    { label:"Lifestyle assets",  value:lifestyle,  color:T.amber,  desc:"Property, vehicles, valuable but tied up" },
-  ].filter(s=>s.value>0)
-
-  const hasData = assets.length>0 && totalAssets>0
-
-  return (
-    <div style={{ background:T.card,border:`1.5px solid ${hasData&&confirmed?T.tealBorder:T.border}`,borderRadius:20,marginBottom:14,overflow:"hidden" }}>
-      {/* Header */}
-      <div style={{ padding:"18px 20px",cursor:hasData&&!confirmed?"pointer":"default" }}
-        onClick={()=>{ if(hasData&&!confirmed) setShowConfirm(true) }}>
-        <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4 }}>
-          <div style={{ display:"flex",alignItems:"center",gap:10 }}>
-            <div style={{ width:36,height:36,borderRadius:10,background:T.tealDim,border:`1px solid ${T.tealBorder}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18 }}>📊</div>
-            <div>
-              <p style={{ color:T.white,fontWeight:800,fontSize:14 }}>Asset breakdown</p>
-              <p style={{ color:T.muted,fontSize:11 }}>Productive vs lifestyle assets</p>
-            </div>
-          </div>
-          {!hasData && <span style={{ background:T.surface,color:T.muted,fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:99,border:`1px solid ${T.border}` }}>Add assets first</span>}
-          {hasData && !confirmed && <span style={{ background:T.tealDim,color:T.teal,fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:99,border:`1px solid ${T.tealBorder}` }}>Tap to unlock</span>}
-        </div>
-      </div>
-
-      {/* Blurred preview when not confirmed */}
-      {!confirmed && (
-        <div style={{ padding:"0 20px 18px",position:"relative" }}>
-          <div style={{ filter:"blur(6px)",opacity:.5,pointerEvents:"none",userSelect:"none" }}>
-            <div style={{ display:"flex",alignItems:"center",gap:20 }}>
-              <div style={{ position:"relative",width:100,height:100 }}>
-                <DonutChart segments={[{value:60,color:T.teal},{value:40,color:T.amber}]} size={100}/>
-                <div style={{ position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center" }}>
-                  <p style={{ color:T.white,fontWeight:900,fontSize:12,textAlign:"center" }}>£, </p>
-                </div>
-              </div>
-              <div style={{ flex:1 }}>
-                {[{label:"Productive",color:T.teal,pct:60},{label:"Lifestyle",color:T.amber,pct:40}].map(s=>(
-                  <div key={s.label} style={{ marginBottom:10 }}>
-                    <div style={{ display:"flex",justifyContent:"space-between",marginBottom:4 }}>
-                      <div style={{ display:"flex",alignItems:"center",gap:6 }}>
-                        <div style={{ width:8,height:8,borderRadius:"50%",background:s.color }}/>
-                        <p style={{ color:"#E2EAF6",fontSize:12 }}>{s.label}</p>
-                      </div>
-                      <p style={{ color:s.color,fontWeight:700,fontSize:12 }}>{s.pct}%</p>
-                    </div>
-                    <div style={{ background:T.surface,borderRadius:99,height:6 }}>
-                      <div style={{ width:`${s.pct}%`,height:"100%",background:s.color,borderRadius:99 }}/>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-          {hasData && (
-            <div style={{ position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:10 }}>
-              <button onClick={()=>setShowConfirm(true)}
-                style={{ background:T.teal,border:"none",borderRadius:12,padding:"10px 22px",color:T.bg,fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit" }}>
-                Confirm assets to unlock →
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Confirmed, show real chart */}
-      {confirmed && segments.length>0 && (
-        <div style={{ padding:"0 20px 20px" }}>
-          <div style={{ display:"flex",alignItems:"center",gap:20 }}>
-            <div style={{ position:"relative",width:110,height:110,flexShrink:0 }}>
-              <DonutChart segments={segments} size={110}/>
-              <div style={{ position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center" }}>
-                <p style={{ color:T.white,fontWeight:900,fontSize:11,textAlign:"center",lineHeight:1.2 }}>
-                  {totalAssets>=1e6?`£${(totalAssets/1e6).toFixed(1)}M`:totalAssets>=1000?`£${Math.round(totalAssets/1000)}k`:fmt(totalAssets)}
-                </p>
-                <p style={{ color:T.muted,fontSize:9 }}>total</p>
-              </div>
-            </div>
-            <div style={{ flex:1 }}>
-              {segments.map(s=>(
-                <div key={s.label} style={{ marginBottom:10 }}>
-                  <div style={{ display:"flex",justifyContent:"space-between",marginBottom:4 }}>
-                    <div style={{ display:"flex",alignItems:"center",gap:6 }}>
-                      <div style={{ width:8,height:8,borderRadius:"50%",background:s.color,flexShrink:0 }}/>
-                      <p style={{ color:"#E2EAF6",fontSize:12 }}>{s.label}</p>
-                    </div>
-                    <p style={{ color:s.color,fontWeight:800,fontSize:12 }}>{Math.round(s.value/totalAssets*100)}%</p>
-                  </div>
-                  <div style={{ background:T.surface,borderRadius:99,height:6,overflow:"hidden" }}>
-                    <div style={{ width:`${Math.round(s.value/totalAssets*100)}%`,height:"100%",background:s.color,borderRadius:99,transition:"width .6s" }}/>
-                  </div>
-                  <p style={{ color:T.muted,fontSize:11,marginTop:2 }}>{s.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-          {productive>0 && lifestyle>0 && (
-            <div style={{ background:T.surface,borderRadius:12,padding:"10px 14px",marginTop:12 }}>
-              <p style={{ color:"#E2EAF6",fontSize:12,lineHeight:1.5 }}>
-                <strong style={{ color:T.teal }}>{Math.round(productive/totalAssets*100)}%</strong> of your wealth is actively working for you.{" "}
-                {productive/totalAssets<0.4
-                  ? <span>Building your productive assets, savings, investments, pension, is the fastest route to financial freedom.</span>
-                  : <span>A healthy balance. Keep growing the productive side through regular contributions.</span>
-                }
-              </p>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Confirmation modal */}
-      {showConfirm && (
-        <div style={{ position:"fixed",inset:0,background:"rgba(7,13,26,.85)",zIndex:200,display:"flex",alignItems:"flex-end",padding:20 }}>
-          <div className="ls-fadein" style={{ background:T.surface,border:`1px solid ${T.border}`,borderRadius:20,padding:"24px 20px",width:"100%",maxWidth:480,margin:"0 auto" }}>
-            <p style={{ color:T.white,fontWeight:900,fontSize:17,marginBottom:6 }}>Confirm your assets are correct</p>
-            <p style={{ color:"#D8E8F8",fontSize:14,lineHeight:1.65,marginBottom:16 }}>
-              This breakdown is most useful when your figures are up to date. Are your current asset values roughly accurate?
-            </p>
-            <div style={{ display:"flex",flexDirection:"column",gap:8,marginBottom:18 }}>
-              {assets.map(a=>(
-                <div key={a.id} style={{ display:"flex",justifyContent:"space-between",padding:"8px 12px",background:T.card,borderRadius:10 }}>
-                  <p style={{ color:"#E2EAF6",fontSize:13 }}>{a.name}</p>
-                  <p style={{ color:T.teal,fontWeight:700,fontSize:13 }}>{fmt(a.value)}</p>
-                </div>
-              ))}
-            </div>
-            <div style={{ display:"flex",gap:10 }}>
-              <button onClick={()=>{setShowConfirm(false); onConfirmAssets && onConfirmAssets(); setConfirmed(true)}}
-                style={{ flex:1,background:T.teal,border:"none",borderRadius:12,padding:"12px",color:T.bg,fontWeight:800,fontSize:14,cursor:"pointer",fontFamily:"inherit" }}>
-                Yes, these look right
-              </button>
-              <button onClick={()=>setShowConfirm(false)}
-                style={{ background:"none",border:`1px solid ${T.border}`,borderRadius:12,padding:"12px 16px",color:T.muted,fontWeight:700,fontSize:14,cursor:"pointer",fontFamily:"inherit" }}>
-                Edit first
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-/* ── 2. Spending Breakdown Chart ──────────────────────────────────── */
-const SPEND_CATS = [
-  { id:"housing",   label:"Housing",         icon:"🏠", bucket:"needs" },
-  { id:"food",      label:"Food & groceries", icon:"🛒", bucket:"needs" },
-  { id:"transport", label:"Transport",        icon:"🚗", bucket:"needs" },
-  { id:"bills",     label:"Bills & utilities",icon:"⚡", bucket:"needs" },
-  { id:"health",    label:"Health",           icon:"💊", bucket:"needs" },
-  { id:"eating_out",label:"Eating out",       icon:"🍽️", bucket:"wants" },
-  { id:"subs",      label:"Subscriptions",    icon:"📺", bucket:"wants" },
-  { id:"shopping",  label:"Shopping",         icon:"🛍️", bucket:"wants" },
-  { id:"leisure",   label:"Leisure & hobbies",icon:"🎮", bucket:"wants" },
-  { id:"savings_invest",label:"Savings & investing",icon:"📈", bucket:"savings" },
-  { id:"other",     label:"Other",            icon:"📦", bucket:"wants" },
-]
-const BUCKET_COLORS = { needs:T.amber, wants:T.purple, savings:T.teal }
-const BUCKET_LABELS = { needs:"Needs", wants:"Wants", savings:"Savings & Investment" }
-
-function SpendingBreakdownChart({ state, save }) {
-  const [phase, setPhase] = useState("locked") // locked | demo | input | chart
-  const [amounts, setAmounts] = useState({})
-  const savedBreakdown = state.spending?.breakdown || null
-
-  // Load saved breakdown on mount
-  useState(()=>{ if(savedBreakdown){ setAmounts(savedBreakdown); setPhase("chart") } },[])
-
-  const totalInput = Object.values(amounts).reduce((s,v)=>s+(parseFloat(v)||0),0)
-  const monthly = state.spending?.monthly || 0
-
-  const bucketTotals = { needs:0, wants:0, savings:0 }
-  SPEND_CATS.forEach(c=>{ bucketTotals[c.bucket] += parseFloat(amounts[c.id])||0 })
-
-  const chartSegs = Object.entries(bucketTotals)
-    .filter(([,v])=>v>0)
-    .map(([k,v])=>({ label:BUCKET_LABELS[k], value:v, color:BUCKET_COLORS[k] }))
-
-  function saveBreakdown(){
-    save({ ...state, spending:{ ...state.spending, breakdown:amounts } })
-    setPhase("chart")
-  }
-
-  // DEMO PIE data
-  const demoSegs = [
-    { label:"Needs",   value:50, color:T.amber  },
-    { label:"Wants",   value:30, color:T.purple  },
-    { label:"Savings", value:20, color:T.teal    },
-  ]
-
-  return (
-    <div style={{ background:T.card,border:`1.5px solid ${phase==="chart"?T.purpleBorder:T.border}`,borderRadius:20,marginBottom:14,overflow:"hidden" }}>
-      {/* Header */}
-      <div style={{ padding:"18px 20px",cursor:phase==="locked"?"pointer":"default" }}
-        onClick={()=>{ if(phase==="locked") setPhase("demo") }}>
-        <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
-          <div style={{ display:"flex",alignItems:"center",gap:10 }}>
-            <div style={{ width:36,height:36,borderRadius:10,background:T.purpleDim,border:`1px solid ${T.purpleBorder}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18 }}>🥧</div>
-            <div>
-              <p style={{ color:T.white,fontWeight:800,fontSize:14 }}>Spending breakdown</p>
-              <p style={{ color:T.muted,fontSize:11 }}>Needs · Wants · Savings</p>
-            </div>
-          </div>
-          {phase==="locked" && <span style={{ background:T.purpleDim,color:T.purple,fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:99,border:`1px solid ${T.purpleBorder}` }}>Tap to unlock</span>}
-          {phase==="chart" && <button onClick={()=>setPhase("input")} style={{ background:"none",border:"none",color:T.purple,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>Edit →</button>}
-        </div>
-      </div>
-
-      {/* LOCKED, blurred preview */}
-      {phase==="locked" && (
-        <div style={{ padding:"0 20px 18px",position:"relative" }}>
-          <div style={{ filter:"blur(6px)",opacity:.4,pointerEvents:"none",userSelect:"none",display:"flex",alignItems:"center",gap:16 }}>
-            <DonutChart segments={demoSegs} size={90}/>
-            <div style={{ flex:1 }}>
-              {demoSegs.map(s=>(
-                <div key={s.label} style={{ display:"flex",justifyContent:"space-between",marginBottom:6 }}>
-                  <p style={{ color:"#E2EAF6",fontSize:12 }}>{s.label}</p>
-                  <p style={{ color:s.color,fontWeight:700,fontSize:12 }}>{s.value}%</p>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div style={{ position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:8 }}>
-            <p style={{ color:T.white,fontWeight:700,fontSize:13,textAlign:"center" }}>Categorise your spending to unlock</p>
-            <button onClick={()=>setPhase("demo")}
-              style={{ background:T.purple,border:"none",borderRadius:12,padding:"8px 18px",color:T.bg,fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit" }}>
-              See how it works →
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* DEMO, show example chart, explain, then offer to start */}
-      {phase==="demo" && (
-        <div className="ls-fadein" style={{ padding:"0 20px 20px" }}>
-          <p style={{ color:"#D8E8F8",fontSize:14,lineHeight:1.65,marginBottom:16 }}>
-            The 50/30/20 rule is a simple way to see if your money is working well. Here's what a healthy split looks like:
-          </p>
-          <div style={{ display:"flex",alignItems:"center",gap:20,marginBottom:16 }}>
-            <div style={{ position:"relative",width:110,height:110,flexShrink:0 }}>
-              <DonutChart segments={demoSegs} size={110}/>
-              <div style={{ position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center" }}>
-                <p style={{ color:T.white,fontWeight:900,fontSize:11 }}>50/30/20</p>
-              </div>
-            </div>
-            <div style={{ flex:1 }}>
-              {[
-                { label:"50% Needs",   desc:"Housing, food, bills, transport",  color:T.amber  },
-                { label:"30% Wants",   desc:"Eating out, shopping, leisure",    color:T.purple },
-                { label:"20% Savings", desc:"Investments, pension, emergency",  color:T.teal   },
-              ].map(s=>(
-                <div key={s.label} style={{ marginBottom:10 }}>
-                  <p style={{ color:s.color,fontWeight:700,fontSize:12,marginBottom:2 }}>{s.label}</p>
-                  <p style={{ color:T.muted,fontSize:11 }}>{s.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-          <p style={{ color:"#8FA3BE",fontSize:12,marginBottom:14 }}>Takes 2 minutes. You only need rough numbers.</p>
-          <div style={{ display:"flex",gap:10 }}>
-            <button onClick={()=>setPhase("input")}
-              style={{ flex:1,background:T.purple,border:"none",borderRadius:12,padding:"11px",color:T.bg,fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit" }}>
-              Categorise my spending →
-            </button>
-            <button onClick={()=>setPhase("locked")}
-              style={{ background:"none",border:`1px solid ${T.border}`,borderRadius:12,padding:"11px 14px",color:T.muted,fontWeight:600,fontSize:13,cursor:"pointer",fontFamily:"inherit" }}>
-              Later
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* INPUT, category entry */}
-      {phase==="input" && (
-        <div className="ls-fadein" style={{ padding:"0 20px 20px" }}>
-          <p style={{ color:"#E2EAF6",fontSize:13,marginBottom:4 }}>Enter your rough monthly amounts. Estimates are fine.</p>
-          {monthly>0 && <p style={{ color:T.teal,fontSize:12,fontWeight:700,marginBottom:14 }}>Your total monthly spend: {fmt(monthly)}</p>}
-          <div style={{ display:"flex",flexDirection:"column",gap:8,marginBottom:16 }}>
-            {SPEND_CATS.map(cat=>(
-              <div key={cat.id} style={{ display:"flex",alignItems:"center",gap:12,background:T.surface,borderRadius:12,padding:"10px 14px" }}>
-                <span style={{ fontSize:16,width:22,textAlign:"center" }}>{cat.icon}</span>
-                <p style={{ flex:1,color:"#E2EAF6",fontSize:13 }}>{cat.label}</p>
-                <div style={{ display:"flex",alignItems:"center",gap:4 }}>
-                  <span style={{ color:T.muted,fontSize:14 }}>£</span>
-                  <input type="number" min="0" placeholder="0"
-                    value={amounts[cat.id]||""}
-                    onChange={e=>setAmounts(v=>({...v,[cat.id]:e.target.value}))}
-                    style={{ width:70,background:"none",border:`1px solid ${T.border}`,borderRadius:8,padding:"5px 8px",color:T.white,fontSize:13,fontFamily:"inherit",textAlign:"right" }}/>
-                </div>
-                <div style={{ width:8,height:8,borderRadius:"50%",background:BUCKET_COLORS[cat.bucket],flexShrink:0 }}/>
-              </div>
-            ))}
-          </div>
-          {totalInput>0 && (
-            <div style={{ background:T.surface,borderRadius:12,padding:"10px 14px",marginBottom:14 }}>
-              <p style={{ color:"#E2EAF6",fontSize:12 }}>Total entered: <strong style={{ color:T.white }}>{fmt(totalInput)}/mo</strong></p>
-            </div>
-          )}
-          <div style={{ display:"flex",gap:10 }}>
-            <button onClick={saveBreakdown}
-              style={{ flex:1,background:T.purple,border:"none",borderRadius:12,padding:"11px",color:T.bg,fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit" }}>
-              Save breakdown
-            </button>
-            <button onClick={()=>setPhase(savedBreakdown?"chart":"locked")}
-              style={{ background:"none",border:`1px solid ${T.border}`,borderRadius:12,padding:"11px 14px",color:T.muted,fontWeight:600,fontSize:13,cursor:"pointer",fontFamily:"inherit" }}>
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* CHART, real breakdown */}
-      {phase==="chart" && chartSegs.length>0 && (
-        <div className="ls-fadein" style={{ padding:"0 20px 20px" }}>
-          <div style={{ display:"flex",alignItems:"center",gap:20,marginBottom:14 }}>
-            <div style={{ position:"relative",width:110,height:110,flexShrink:0 }}>
-              <DonutChart segments={chartSegs} size={110}/>
-              <div style={{ position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center" }}>
-                <p style={{ color:T.white,fontWeight:900,fontSize:11 }}>{fmt(totalInput)}</p>
-                <p style={{ color:T.muted,fontSize:9 }}>/month</p>
-              </div>
-            </div>
-            <div style={{ flex:1 }}>
-              {chartSegs.map(s=>(
-                <div key={s.label} style={{ marginBottom:10 }}>
-                  <div style={{ display:"flex",justifyContent:"space-between",marginBottom:3 }}>
-                    <div style={{ display:"flex",alignItems:"center",gap:6 }}>
-                      <div style={{ width:8,height:8,borderRadius:"50%",background:s.color,flexShrink:0 }}/>
-                      <p style={{ color:"#E2EAF6",fontSize:12 }}>{s.label}</p>
-                    </div>
-                    <p style={{ color:s.color,fontWeight:800,fontSize:12 }}>{Math.round(s.value/totalInput*100)}%</p>
-                  </div>
-                  <div style={{ background:T.surface,borderRadius:99,height:6,overflow:"hidden" }}>
-                    <div style={{ width:`${Math.round(s.value/totalInput*100)}%`,height:"100%",background:s.color,borderRadius:99,transition:"width .6s" }}/>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          {/* 50/30/20 nudge */}
-          {(() => {
-            const needsPct = Math.round((bucketTotals.needs||0)/totalInput*100)||0
-            const wantsPct = Math.round((bucketTotals.wants||0)/totalInput*100)||0
-            const savePct  = Math.round((bucketTotals.savings||0)/totalInput*100)||0
-            if(totalInput===0) return null
-            const msgs = []
-            if(needsPct>60) msgs.push("Your needs are over 60%, look for ways to reduce fixed costs like rent or subscriptions.")
-            if(wantsPct>35) msgs.push("Wants are high. Even trimming £100/mo here adds £1,200/yr to your savings.")
-            if(savePct<10)  msgs.push("Less than 10% going to savings. Aim for 20% as a long-term goal.")
-            if(msgs.length===0) msgs.push("Your split looks healthy. Keep it up.")
-            return <div style={{ background:T.surface,borderRadius:12,padding:"10px 14px" }}>
-              <p style={{ color:"#E2EAF6",fontSize:12,lineHeight:1.55 }}>{msgs[0]}</p>
-            </div>
-          })()}
-        </div>
-      )}
-    </div>
-  )
-}
-
-/* ── 3. Net Worth Momentum Chart ──────────────────────────────────── */
-function NetWorthMomentumChart({ state }) {
-  const history = state.history || []
-  const hasThreeMonths = history.length >= 3
-
-  // Demo sparkline data
-  const demoData = [
-    {month:"Jan",nw:18000},{month:"Feb",nw:19200},{month:"Mar",nw:20100},
-    {month:"Apr",nw:21800},{month:"May",nw:22400},{month:"Jun",nw:24000},
-  ]
-
-  if(!hasThreeMonths) {
-    return (
-      <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:20,marginBottom:14,overflow:"hidden" }}>
-        <div style={{ padding:"18px 20px" }}>
-          <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10 }}>
-            <div style={{ display:"flex",alignItems:"center",gap:10 }}>
-              <div style={{ width:36,height:36,borderRadius:10,background:T.blueDim,border:`1px solid ${T.blueBorder}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18 }}>📈</div>
-              <div>
-                <p style={{ color:T.white,fontWeight:800,fontSize:14 }}>Net worth momentum</p>
-                <p style={{ color:T.muted,fontSize:11 }}>Monthly growth over time</p>
-              </div>
-            </div>
-            <span style={{ background:T.surface,color:T.muted,fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:99,border:`1px solid ${T.border}` }}>Locked</span>
-          </div>
-          {/* Blurred demo chart */}
-          <div style={{ position:"relative" }}>
-            <div style={{ filter:"blur(5px)",opacity:.35,pointerEvents:"none",height:80,userSelect:"none" }}>
-              <ResponsiveContainer width="100%" height={80}>
-                <AreaChart data={demoData} margin={{top:5,right:0,bottom:0,left:0}}>
-                  <defs>
-                    <linearGradient id="gMom" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor={T.blue} stopOpacity={.3}/>
-                      <stop offset="95%" stopColor={T.blue} stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <Area type="monotone" dataKey="nw" stroke={T.blue} strokeWidth={2} fill="url(#gMom)" dot={false}/>
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-            <div style={{ position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:6 }}>
-              <p style={{ color:T.white,fontWeight:800,fontSize:13,textAlign:"center" }}>🔒 Unlocks after 3 monthly updates</p>
-              <p style={{ color:T.muted,fontSize:12,textAlign:"center" }}>You have {history.length} of 3. Update your figures each month.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // Real momentum chart
-  const chartData = history.slice(-12).map(h=>({
-    month: new Date(h.date).toLocaleDateString("en-GB",{month:"short"}),
-    nw: h.netWorth
-  }))
-  const first = chartData[0]?.nw||0
-  const last  = chartData[chartData.length-1]?.nw||0
-  const change= last-first
-  const pct   = first!==0 ? Math.round((change/Math.abs(first))*100) : 0
-
-  return (
-    <div style={{ background:T.card,border:`1.5px solid ${T.blueBorder}`,borderRadius:20,marginBottom:14,overflow:"hidden" }}>
-      <div style={{ padding:"18px 20px 0" }}>
-        <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12 }}>
-          <div style={{ display:"flex",alignItems:"center",gap:10 }}>
-            <div style={{ width:36,height:36,borderRadius:10,background:T.blueDim,border:`1px solid ${T.blueBorder}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18 }}>📈</div>
-            <div>
-              <p style={{ color:T.white,fontWeight:800,fontSize:14 }}>Net worth momentum</p>
-              <p style={{ color:T.blue,fontSize:12,fontWeight:700 }}>
-                {change>=0?"↑":"↓"} {fmt(Math.abs(change))} ({pct>0?"+":""}{pct}%) over {chartData.length} months
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div style={{ padding:"0 8px 16px",height:120 }}>
-        <ResponsiveContainer width="100%" height={120}>
-          <AreaChart data={chartData} margin={{top:5,right:8,bottom:0,left:0}}>
-            <defs>
-              <linearGradient id="gMomReal" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={change>=0?T.blue:T.red} stopOpacity={.3}/>
-                <stop offset="95%" stopColor={change>=0?T.blue:T.red} stopOpacity={0}/>
-              </linearGradient>
-            </defs>
-            <XAxis dataKey="month" tick={{fontSize:10,fill:"#8FA3BE"}} axisLine={false} tickLine={false}/>
-            <YAxis hide/>
-            <Tooltip
-              formatter={v=>[fmt(v),"Net worth"]}
-              contentStyle={{background:T.card,border:`1px solid ${T.border}`,borderRadius:10,fontSize:12,color:T.white}}/>
-            <Area type="monotone" dataKey="nw" stroke={change>=0?T.blue:T.red} strokeWidth={2.5} fill="url(#gMomReal)" dot={false}/>
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
-    </div>
-  )
-}
-
-function AssetsSection({ assets, totalAssets, onAdd, onEdit, onDelete }) {
-  const getBucket = a => {
-    if(a.category==="savings") return { icon:"💰", color:T.teal, label:"Cash & Savings" }
-    if(a.category==="investments") return { icon:"📈", color:T.purple, label:"Investments" }
-    if(a.category==="pension") return { icon:"🏛️", color:T.amber, label:"Pension" }
-    if(["primary_residence","investment_property"].includes(a.category)) return { icon:"🏠", color:T.green, label:"Property" }
-    return { icon:"📦", color:T.blue, label:"Other" }
-  }
-
-  return (
-    <div>
-      <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16 }}>
-        <div>
-          <p style={{ color:T.green,fontWeight:900,fontSize:22 }}>{fmt(totalAssets)}</p>
-          <p style={{ color:"#C8D8EC",fontSize:13,fontWeight:600 }}>Total assets</p>
-        </div>
-        <button onClick={onAdd} style={{ background:T.tealDim,border:`1.5px solid ${T.tealBorder}`,borderRadius:12,padding:"10px 18px",color:T.teal,fontWeight:700,fontSize:14,cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontFamily:"inherit" }}>
-          <Plus size={15}/>Add asset
-        </button>
-      </div>
-
-      {assets.length===0 ? (
-        <EmptyState icon="💰" title="No assets tracked" body="Add your savings, pension, investments, property. Everything of value." cta="Add an asset" onClick={onAdd}/>
-      ) : (
-        <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
-          {assets.map(a=>{
-            const b = getBucket(a)
-            const t = ASSET_TYPES.find(x=>x.cat===a.category)||ASSET_TYPES[ASSET_TYPES.length-1]
-            return (
-              <div key={a.id} style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:"14px 16px",display:"flex",alignItems:"center",gap:12 }}>
-                <div style={{ width:40,height:40,borderRadius:12,background:`${b.color}12`,border:`1px solid ${b.color}25`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0 }}>{b.icon}</div>
-                <div style={{ flex:1,minWidth:0 }}>
-                  <p style={{ color:T.white,fontWeight:700,fontSize:14,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{a.name}</p>
-                  <div style={{ display:"flex",alignItems:"center",gap:8,marginTop:2 }}>
-                    <span style={{ color:b.color,fontSize:11,fontWeight:600 }}>{b.label}</span>
-                    {a.annualReturn && <span style={{ color:T.purple,fontSize:11,fontWeight:600 }}>{a.annualReturn}%/yr</span>}
-                    {a.monthlyIncome>0 && <span style={{ color:T.muted,fontSize:11 }}>{fmt(a.monthlyIncome)}/mo</span>}
-                  </div>
-                </div>
-                <p style={{ color:T.green,fontWeight:900,fontSize:16,flexShrink:0 }}>{fmt(a.value)}</p>
-                <div style={{ display:"flex",gap:2,flexShrink:0 }}>
-                  <button onClick={()=>onEdit(a)} style={{ background:"none",border:"none",color:T.teal,cursor:"pointer",padding:6,borderRadius:8 }}><Pencil size={14}/></button>
-                  <button onClick={()=>onDelete(a)} style={{ background:"none",border:"none",color:T.subtle,cursor:"pointer",padding:6,borderRadius:8 }}><Trash2 size={14}/></button>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      )}
-    </div>
-  )
-}
-
-function DebtsSection({ debts, totalDebts, drag, onAdd, onEdit, onDelete }) {
-  return (
-    <div>
-      <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:drag>0?8:16 }}>
-        <div>
-          <p style={{ color:totalDebts>0?T.red:T.muted,fontWeight:900,fontSize:22 }}>{fmt(totalDebts)}</p>
-          <p style={{ color:"#E2EAF6",fontSize:13,fontWeight:600 }}>Total debts</p>
-        </div>
-        <button onClick={onAdd} style={{ background:T.redDim,border:`1.5px solid ${T.redBorder}`,borderRadius:11,padding:"10px 18px",color:T.red,fontWeight:700,fontSize:14,cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontFamily:"inherit" }}>
-          <Plus size={15}/>Add debt
-        </button>
-      </div>
-
-      {drag>0 && (
-        <div style={{ background:T.redDim,border:`1px solid ${T.redBorder}`,borderRadius:12,padding:"12px 16px",marginBottom:16 }}>
-          <p style={{ color:T.red,fontSize:14,fontWeight:700 }}>💸 {fmt(Math.round(drag/12))}/month ({fmt(Math.round(drag))}/yr) lost to interest</p>
-          <p style={{ color:"#E2EAF6",fontSize:13,marginTop:4 }}>Paying off highest-rate debt first (avalanche method) is a guaranteed return equal to the rate you eliminate.</p>
-        </div>
-      )}
-
-      {debts.length===0 ? (
-        <EmptyState icon="💳" title="No debts" body="Add what you owe to track interest costs and see your true net worth." cta="Add a debt" onClick={onAdd}/>
-      ) : (
-        <>
-          {/* Table header */}
-          <div style={{ display:"grid",gridTemplateColumns:"1fr auto auto auto auto",gap:8,padding:"8px 14px",marginBottom:4 }}>
-            <p style={{ color:"#8FA3BE",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8 }}>Debt</p>
-            <p style={{ color:"#8FA3BE",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8,textAlign:"right",minWidth:55 }}>APR</p>
-            <p style={{ color:"#8FA3BE",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8,textAlign:"right",minWidth:70 }}>Interest/mo</p>
-            <p style={{ color:"#8FA3BE",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8,textAlign:"right",minWidth:80 }}>Balance</p>
-            <p style={{ color:"transparent",fontSize:11,minWidth:54 }}>...</p>
-          </div>
-
-          {debts.map(d=>{
-            const t = DEBT_TYPES.find(x=>x.cat===d.category)||DEBT_TYPES[DEBT_TYPES.length-1]
-            const interest = annualInterest(d)
-            const rate = d.interestRate||t?.assumedRate||10
-            const rateColor = rate>15?T.red:rate>8?T.amber:T.green
-            return (
-              <div key={d.id} style={{ display:"grid",gridTemplateColumns:"1fr auto auto auto auto",gap:8,alignItems:"center",padding:"12px 14px",background:T.card,border:`1px solid ${T.border}`,borderRadius:12,marginBottom:8 }}>
-                <div style={{ minWidth:0 }}>
-                  <p style={{ color:T.white,fontWeight:700,fontSize:14,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{d.name}</p>
-                  <p style={{ color:"#8FA3BE",fontSize:12 }}>{t?.label}{d.minPayment>0?` min ${fmt(d.minPayment)}/mo`:""}</p>
-                </div>
-                <div style={{ background:`${rateColor}20`,border:`1px solid ${rateColor}40`,borderRadius:8,padding:"3px 8px",minWidth:55,textAlign:"center" }}>
-                  <p style={{ color:rateColor,fontWeight:800,fontSize:12 }}>{rate}%</p>
-                </div>
-                <p style={{ color:T.red,fontWeight:700,fontSize:13,textAlign:"right",minWidth:70 }}>{fmt(Math.round(interest/12))}</p>
-                <p style={{ color:T.red,fontWeight:800,fontSize:14,textAlign:"right",minWidth:80 }}>{fmt(d.balance)}</p>
-                <div style={{ display:"flex",gap:4,minWidth:54,justifyContent:"flex-end" }}>
-                  <button onClick={()=>onEdit(d)} style={{ background:"none",border:"none",color:T.teal,cursor:"pointer",padding:6,borderRadius:8 }}><Pencil size={14}/></button>
-                  {!d.isAutoCreated && <button onClick={()=>onDelete(d)} style={{ background:"none",border:"none",color:"#8FA3BE",cursor:"pointer",padding:6,borderRadius:8 }}><Trash2 size={14}/></button>}
-                </div>
-              </div>
-            )
-          })}
-        </>
-      )}
-    </div>
-  )
-}
-
-/* ── Asset Sheet detailed ───────────────────────────────────── */
-function AssetSheet({ item, onClose, onSave }) {
-  const editing = !!item
-  const [cat,     setCat]     = useState(item?.category||null)
-  const [name,    setName]    = useState(item?.name||"")
-  const [val,     setVal]     = useState(item?.value||0)
-  const [income,  setIncome]  = useState(item?.monthlyIncome||0)
-  const [ret,     setRet]     = useState(item?.annualReturn||"")
-  const [hasLoan, setHasLoan] = useState(false)
-  const [loanBal, setLoanBal] = useState(0)
-  const [err,     setErr]     = useState("")
-
-  const t = ASSET_TYPES.find(x=>x.cat===cat)
-  const canHaveLoan = ["primary_residence","investment_property","vehicle"].includes(cat)
-
-  function go() {
-    if(!cat)   { setErr("Select an asset type."); return }
-    if(val<=0) { setErr("Enter a value greater than zero."); return }
-    setErr("")
-    onSave({ cat, name:name||(t?.label||"Asset"), val, monthlyIncome:income, annualReturn:ret?parseFloat(ret):null, hasLoan, loanBal, existingId:item?.id, existingLinkedDebtId:item?.linkedDebtId })
-  }
-
-  return (
-    <Sheet title={editing?"Edit asset":"Add an asset"} onClose={onClose}>
-      {/* Asset type grid */}
-      <div style={{ display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8,marginBottom:18 }}>
-        {ASSET_TYPES.map(x=>{ const sel=cat===x.cat; return (
-          <button key={x.cat} onClick={()=>{ setCat(x.cat); setName(x.label) }}
-            style={{ padding:"12px 10px",borderRadius:13,border:`2px solid ${sel?T.teal:T.border}`,background:sel?T.tealDim:T.card,cursor:"pointer",display:"flex",alignItems:"center",gap:10,textAlign:"left",transition:"all .15s" }}>
-            <span style={{ fontSize:22,flexShrink:0 }}>{x.icon}</span>
-            <div>
-              <p style={{ color:sel?T.teal:T.white,fontWeight:700,fontSize:13 }}>{x.label}</p>
-              <p style={{ color:"#8FA3BE",fontSize:11 }}>{x.hint}</p>
-            </div>
-          </button>
-        )})}
-      </div>
-
-      <div style={{ display:"flex",flexDirection:"column",gap:12,marginBottom:14 }}>
-        <Input label="Name / label" value={name} onChange={setName} placeholder={t?.label||"e.g. Vanguard ISA"}/>
-        <CurrencyInput label="Current value" value={val} onChange={setVal}/>
-        <div>
-          <p style={{ color:"#E2EAF6",fontSize:13,fontWeight:600,marginBottom:6 }}>Annual return / interest rate (optional)</p>
-          <div style={{ display:"flex",alignItems:"center",background:T.card,border:`1px solid ${T.border}`,borderRadius:12,overflow:"hidden" }}>
-            <input type="number" min="0" max="30" step="0.1" value={ret} onChange={e=>setRet(e.target.value)}
-              placeholder="e.g. 7"
-              style={{ flex:1,background:"transparent",border:"none",outline:"none",color:T.white,fontSize:15,fontWeight:600,padding:"14px 16px",fontFamily:"inherit" }}/>
-            <span style={{ padding:"0 16px",color:"#8FA3BE",fontWeight:700 }}>%/yr</span>
-          </div>
-          <p style={{ color:"#8FA3BE",fontSize:12,marginTop:4 }}>Helps unlock better growth projections</p>
-        </div>
-        {["investment_property","rental"].includes(cat) && (
-          <CurrencyInput label="Monthly rental income" value={income} onChange={setIncome}/>
-        )}
-        {canHaveLoan && (
-          <div>
-            <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:hasLoan?10:0 }}>
-              <Toggle value={hasLoan} onChange={setHasLoan}/>
-              <p style={{ color:"#E2EAF6",fontSize:14,fontWeight:600 }}>Has a mortgage / loan</p>
-            </div>
-            {hasLoan && <CurrencyInput label="Outstanding loan balance" value={loanBal} onChange={setLoanBal}/>}
-          </div>
-        )}
-      </div>
-      {err&&<p style={{ color:T.red,fontSize:13,marginBottom:10 }}>{err}</p>}
-      <Btn onClick={go}>{editing?"Save changes":"Add asset"}</Btn>
-    </Sheet>
-  )
-}
-
-/* ── Debt Sheet detailed ────────────────────────────────────── */
-function DebtSheet({ item, onClose, onSave }) {
-  const editing = !!item
-  const [cat,   setCat]   = useState(item?.category||null)
-  const [name,  setName]  = useState(item?.name||"")
-  const [bal,   setBal]   = useState(item?.balance||0)
-  const [rate,  setRate]  = useState(item?.interestRate||"")
-  const [min,   setMin]   = useState(item?.minPayment||0)
-  const [err,   setErr]   = useState("")
-
-  const t = DEBT_TYPES.find(x=>x.cat===cat)
-
-  function go() {
-    if(!cat)  { setErr("Select a debt type."); return }
-    if(bal<=0){ setErr("Enter a balance greater than zero."); return }
-    setErr("")
-    onSave({ cat, name:name||(t?.label||"Debt"), bal, rate:rate?parseFloat(rate):(t?.assumedRate||10), minPayment:min, existingId:item?.id })
-  }
-
-  return (
-    <Sheet title={editing?"Edit debt":"Add a debt"} onClose={onClose}>
-      <div style={{ display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8,marginBottom:18 }}>
-        {DEBT_TYPES.map(x=>{ const sel=cat===x.cat; return (
-          <button key={x.cat} onClick={()=>{ setCat(x.cat); if(!rate) setRate(String(x.assumedRate)); setName(x.label) }}
-            style={{ padding:"12px 10px",borderRadius:13,border:`2px solid ${sel?T.red:T.border}`,background:sel?T.redDim:T.card,cursor:"pointer",display:"flex",alignItems:"center",gap:10,textAlign:"left",transition:"all .15s" }}>
-            <span style={{ fontSize:22,flexShrink:0 }}>{x.icon}</span>
-            <div>
-              <p style={{ color:sel?T.red:T.white,fontWeight:700,fontSize:13 }}>{x.label}</p>
-              <p style={{ color:"#8FA3BE",fontSize:11 }}>~{x.assumedRate}% typical</p>
-            </div>
-          </button>
-        )})}
-      </div>
-
-      <div style={{ display:"flex",flexDirection:"column",gap:12,marginBottom:14 }}>
-        <Input label="Name / label" value={name} onChange={setName} placeholder={t?.label||"e.g. HSBC credit card"}/>
-        <CurrencyInput label="Current balance owed" value={bal} onChange={setBal}/>
-        <div>
-          <p style={{ color:"#E2EAF6",fontSize:13,fontWeight:600,marginBottom:6 }}>Interest rate (APR)</p>
-          <div style={{ display:"flex",alignItems:"center",background:T.card,border:`1px solid ${T.border}`,borderRadius:12,overflow:"hidden" }}>
-            <input type="number" min="0" max="100" step="0.1" value={rate} onChange={e=>setRate(e.target.value)}
-              placeholder={t?String(t.assumedRate):"10"}
-              style={{ flex:1,background:"transparent",border:"none",outline:"none",color:T.white,fontSize:15,fontWeight:600,padding:"14px 16px",fontFamily:"inherit" }}/>
-            <span style={{ padding:"0 16px",color:"#8FA3BE",fontWeight:700 }}>% APR</span>
-          </div>
-          <p style={{ color:"#8FA3BE",fontSize:12,marginTop:4 }}>Check your statement or account online</p>
-        </div>
-        <CurrencyInput label="Minimum monthly payment (optional)" value={min} onChange={setMin}/>
-      </div>
-      {err&&<p style={{ color:T.red,fontSize:13,marginBottom:10 }}>{err}</p>}
-      <Btn onClick={go}>{editing?"Save changes":"Add debt"}</Btn>
-    </Sheet>
-  )
-}
-
-/* ── Income Section (in Track tab) ──────────────────────────────── */
-function IncomeSection({ income, assets, onSave }) {
-  const [primary, setPrimary]   = useState(income?.primary||0)
-  const [source,  setSource]    = useState(income?.primarySource||"employment")
-  const [extras,  setExtras]    = useState(income?.additional||[])
-  const [addLabel,setAddLabel]  = useState("")
-  const [addAmt,  setAddAmt]    = useState(0)
-
-  const rentalIncome = assets?.filter(a=>a.monthlyIncome>0).reduce((s,a)=>s+(a.monthlyIncome||0),0)||0
-  const totalIncome  = primary + extras.reduce((s,e)=>s+(e.amount||0),0) + rentalIncome
-
-  function save() {
-    onSave({ primary, primarySource:source, additional:extras })
-  }
-
-  function addExtra() {
-    if(!addLabel||addAmt<=0) return
-    setExtras(prev=>[...prev,{ id:`extra_${Date.now()}`, label:addLabel, amount:addAmt }])
-    setAddLabel(""); setAddAmt(0)
-  }
-
-  const SOURCES = [
-    { id:"employment", label:"Employment", icon:"💼" },
-    { id:"self_employed", label:"Self-employed", icon:"🧑‍💻" },
-    { id:"freelance", label:"Freelance", icon:"🎯" },
-    { id:"retired", label:"Pension/Retired", icon:"🏛️" },
-  ]
-
-  return (
-    <div style={{ display:"flex",flexDirection:"column",gap:16 }}>
-      <div style={{ background:T.card,border:`1px solid ${T.tealBorder}`,borderRadius:18,padding:"18px 20px",textAlign:"center" }}>
-        <p style={{ color:"#E2EAF6",fontSize:14,fontWeight:600,marginBottom:4 }}>Total monthly income</p>
-        <p style={{ color:T.teal,fontWeight:900,fontSize:32 }}>{fmt(totalIncome)}</p>
-      </div>
-
-      <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:18,padding:"18px 20px" }}>
-        <p style={{ color:T.white,fontWeight:700,fontSize:15,marginBottom:12 }}>Primary income</p>
-        <div style={{ display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8,marginBottom:14 }}>
-          {SOURCES.map(s=>{ const sel=source===s.id; return (
-            <button key={s.id} onClick={()=>setSource(s.id)}
-              style={{ padding:"10px",borderRadius:11,border:`2px solid ${sel?T.teal:T.border}`,background:sel?T.tealDim:T.faint,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:8 }}>
-              <span style={{ fontSize:16 }}>{s.icon}</span>
-              <span style={{ color:sel?T.teal:T.white,fontWeight:700,fontSize:13 }}>{s.label}</span>
-            </button>
-          )})}
-        </div>
-        <CurrencyInput label="Monthly take-home pay" value={primary} onChange={setPrimary}/>
-        <p style={{ color:"#E2EAF6",fontSize:13,marginTop:8,fontWeight:500 }}>📱 Check your banking app or last payslip</p>
-      </div>
-
-      {rentalIncome>0 && (
-        <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px 16px",display:"flex",justifyContent:"space-between",alignItems:"center" }}>
-          <p style={{ color:"#E2EAF6",fontSize:14,fontWeight:600 }}>🏠 Rental income (from assets)</p>
-          <p style={{ color:T.green,fontWeight:800,fontSize:15 }}>{fmt(rentalIncome)}/mo</p>
-        </div>
-      )}
-
-      {extras.length>0 && (
-        <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:18,padding:"18px 20px" }}>
-          <p style={{ color:T.white,fontWeight:700,fontSize:15,marginBottom:12 }}>Other income</p>
-          {extras.map((e,i)=>(
-            <div key={e.id} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10 }}>
-              <p style={{ color:"#E2EAF6",fontSize:14 }}>{e.label}</p>
-              <div style={{ display:"flex",alignItems:"center",gap:10 }}>
-                <p style={{ color:T.green,fontWeight:700 }}>{fmt(e.amount)}/mo</p>
-                <button onClick={()=>setExtras(prev=>prev.filter(x=>x.id!==e.id))} style={{ background:"none",border:"none",color:"#8FA3BE",cursor:"pointer",padding:4 }}><Trash2 size={14}/></button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:18,padding:"18px 20px" }}>
-        <p style={{ color:T.white,fontWeight:700,fontSize:15,marginBottom:12 }}>Add other income source</p>
-        <div style={{ display:"flex",flexDirection:"column",gap:10,marginBottom:12 }}>
-          <Input label="Source (e.g. freelance, dividends)" value={addLabel} onChange={setAddLabel}/>
-          <CurrencyInput label="Monthly amount" value={addAmt} onChange={setAddAmt}/>
-        </div>
-        <button onClick={addExtra} style={{ background:T.tealDim,border:`1.5px solid ${T.tealBorder}`,borderRadius:10,padding:"10px 16px",color:T.teal,fontWeight:700,fontSize:14,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:6 }}>
-          <Plus size={14}/>Add income source
-        </button>
-      </div>
-
-      <Btn onClick={save}>Save income →</Btn>
-    </div>
-  )
-}
-
-/* ════════════════════════════════════════════════════════════════════
-   LESSONS 5 fully working lessons, goal-linked
-   ════════════════════════════════════════════════════════════════════ */
-const LESSONS = [
-  /* ── Lesson 1: Net Worth linked to grow_nw, calm, learn ─────── */
-  {
-    id:"nw_basics",
-    track:"Foundations",
-    trackColor:T.teal, trackDim:T.tealDim, trackBorder:T.tealBorder,
-    title:"What net worth actually is and why it changes everything",
-    emoji:"📊", xp:15,
-    goalLinks:["net_worth","calm","learn","budget"],
-    cards:[
-      {
-        type:"fact",
-        headline:"One number. The whole story.",
-        icon:"🎯",
-        body:"Income tells you how much flows in. Spending tells you how much flows out. Net worth tells you what's actually left after a lifetime of both. It's the only number that really matters.",
-        highlight:"Net worth = everything you own − everything you owe",
-        visual:"equation",
-      },
-      {
-        type:"fact",
-        headline:"Why most people have no idea what theirs is",
-        icon:"🤷",
-        body:"Nobody teaches this. Schools don't cover it. Banks don't show it. Most people feel vaguely okay or vaguely worried but they're flying blind.",
-        facts:[
-          { icon:"😰", label:"Flying blind", text:"Without a net worth number, financial decisions feel like guesswork. You don't know if you're ahead or behind, or what's actually moving the needle." },
-          { icon:"📊", label:"Measurement = momentum", text:"People who track their net worth consistently make better decisions, save more, and reach financial goals faster. The act of measuring creates accountability." },
-          { icon:"🔮", label:"It predicts the future", text:"Your net worth today, combined with your monthly surplus and investment rate, tells you with surprising accuracy where you'll be in 10, 20, or 30 years." },
-        ]
-      },
-      {
-        type:"scenario",
-        prompt:"Two people both earn £45k. After 20 years, who has more?",
-        context:"Alex saves £400/month in an ISA from age 28. Jordan earns the same but spends it all nicer car, better holidays.",
-        choices:[
-          { label:"Jordan lifestyle choices reflect financial confidence", best:false, outcome:"Lifestyle spending leaves no wealth trail. Jordan's car depreciated and the holidays produced no financial return. Net worth after 20 years: roughly £0 invested." },
-          { label:"Alex tracking and investing consistently wins", best:true, outcome:"At 7% average return, Alex's £400/month over 20 years grows to roughly £208,000. Same income. Dramatically different net worth. The only difference was measuring and acting." },
-        ],
-        explanation:"Identical incomes, identical starting points, radically different outcomes. The gap is entirely explained by one person measuring and acting on their net worth."
-      },
-      {
-        type:"fact",
-        headline:"The four levers that grow your number",
-        icon:"🎛️",
-        body:"There are only four ways to improve net worth. Every financial decision hits at least one.",
-        facts:[
-          { icon:"⬆️", label:"Earn more", text:"A pay rise is the highest-leverage move for most people under 40. Even a 10% increase compounds dramatically over a career." },
-          { icon:"⬇️", label:"Spend less", text:"Every £1 not spent is a £1 that builds assets. The gap between spending 80% and 100% of income over 30 years is hundreds of thousands of pounds." },
-          { icon:"📈", label:"Grow assets faster", text:"Money in a current account earning 0% vs an ISA growing at 7% the difference over 20 years on £10,000 is £27,000." },
-          { icon:"💳", label:"Eliminate bad debt", text:"Paying off a 22% credit card is a guaranteed 22% return. Nothing reliably beats that." },
-        ]
-      },
-      {
-        type:"quiz",
-        question:"What does net worth measure?",
-        options:["Your monthly income minus your monthly spending","Everything you own minus everything you owe","Your credit score and financial health","How much you've earned over your lifetime"],
-        correct:1,
-        explanation:"Net worth = total assets minus total liabilities. It's a snapshot of your financial position right now, and the truest measure of financial progress."
-      },
-    ]
-  },
-
-  /* ── Lesson 2: Compound interest linked to invest, learn, pension ── */
-  {
-    id:"compound_interest",
-    track:"Investing",
-    trackColor:T.purple, trackDim:T.purpleDim, trackBorder:T.purpleBorder,
-    title:"How your money grows by itself (and why starting today beats waiting)",
-    emoji:"🌱", xp:15,
-    goalLinks:["invest","learn","pension","net_worth"],
-    cards:[
-      {
-        type:"fact",
-        headline:"First, what is a return?",
-        icon:"💡",
-        body:"A return is simply the profit your money makes. If you put £1,000 in an investment and it grows to £1,070 after a year, your return is £70. That's a 7% annual return.",
-        highlight:"Return = profit on your money",
-        sub:"This return can come from interest (like a savings account), dividends (companies sharing profits), or the investment growing in value.",
-      },
-      {
-        type:"fact",
-        headline:"Now, what makes it compound?",
-        icon:"📈",
-        body:"Compound return means your returns earn returns. In year one, you earn £70 on your £1,000. In year two, you earn 7% on £1,070   so £74.90, not £70. In year three, 7% on £1,144.90. Every year, the base grows, so the return grows too.",
-        highlight:"You are earning returns on your returns   not just on what you put in",
-        facts:[
-          { icon:"📅", label:"Simple return (not compounding)", text:"£1,000 at 7%: you earn £70 every single year. After 10 years: £1,700 total." },
-          { icon:"📈", label:"Compound return (the real thing)", text:"£1,000 at 7% compounding: after 10 years you have £1,967. After 30 years: £7,612. Same money, dramatically different outcome." },
-        ]
-      },
-      {
-        type:"interactive",
-        id:"growth_chart",
-        headline:"See the compound curve yourself",
-        prompt:"Move the slider to see how a monthly investment grows over time",
-        hint:"The grey area is what you actually paid in. The teal area on top is your compound return doing its work   notice how it gets bigger and bigger relative to what you put in. That gap is free money, generated by time.",
-      },
-      {
-        type:"fact",
-        headline:"The Rule of 72: how fast does money double?",
-        icon:"⚡",
-        body:"This is a simple shortcut. Divide 72 by your annual return rate and that tells you roughly how many years it takes to double your money.",
-        facts:[
-          { icon:"🏦", label:"Savings account at 4%/yr", text:"72 ÷ 4 = 18 years to double. Safe, but slow." },
-          { icon:"📈", label:"Index fund at 7%/yr (historical average)", text:"72 ÷ 7 = about 10 years to double. £10,000 becomes £80,000 in 30 years." },
-          { icon:"💳", label:"Credit card debt at 24%/yr", text:"72 ÷ 24 = 3 years to double what you owe. A £1,000 balance becomes £2,000, then £4,000. This is compound working against you." },
-        ]
-      },
-      {
-        type:"scenario",
-        prompt:"Emma invests £200 per month from age 25. Jake invests £400 per month from age 35. Both stop at 65. Both earn 7% per year. Who ends up with more?",
-        context:"Emma puts in half the money but starts 10 years earlier. Jake puts in twice as much but starts later.",
-        choices:[
-          { label:"Jake. He invested twice as much each month.", best:false, outcome:"Jake invested £144,000 total and ends up with around £524,000. Starting late is expensive." },
-          { label:"Emma. Starting earlier wins even with less money.", best:true, outcome:"Emma invested only £96,000 total   £48,000 less than Jake   and ends up with around £527,000. Time beats amount. This is compound return doing its job over a longer runway." },
-          { label:"They end up about the same.", best:false, outcome:"Very close actually, but Emma wins having invested £48,000 less. That difference is pure compound return from starting 10 years earlier." },
-        ],
-        explanation:"Starting a decade earlier is worth more than doubling your monthly investment. This is why financial advisers always say the best time to start is now, even with a small amount."
-      },
-      {
-        type:"quiz",
-        question:"Using the Rule of 72, money invested at 7% per year doubles roughly every:",
-        options:["5 years","10 years","15 years","20 years"],
-        correct:1,
-        explanation:"72 ÷ 7 = about 10 years. So £5,000 today at 7% becomes around £10,000 in 10 years, £20,000 in 20 years, and £40,000 in 30 years. Without adding a single pound more. That is compound return."
-      },
-    ]
-  },
-
-  /* ── Lesson 3: Paying off debt linked to pay_debt, calm, budget ── */
-  {
-    id:"pay_off_debt",
-    track:"Debt",
-    trackColor:T.red, trackDim:T.redDim, trackBorder:T.redBorder,
-    title:"Clear your debt faster and save thousands",
-    emoji:"💳", xp:20,
-    goalLinks:["pay_debt","calm","budget","net_worth"],
-    cards:[
-      {
-        type:"fact",
-        headline:"Debt isn't just a number it's a monthly tax",
-        icon:"💸",
-        body:"Every pound you owe at 20% APR costs you 20p a year in interest. On a £5,000 credit card balance, that's £1,000 a year just for having it. The fastest way to grow your net worth is to eliminate this invisible drain first.",
-        highlight:"Paying off 20% debt = a guaranteed 20% return",
-      },
-      {
-        type:"fact",
-        headline:"Two methods both work, pick your style",
-        icon:"🎯",
-        body:"There are two proven strategies for clearing debt. The one you'll actually stick with is the right one.",
-        facts:[
-          { icon:"🏔️", label:"Avalanche (mathematically best)", text:"Pay minimums on everything. Throw every extra pound at the highest-rate debt first. Saves the most money in interest. Best for disciplined people who want the optimal outcome." },
-          { icon:"⛄", label:"Snowball (psychologically best)", text:"Pay minimums on everything. Throw every extra pound at the smallest balance first. Less optimal mathematically, but the quick wins keep you motivated. Research shows higher completion rates." },
-          { icon:"🏆", label:"Which wins?", text:"The one you actually do. Either strategy destroys more debt than making minimum payments. Choose based on what keeps you going." },
-        ]
-      },
-      {
-        type:"scenario",
-        prompt:"You have £500 extra per month. £3,000 credit card at 22%, £8,000 car loan at 7%. What should you do?",
-        context:"After paying minimums on both, you have £500 spare to put towards clearing debt.",
-        choices:[
-          { label:"Split £250 between both debts equally", best:false, outcome:"Splitting feels balanced but is the slowest approach. You're paying interest on the credit card for longer costing you an extra £400-600 vs the avalanche method." },
-          { label:"Pay the car loan it's the bigger debt", best:false, outcome:"Bigger balance, but at 7% APR this debt costs far less. Prioritising it over the 22% card means you're paying more in total interest." },
-          { label:"Clear the credit card first (avalanche)", best:true, outcome:"22% vs 7% the difference is massive. Clearing the credit card first saves you roughly £600 in interest and frees up that payment sooner. Every month you delay costs money." },
-        ],
-        explanation:"Rate matters more than balance size. Always attack the most expensive debt first the maths are clear."
-      },
-      {
-        type:"fact",
-        headline:"The minimum payment trap",
-        icon:"⚠️",
-        body:"Credit cards are designed so that minimum payments keep you in debt for decades. On a £5,000 balance at 22%, paying the minimum (about £100/month) will take you 7+ years to clear and cost over £3,500 in interest alone.",
-        highlight:"Minimum payments = maximum profit for lenders",
-        facts:[
-          { icon:"📅", label:"Time to clear £5k at minimums", text:"7-8 years. That's thousands of pounds in interest on a manageable debt." },
-          { icon:"⚡", label:"Add £100 extra per month", text:"Clear in 2.5 years. Save over £2,500 in interest. One small change, massive impact." },
-        ]
-      },
-      {
-        type:"quiz",
-        question:"You have two debts: £2,000 at 24% APR and £6,000 at 5% APR. Which should you pay off first?",
-        options:["The £6,000 debt it's larger","The £2,000 debt it's smaller and easier to clear","The 24% debt the rate is what matters","Pay them off equally"],
-        correct:2,
-        explanation:"Rate is what matters. The 24% debt costs you £480/year in interest. The 5% debt costs £300/year. Clearing the high-rate debt first is mathematically optimal regardless of the balance size."
-      },
-    ]
-  },
-
-  /* ── Lesson 4: Growing your pension ── */
-  {
-    id:"pension_basics",
-    track:"Pensions",
-    trackColor:T.amber, trackDim:T.amberDim, trackBorder:T.amberBorder,
-    title:"Your pension: the most tax-efficient investment you'll ever have",
-    emoji:"🏛️", xp:20,
-    goalLinks:["pension","invest","net_worth","house"],
-    cards:[
-      {
-        type:"fact",
-        headline:"A pension is just an investment account with a bonus",
-        icon:"🎁",
-        body:"When you put money into a pension, the government adds 20-45% on top, depending on your tax rate. A basic rate taxpayer puts in £80 and ends up with £100 in their pension. That's an instant 25% return before a single investment is made.",
-        highlight:"25to81% instant return from tax relief",
-      },
-      {
-        type:"fact",
-        headline:"The compound effect inside your pension",
-        icon:"📈",
-        body:"Because pension money grows tax-free, compound interest works harder inside a pension than in almost any other account.",
-        facts:[
-          { icon:"💷", label:"£200/month from age 25", text:"At 7%/yr by age 65: roughly £528,000. Of that, you put in £96,000. The rest is compound growth tax-free." },
-          { icon:"⏰", label:"Start at 35 instead", text:"Same £200/month, same 7%/yr: roughly £243,000 by 65. Starting 10 years later costs you £285,000 in growth." },
-          { icon:"🏢", label:"Employer match = free money", text:"If your employer matches contributions, always contribute enough to get the full match. It's an instant 100% return on that portion." },
-        ]
-      },
-      {
-        type:"scenario",
-        prompt:"Your employer offers 5% pension match. You currently contribute 3%. What should you do?",
-        context:"You earn £35,000. Your employer will match up to 5% of your salary into your pension.",
-        choices:[
-          { label:"Keep contributing 3% 5% feels like a lot", best:false, outcome:"You're leaving £700/year of free employer money on the table. Over 30 years at 7% growth, that missed match compounds to over £66,000 in lost pension value." },
-          { label:"Increase to 5% to get the full match", best:true, outcome:"By increasing from 3% to 5% (£58/month extra), you unlock £1,750/year in employer contributions. Over 30 years at 7%, that employer money alone grows to roughly £175,000." },
-          { label:"Stop contributing entirely to save cash", best:false, outcome:"You'd lose the employer match, the tax relief, and the compound growth all at once. This is the most expensive financial decision most people make." },
-        ],
-        explanation:"Employer match is the only genuinely free money in personal finance. Never leave it unclaimed."
-      },
-      {
-        type:"quiz",
-        question:"A basic rate taxpayer contributes £80 to their pension. How much ends up in the pension?",
-        options:["£80 what you put in","£96 with a small top-up","£100 government adds 25%","£120 double matched"],
-        correct:2,
-        explanation:"Basic rate tax relief means the government adds 25% (20% of the grossed-up amount). £80 from you → £100 in your pension. Higher rate taxpayers can claim even more back through their tax return."
-      },
-    ]
-  },
-
-  /* ── Lesson 5: Building wealth ── */
-  {
-    id:"building_wealth",
-    track:"Investing",
-    trackColor:T.purple, trackDim:T.purpleDim, trackBorder:T.purpleBorder,
-    title:"How to actually build wealth on a normal salary",
-    emoji:"🌱", xp:20,
-    goalLinks:["invest","net_worth","learn","house"],
-    cards:[
-      {
-        type:"fact",
-        headline:"Wealth isn't about earning more it's about the gap",
-        icon:"💰",
-        body:"The wealth gap is simple: income minus spending. Every pound in that gap, invested consistently, builds net worth. A person earning £30k with a £300 monthly surplus can outperform someone earning £80k who spends everything.",
-        highlight:"Surplus invested consistently > high income spent",
-      },
-      {
-        type:"fact",
-        headline:"The four assets that build real wealth",
-        icon:"🏗️",
-        body:"Most wealth comes from a small number of asset types. Understanding them lets you make better allocation decisions.",
-        facts:[
-          { icon:"📊", label:"Index funds / ISA", text:"Low-cost funds that track the market. Historically 7-10% annual returns. The single best vehicle for most people. Start here." },
-          { icon:"🏛️", label:"Pension", text:"Tax-advantaged and often employer-matched. Should be your second priority after an emergency fund." },
-          { icon:"🏠", label:"Property", text:"Leveraged asset your deposit controls a larger asset. Works well long-term but needs maintenance, insurance, and isn't liquid." },
-          { icon:"💼", label:"Business / side income", text:"Highest potential return, highest risk. Income generated can be redirected into the above three to compound faster." },
-        ]
-      },
-      {
-        type:"scenario",
-        prompt:"You have £500/month surplus. Emergency fund is sorted. What's the best order of priorities?",
-        context:"You have 3 months expenses saved, a workplace pension with 5% employer match, and no high-interest debt.",
-        choices:[
-          { label:"Max out ISA first, then increase pension", best:false, outcome:"Not wrong, but you might be leaving employer match on the table. Always capture the full employer match before contributing more elsewhere it's a 100% return on that money." },
-          { label:"Max pension match first, then ISA, then extra pension", best:true, outcome:"Perfect order: (1) Employer match = free money, always take it. (2) ISA = tax-free growth, flexible access. (3) Additional pension for long-term tax efficiency. This order maximises every pound." },
-          { label:"Put everything into property saving for a deposit", best:false, outcome:"Property is a valid goal but not at the expense of tax-advantaged accounts. You can save for a deposit inside a Lifetime ISA (25% government bonus) while still capturing the employer match." },
-        ],
-        explanation:"Priority order: emergency fund → employer match → ISA → additional pension → other investing. This maximises free money, tax efficiency, and flexibility."
-      },
-      {
-        type:"quiz",
-        question:"Which investment vehicle gives you the most tax advantages for long-term wealth building in the UK?",
-        options:["Premium Bonds government-backed and flexible","Pension + ISA together for different time horizons","A high-interest savings account","Buy-to-let property"],
-        correct:1,
-        explanation:"Pension and ISA together give you the full picture: pension for tax relief on contributions (25-81% boost) plus tax-free growth, and ISA for flexible tax-free growth you can access any time. Together they're hard to beat."
-      },
-    ]
-  },
-
-]
-
-/* ════════════════════════════════════════════════════════════════════
-   LEARN TAB
-   ════════════════════════════════════════════════════════════════════ */
-// Confetti component for lesson completion
-function Confetti({ active }) {
-  if(!active) return null
-  const pieces = Array.from({length:30},(_,i)=>({
-    id:i,
-    x: Math.random()*100,
-    color: [T.teal,T.purple,T.amber,T.green,T.blue,"#F472B6"][Math.floor(Math.random()*6)],
-    delay: Math.random()*0.4,
-    size: 6+Math.random()*6,
-    spin: Math.random()*360,
-  }))
-  return (
-    <div style={{ position:"fixed",inset:0,zIndex:999,pointerEvents:"none",overflow:"hidden" }}>
-      {pieces.map(p=>(
-        <div key={p.id} style={{
-          position:"absolute",
-          left:`${p.x}%`,top:"-20px",
-          width:p.size,height:p.size,
-          background:p.color,
-          borderRadius:Math.random()>0.5?"50%":"2px",
-          animation:`confettiFall 1.4s ${p.delay}s ease-in forwards`,
-          transform:`rotate(${p.spin}deg)`,
-        }}/>
-      ))}
-    </div>
-  )
-}
-
-const COMING_SOON_LESSONS = [
-  { emoji:"🏠", title:"How to build wealth through property", track:"Property", trackColor:T.amber, desc:"Mortgages, equity, and whether buying beats renting" },
-  { emoji:"📊", title:"ISAs explained: the best tax-free wrapper in the UK", track:"Tax", trackColor:T.teal, desc:"Stocks and Shares ISA vs Cash ISA and how to use them" },
-  { emoji:"🤝", title:"Investing your first £1,000 step by step", track:"Investing", trackColor:T.purple, desc:"Index funds, platforms, and exactly how to start" },
-  { emoji:"💰", title:"The 50/30/20 rule: a budget that actually works", track:"Budgeting", trackColor:T.green, desc:"A simple framework used by millions worldwide" },
-  { emoji:"🧮", title:"How to pay off your mortgage 10 years early", track:"Property", trackColor:T.amber, desc:"Overpayments, offset accounts and the maths behind it" },
-  { emoji:"🌍", title:"Why global index funds beat almost everything", track:"Investing", trackColor:T.purple, desc:"The evidence behind passive investing and why it works" },
-]
-
-function LearnTab() {
-  const { state, save, toast } = useApp()
-  const [activeLesson, setActiveLesson] = useState(null)
-  const [showConfetti, setShowConfetti] = useState(false)
-  const [justCompleted, setJustCompleted] = useState(null)
-  const completedLessons = state.completedLessons||[]
-  const doneSet = new Set(completedLessons)
-  const priorityGoals = state.priorityGoals||[]
-
-  function completeLesson(lessonId) {
-    if(doneSet.has(lessonId)) return
-    const newCompleted = [...completedLessons, lessonId]
-    const lesson = LESSONS.find(l=>l.id===lessonId)
-    const xpGain = lesson?.xp || 10
-    save({ ...state, completedLessons: newCompleted,
-      profile: { ...state.profile, points:(state.profile.points||0)+xpGain } })
-    setJustCompleted(lessonId)
-    setShowConfetti(true)
-    setTimeout(()=>setShowConfetti(false), 1800)
-    setTimeout(()=>setJustCompleted(null), 3000)
-    setActiveLesson(null)
-  }
-
-  if(activeLesson) {
-    const lesson = LESSONS.find(l=>l.id===activeLesson)
-    if(!lesson) { setActiveLesson(null); return null }
-    return <LessonPlayer lesson={lesson} onComplete={()=>completeLesson(lesson.id)} onBack={()=>setActiveLesson(null)}/>
-  }
-
-  const sorted = [...LESSONS].sort((a,b)=>{
-    const aLinked = a.goalLinks?.some(g=>priorityGoals.includes(g))
-    const bLinked = b.goalLinks?.some(g=>priorityGoals.includes(g))
-    if(aLinked && !bLinked) return -1
-    if(!aLinked && bLinked) return 1
-    const aDone = doneSet.has(a.id)
-    const bDone = doneSet.has(b.id)
-    if(!aDone && bDone) return -1
-    if(aDone && !bDone) return 1
-    return 0
-  })
-
-  const doneCount = completedLessons.length
-  const xp = state.profile?.points||0
-  const nextLevel = XP_LEVELS.find(l=>l.min>xp)
-  const curLevel  = [...XP_LEVELS].reverse().find(l=>l.min<=xp) || XP_LEVELS[0]
-  const xpToNext  = nextLevel ? nextLevel.min - xp : 0
-  const xpPct     = nextLevel ? Math.round(((xp-curLevel.min)/(nextLevel.min-curLevel.min))*100) : 100
-  const firstIncomplete = sorted.find(l=>!doneSet.has(l.id))
-
-  return (
-    <div style={{ flex:1,overflowY:"auto",paddingBottom:100 }}>
-      <Confetti active={showConfetti}/>
-
-      {justCompleted && (
-        <div style={{ position:"fixed",top:60,left:"50%",transform:"translateX(-50%)",zIndex:500,
-          background:`linear-gradient(135deg,${T.teal},${T.purple})`,borderRadius:16,padding:"14px 24px",
-          boxShadow:"0 8px 32px rgba(0,0,0,.5)",textAlign:"center",animation:"slideDown .3s ease" }}>
-          <p style={{ color:"#FFFFFF",fontWeight:900,fontSize:15 }}>🎉 Lesson complete!</p>
-          <p style={{ color:"rgba(255,255,255,.8)",fontSize:13,marginTop:2 }}>One step closer</p>
-        </div>
-      )}
-
-      {/* ── Personalised header ───────────────────────────────── */}
-      <div style={{ background:"linear-gradient(180deg,rgba(167,139,250,.1) 0%,transparent 100%)",
-        padding:"28px 20px 24px",borderBottom:"1px solid rgba(255,255,255,.05)" }}>
-        <div style={{ maxWidth:700,margin:"0 auto" }}>
-          <h2 style={{ color:"#FFFFFF",fontWeight:900,fontSize:26,lineHeight:1.1,marginBottom:4,letterSpacing:-.3 }}>Your Learning Path</h2>
-          <p style={{ color:"#7A96B5",fontSize:14,marginBottom:16 }}>
-            {priorityGoals.length > 0
-              ? "Lessons tailored to your goals. Each one gives you a practical edge."
-              : "5 minute lessons that change real financial decisions."}
-          </p>
-
-          {/* XP level bar */}
-          <div style={{ background:"rgba(255,255,255,.03)",borderRadius:16,padding:"14px 18px",border:`1px solid rgba(255,255,255,.04)` }}>
-            <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10 }}>
-              <div style={{ display:"flex",alignItems:"center",gap:8 }}>
-                <span style={{ fontSize:18 }}>{curLevel.emoji}</span>
-                <p style={{ color:"#FFFFFF",fontWeight:700,fontSize:14 }}>{curLevel.label}</p>
-              </div>
-              <div style={{ display:"flex",alignItems:"center",gap:6 }}>
-                <p style={{ color:T.teal,fontWeight:800,fontSize:14 }}>{xp} XP</p>
-                {nextLevel && <p style={{ color:"#3A5575",fontSize:12 }}>· {xpToNext} to {nextLevel.emoji}</p>}
-              </div>
-            </div>
-            <div style={{ background:"rgba(255,255,255,.06)",borderRadius:99,height:6,overflow:"hidden" }}>
-              <div style={{ width:`${xpPct}%`,height:"100%",
-                background:`linear-gradient(90deg,${T.teal},${T.purple})`,borderRadius:99,
-                transition:"width .6s ease",boxShadow:`0 0 10px ${T.teal}60` }}/>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div style={{ padding:"24px 18px 0",maxWidth:700,margin:"0 auto",width:"100%" }}>
-
-        {/* ── Personalised recommendation ───────────────────────── */}
-        {firstIncomplete && (
-          <div style={{ marginBottom:28 }}>
-            <p style={{ color:"#5A7A9A",fontSize:11,fontWeight:700,letterSpacing:1.5,
-              textTransform:"uppercase",marginBottom:12 }}>
-              {firstIncomplete.goalLinks?.some(g=>priorityGoals.includes(g))
-                ? "Recommended for your goals"
-                : "Up next for you"}
-            </p>
-
-            <button onClick={()=>setActiveLesson(firstIncomplete.id)}
-              style={{ width:"100%",
-                background:`linear-gradient(145deg,${firstIncomplete.trackColor}22,${firstIncomplete.trackColor}06)`,
-                border:`2px solid ${firstIncomplete.trackColor}50`,
-                borderRadius:24,padding:"24px",cursor:"pointer",fontFamily:"inherit",
-                textAlign:"left",position:"relative",overflow:"hidden",
-                boxShadow:`0 12px 40px ${firstIncomplete.trackColor}20` }}>
-              <div style={{ position:"absolute",top:-60,right:-60,width:200,height:200,borderRadius:"50%",
-                background:`radial-gradient(circle,${firstIncomplete.trackColor}20 0%,transparent 70%)`,
-                pointerEvents:"none" }}/>
-              <div style={{ position:"relative" }}>
-                <div style={{ display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:16 }}>
-                  <div style={{ width:60,height:60,borderRadius:18,
-                    background:`${firstIncomplete.trackColor}28`,
-                    border:`2px solid ${firstIncomplete.trackColor}50`,
-                    display:"flex",alignItems:"center",justifyContent:"center",fontSize:30 }}>
-                    {firstIncomplete.emoji}
-                  </div>
-                  <div style={{ background:firstIncomplete.trackColor,borderRadius:14,
-                    padding:"10px 20px",flexShrink:0 }}>
-                    <p style={{ color:"#FFFFFF",fontSize:14,fontWeight:900 }}>Start →</p>
-                  </div>
-                </div>
-                <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:8 }}>
-                  <span style={{ background:`${firstIncomplete.trackColor}30`,
-                    color:firstIncomplete.trackColor,fontSize:10,fontWeight:800,
-                    padding:"3px 10px",borderRadius:99,letterSpacing:1,textTransform:"uppercase" }}>
-                    {firstIncomplete.track}
-                  </span>
-                  <span style={{ color:"#4A6080",fontSize:11 }}>
-                    {firstIncomplete.cards?.length} cards · +{firstIncomplete.xp} XP
-                  </span>
-                </div>
-                <p style={{ color:"#FFFFFF",fontWeight:800,fontSize:17,lineHeight:1.3 }}>
-                  {firstIncomplete.title}
-                </p>
-              </div>
-            </button>
-          </div>
-        )}
-
-        {/* ── All lessons list ────────────────────────────────────── */}
-        <p style={{ color:"#5A7A9A",fontSize:11,fontWeight:700,letterSpacing:1.5,
-          textTransform:"uppercase",marginBottom:14 }}>
-          {doneCount > 0 ? `All lessons · ${doneCount} of ${LESSONS.length} complete` : "All lessons"}
-        </p>
-
-        <div style={{ display:"flex",flexDirection:"column",gap:10,marginBottom:28 }}>
-          {sorted.map(lesson=>{
-            const done   = doneSet.has(lesson.id)
-            const linked = lesson.goalLinks?.some(g=>priorityGoals.includes(g))
-            const isNext = lesson.id === firstIncomplete?.id
-            const mins = lesson.cards?.length || 5
-            return (
-              <button key={lesson.id} onClick={()=>setActiveLesson(lesson.id)}
-                className="ls-card-lift"
-                style={{ width:"100%",background: done
-                    ? "rgba(255,255,255,.02)"
-                    : isNext ? `linear-gradient(135deg,${lesson.trackColor}10,rgba(255,255,255,.02))` : "rgba(255,255,255,.025)",
-                  border:`1.5px solid ${done ? "rgba(255,255,255,.05)" : isNext ? lesson.trackColor+"40" : "rgba(255,255,255,.06)"}`,
-                  borderRadius:20,padding:0,cursor:"pointer",fontFamily:"inherit",
-                  textAlign:"left",overflow:"hidden",
-                  boxShadow: isNext ? `0 4px 24px ${lesson.trackColor}15` : "none",
-                  display:"flex" }}>
-                {/* Left colour bar */}
-                <div style={{ width:4,flexShrink:0,
-                  background: done ? lesson.trackColor+"35" : isNext ? lesson.trackColor : lesson.trackColor+"20" }}/>
-                {/* Content */}
-                <div style={{ flex:1,padding:"16px 16px",display:"flex",alignItems:"center",gap:14 }}>
-                  <div style={{ width:48,height:48,borderRadius:14,flexShrink:0,
-                    background: done ? `${lesson.trackColor}15` : `${lesson.trackColor}18`,
-                    border:`1px solid ${lesson.trackColor}25`,
-                    display:"flex",alignItems:"center",justifyContent:"center",fontSize:22 }}>
-                    {done ? "✅" : lesson.emoji}
-                  </div>
-                  <div style={{ flex:1,minWidth:0 }}>
-                    <div style={{ display:"flex",alignItems:"center",gap:6,marginBottom:4,flexWrap:"wrap" }}>
-                      <span style={{ color:lesson.trackColor,fontSize:10,fontWeight:800,
-                        letterSpacing:.8,textTransform:"uppercase" }}>{lesson.track}</span>
-                      {linked && !done && <span style={{ background:T.amberDim,color:T.amber,fontSize:9,fontWeight:700,padding:"2px 7px",borderRadius:99,border:`1px solid ${T.amberBorder}` }}>For your goals</span>}
-                    </div>
-                    <p style={{ color: done ? "#5A7A9A" : "#FFFFFF",fontWeight:700,
-                      fontSize:14,lineHeight:1.3,marginBottom:4 }}>{lesson.title}</p>
-                    <div style={{ display:"flex",alignItems:"center",gap:8 }}>
-                      <div style={{ display:"flex",alignItems:"center",gap:3 }}>
-                        <Clock size={10} color={T.muted}/>
-                        <span style={{ color:T.muted,fontSize:11 }}>{mins} min</span>
-                      </div>
-                      <span style={{ color:"#344D68",fontSize:11 }}>·</span>
-                      <span style={{ color:T.muted,fontSize:11 }}>+{lesson.xp} XP</span>
-                    </div>
-                  </div>
-                  <div style={{ flexShrink:0 }}>
-                    {done
-                      ? <div style={{ width:28,height:28,borderRadius:"50%",
-                          background:`${lesson.trackColor}15`,
-                          display:"flex",alignItems:"center",justifyContent:"center" }}>
-                          <Check size={13} color={lesson.trackColor}/>
-                        </div>
-                      : <div style={{ width:32,height:32,borderRadius:"50%",
-                          background: isNext ? lesson.trackColor : "rgba(255,255,255,.04)",
-                          display:"flex",alignItems:"center",justifyContent:"center" }}>
-                          <p style={{ color: isNext ? "#FFFFFF" : "#5A7A9A",
-                            fontSize:18,fontWeight:300,lineHeight:1,marginTop:-1 }}>›</p>
-                        </div>
-                    }
-                  </div>
-                </div>
-              </button>
-            )
-          })}
-        </div>
-
-        {/* ── Coming soon ─────────────────────────────────────────── */}
-        <p style={{ color:"#4A6080",fontSize:11,fontWeight:700,letterSpacing:1.5,
-          textTransform:"uppercase",marginBottom:12 }}>Coming soon</p>
-        <div style={{ display:"flex",flexDirection:"column",gap:8,marginBottom:24 }}>
-          {COMING_SOON_LESSONS.map((l,i)=>(
-            <div key={i} style={{ background:"rgba(255,255,255,.02)",borderRadius:16,
-              padding:"13px 16px",display:"flex",gap:12,alignItems:"center",
-              opacity:0.45,overflow:"hidden",position:"relative" }}>
-              <div style={{ width:4,position:"absolute",left:0,top:0,bottom:0,
-                background:`${l.trackColor}40`,borderRadius:0 }}/>
-              <div style={{ width:42,height:42,borderRadius:13,marginLeft:8,
-                background:`${l.trackColor}12`,
-                display:"flex",alignItems:"center",justifyContent:"center",
-                fontSize:20,flexShrink:0 }}>{l.emoji}</div>
-              <div style={{ flex:1,minWidth:0 }}>
-                <p style={{ color:"#FFFFFF",fontWeight:600,fontSize:13,marginBottom:2 }}>{l.title}</p>
-                <span style={{ color:l.trackColor,fontSize:10,fontWeight:700,
-                  letterSpacing:.8,textTransform:"uppercase" }}>{l.track}</span>
-              </div>
-              <span style={{ color:"#4A6080",fontSize:11,fontWeight:700,flexShrink:0 }}>Soon</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-
-/* ════════════════════════════════════════════════════════════════════
-   LESSON PLAYER
-   ════════════════════════════════════════════════════════════════════ */
-function LessonPlayer({ lesson, onComplete, onBack }) {
-  const [cardIdx,  setCardIdx]   = useState(0)
-  const [answered, setAnswered]  = useState(null)
-  const [ranked,   setRanked]    = useState([])
-  const [matchSel, setMatchSel]  = useState(null)
-  const [matchDone,setMatchDone] = useState(new Set())
-  const [shuffledDefs, setShuffledDefs] = useState([])
-
-  const card  = lesson.cards[cardIdx]
-  const isLast= cardIdx === lesson.cards.length - 1
-  const color = lesson.trackColor || T.teal
-
-  useEffect(()=>{
-    setAnswered(null)
-    setMatchSel(null)
-    setMatchDone(new Set())
-    setRanked([])
-    if(card?.type==="match") {
-      const defs = [...card.pairs.map(p=>p.def)]
-      for(let i=defs.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1));[defs[i],defs[j]]=[defs[j],defs[i]] }
-      setShuffledDefs(defs)
-    }
-  },[cardIdx])
-
-  function next() {
-    if(isLast) { onComplete(); return }
-    setCardIdx(i=>i+1)
-  }
-
-  const canProceed = () => {
-    if(card.type==="quiz"||card.type==="scenario") return answered !== null
-    if(card.type==="match") return matchDone.size === card.pairs?.length
-    if(card.type==="rank")  return ranked.length === card.items?.length
-    return true
-  }
-
-  return (
-    <div style={{ height:"100%",background:T.bg,display:"flex",flexDirection:"column",position:"relative",overflow:"hidden" }}>
-      <StarField count={20}/>
-      <div style={{ position:"absolute",top:0,left:0,right:0,height:180,background:`linear-gradient(180deg,${color}15 0%,transparent 100%)`,pointerEvents:"none" }}/>
-
-      {/* Header */}
-      <div style={{ position:"relative",display:"flex",alignItems:"center",gap:12,padding:"14px 18px",borderBottom:`1px solid ${T.border}`,flexShrink:0 }}>
-        <button onClick={onBack} style={{ background:"none",border:"none",color:T.muted,cursor:"pointer",display:"flex",padding:4 }}><ChevronLeft size={20}/></button>
-        <div style={{ flex:1 }}>
-          <p style={{ color,fontWeight:700,fontSize:11,letterSpacing:.8,textTransform:"uppercase" }}>{lesson.track}</p>
-          <p style={{ color:T.white,fontWeight:700,fontSize:13,lineHeight:1.2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:260 }}>{lesson.title}</p>
-        </div>
-        <span style={{ color:T.muted,fontSize:12,flexShrink:0 }}>{cardIdx+1}/{lesson.cards.length}</span>
-      </div>
-
-      {/* Progress */}
-      <div style={{ background:T.surface,height:4,flexShrink:0,overflow:"hidden" }}>
-        <div style={{ width:`${((cardIdx+1)/lesson.cards.length)*100}%`,height:"100%",background:color,transition:"width .5s ease" }}/>
-      </div>
-
-      {/* Card */}
-      <div key={`card-${cardIdx}`} className="ls-slidecard" style={{ position:"relative",flex:1,overflowY:"auto",padding:"24px 22px 20px",maxWidth:560,margin:"0 auto",width:"100%" }}>
-
-        {card.type==="fact"        && <FactCard        card={card} color={color}/>}
-        {card.type==="scenario"    && <ScenarioCard    card={card} color={color} answered={answered} onAnswer={setAnswered}/>}
-        {card.type==="quiz"        && <QuizCard        card={card} color={color} answered={answered} onAnswer={setAnswered}/>}
-        {card.type==="match"       && <MatchCard       card={card} color={color} shuffledDefs={shuffledDefs} matchSel={matchSel} setMatchSel={setMatchSel} matchDone={matchDone} setMatchDone={setMatchDone}/>}
-        {card.type==="interactive" && card.id==="growth_chart" && <GrowthChartCard color={color} hint={card.hint}/>}
-        {card.type==="rank"        && <RankCard        card={card} color={color} ranked={ranked} setRanked={setRanked}/>}
-
-      </div>
-
-      {/* CTA */}
-      <div style={{ position:"relative",padding:"10px 22px 32px",maxWidth:560,margin:"0 auto",width:"100%",flexShrink:0 }}>
-        {canProceed() ? (
-          <Btn onClick={next}>
-            {isLast ? "Complete lesson 🎉" : "Next →"}
-          </Btn>
-        ) : (
-          <div style={{ background:T.faint,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px",textAlign:"center" }}>
-            <p style={{ color:"#E2EAF6",fontSize:13 }}>
-              {card.type==="quiz"||card.type==="scenario" ? "Choose an answer to continue" : "Complete the exercise to continue"}
-            </p>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-/* ── Card type renderers ────────────────────────────────────────── */
-function FactCard({ card, color }) {
-  const [expanded, setExpanded] = useState(null)
-
-  return (
-    <div>
-      {/* Icon badge */}
-      {card.icon && (
-        <div style={{ width:52,height:52,borderRadius:16,background:`${color}20`,border:`1.5px solid ${color}40`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,marginBottom:18 }}>
-          {card.icon}
-        </div>
-      )}
-
-      <h2 style={{ color:T.white,fontSize:"clamp(18px,4vw,24px)",fontWeight:900,lineHeight:1.3,marginBottom:14 }}>{card.headline}</h2>
-      <p style={{ color:"#E2EAF6",fontSize:15,lineHeight:1.8,marginBottom:card.highlight||card.facts?18:0 }}>{card.body}</p>
-
-      {/* Equation visual */}
-      {card.visual==="equation" && (
-        <div style={{ display:"flex",alignItems:"center",gap:10,flexWrap:"wrap",justifyContent:"center",marginBottom:18,padding:"16px",background:T.faint,borderRadius:16 }}>
-          {[
-            { label:"🏠 Assets", color:T.green },
-            { label:"−", plain:true },
-            { label:"💳 Debts", color:T.red },
-            { label:"=", plain:true },
-            { label:"💰 Net Worth", color:T.teal },
-          ].map((item,i)=>(
-            item.plain
-            ? <span key={i} style={{ color:T.muted,fontSize:22,fontWeight:900 }}>{item.label}</span>
-            : <div key={i} style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:10,padding:"8px 12px" }}>
-                <p style={{ color:item.color,fontWeight:800,fontSize:13 }}>{item.label}</p>
-              </div>
-          ))}
-        </div>
-      )}
-
-      {card.highlight && (
-        <div style={{ background:`${color}12`,border:`1.5px solid ${color}35`,borderRadius:14,padding:"14px 18px",marginBottom:card.sub||card.facts?14:0 }}>
-          <p style={{ color,fontWeight:700,fontSize:14,lineHeight:1.5 }}>💡 {card.highlight}</p>
-        </div>
-      )}
-      {card.sub && (
-        <p style={{ color:"#E2EAF6",fontSize:14,lineHeight:1.65,marginBottom:card.facts?18:0 }}>{card.sub}</p>
-      )}
-
-      {card.facts && (
-        <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
-          {card.facts.map((f,i)=>{
-            const open = expanded===i
-            return (
-              <div key={i} onClick={()=>setExpanded(open?null:i)}
-                style={{ background:open?`${color}10`:T.card,border:`1.5px solid ${open?color+"40":T.border}`,borderRadius:14,padding:"14px 16px",cursor:"pointer",transition:"all .2s" }}>
-                <div style={{ display:"flex",alignItems:"center",gap:10 }}>
-                  <span style={{ fontSize:20 }}>{f.icon}</span>
-                  <p style={{ color:open?T.white:T.muted,fontWeight:700,fontSize:14,flex:1 }}>{f.label}</p>
-                  <ChevronRight size={14} color={T.subtle} style={{ transform:open?"rotate(90deg)":"none",transition:"transform .2s",flexShrink:0 }}/>
-                </div>
-                {open && <p style={{ color:"#E2EAF6",fontSize:13,lineHeight:1.7,marginTop:12,paddingTop:10,borderTop:`1px solid ${T.border}` }}>{f.text}</p>}
-              </div>
-            )
-          })}
-        </div>
-      )}
-    </div>
-  )
-}
-
-function ScenarioCard({ card, color, answered, onAnswer }) {
-  return (
-    <div>
-      <div style={{ background:`${color}12`,border:`1.5px solid ${color}35`,borderRadius:14,padding:"16px 18px",marginBottom:20 }}>
-        <p style={{ color:T.muted,fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1,marginBottom:8 }}>Scenario</p>
-        <p style={{ color:T.white,fontWeight:700,fontSize:16,lineHeight:1.4,marginBottom:8 }}>{card.prompt}</p>
-        <p style={{ color:"#D8E8F8",fontSize:14,lineHeight:1.65 }}>{card.context}</p>
-      </div>
-
-      <p style={{ color:T.muted,fontSize:12,marginBottom:12,fontWeight:600 }}>What would you do?</p>
-
-      <div style={{ display:"flex",flexDirection:"column",gap:10,marginBottom:16 }}>
-        {card.choices.map((c,i)=>{
-          const picked = answered===i
-          const wrong  = answered!==null && picked && !c.best
-          const right  = answered!==null && c.best
-          let bg = T.card, border = T.border, textColor = T.muted
-          if(right)  { bg=`rgba(52,211,153,.1)`; border=`rgba(52,211,153,.4)`; textColor=T.green }
-          if(wrong)  { bg=T.redDim; border=T.redBorder; textColor=T.red }
-          if(answered===null) { bg=T.card; border=T.border; textColor=T.muted }
-          if(answered===null&&picked) { bg=`${color}15`; border=`${color}40`; textColor=T.white }
-
-          return (
-            <button key={i} onClick={()=>answered===null&&onAnswer(i)}
-              style={{ background:bg,border:`2px solid ${border}`,borderRadius:14,padding:"14px 16px",cursor:answered!==null?"default":"pointer",textAlign:"left",fontFamily:"inherit",transition:"all .2s" }}>
-              <p style={{ color:answered!==null?textColor:T.white,fontWeight:600,fontSize:14,lineHeight:1.4,marginBottom:answered!==null&&picked?8:0 }}>{c.label}</p>
-              {answered!==null && picked && c.outcome && (
-                <p style={{ color:textColor,fontSize:12,lineHeight:1.5,opacity:.9 }}>{c.outcome}</p>
               )}
-              {answered!==null && !picked && c.best && (
-                <p style={{ color:T.green,fontSize:12,lineHeight:1.5,marginTop:4 }}>{c.outcome}</p>
-              )}
-            </button>
+            </div>
           )
         })}
       </div>
-
-      {answered!==null && card.explanation && (
-        <div className="ls-fadein" style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px 16px" }}>
-          <p style={{ color:T.muted,fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8,marginBottom:6 }}>The takeaway</p>
-          <p style={{ color:"#E2EAF6",fontSize:13,lineHeight:1.7 }}>{card.explanation}</p>
-        </div>
-      )}
-    </div>
-  )
-}
-
-function QuizCard({ card, color, answered, onAnswer }) {
-  return (
-    <div>
-      <h2 style={{ color:T.white,fontSize:"clamp(17px,3.5vw,22px)",fontWeight:900,lineHeight:1.3,marginBottom:20 }}>{card.question}</h2>
-
-      <div style={{ display:"flex",flexDirection:"column",gap:10,marginBottom:16 }}>
-        {card.options.map((opt,i)=>{
-          const picked  = answered===i
-          const correct = card.correct===i
-          let bg=T.card, border=T.border, textColor=T.muted
-          if(answered!==null && correct)        { bg="rgba(52,211,153,.1)"; border="rgba(52,211,153,.4)"; textColor=T.green }
-          if(answered!==null && picked&&!correct){ bg=T.redDim; border=T.redBorder; textColor=T.red }
-
-          return (
-            <button key={i} onClick={()=>answered===null&&onAnswer(i)}
-              style={{ background:bg,border:`2px solid ${border}`,borderRadius:14,padding:"14px 16px",cursor:answered!==null?"default":"pointer",textAlign:"left",fontFamily:"inherit",display:"flex",alignItems:"center",gap:12,transition:"all .2s" }}>
-              <div style={{ width:28,height:28,borderRadius:8,background:answered!==null?(correct?"rgba(52,211,153,.2)":(picked?T.redDim:`${color}10`)):`${color}15`,border:`1.5px solid ${answered!==null?(correct?"rgba(52,211,153,.4)":(picked?T.redBorder:`${color}30`)):T.border}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
-                <span style={{ color:answered!==null?(correct?T.green:(picked?T.red:T.muted)):color,fontWeight:800,fontSize:11 }}>
-                  {answered!==null ? (correct?"✓":(picked?"✗":String.fromCharCode(65+i))) : String.fromCharCode(65+i)}
-                </span>
-              </div>
-              <p style={{ color:answered!==null?textColor:T.white,fontWeight:600,fontSize:14,flex:1,lineHeight:1.4 }}>{opt}</p>
-            </button>
-          )
-        })}
-      </div>
-
-      {answered!==null && card.explanation && (
-        <div className="ls-fadein" style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px 16px" }}>
-          <p style={{ color:T.muted,fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8,marginBottom:6 }}>Why</p>
-          <p style={{ color:"#E2EAF6",fontSize:13,lineHeight:1.7 }}>{card.explanation}</p>
-        </div>
-      )}
-    </div>
-  )
-}
-
-function MatchCard({ card, color, shuffledDefs, matchSel, setMatchSel, matchDone, setMatchDone }) {
-  function handleTerm(i) {
-    if(matchDone.has(String(i))) return
-    setMatchSel({ type:"term", idx:i })
-  }
-  function handleDef(defPos) {
-    if(matchSel?.type==="term") {
-      const defText = shuffledDefs[defPos]
-      const termIdx = card.pairs.findIndex(p=>p.def===defText)
-      if(termIdx===matchSel.idx) {
-        setMatchDone(s=>{ const n=new Set(s); n.add(String(termIdx)); return n })
-        setMatchSel(null)
-      } else {
-        setMatchSel({ type:"wrong", defPos, termIdx:matchSel.idx })
-        setTimeout(()=>setMatchSel(null),800)
-      }
-    }
-  }
-  const allDone = matchDone.size===card.pairs?.length
-  return (
-    <div>
-      <h2 style={{ color:T.white,fontSize:"clamp(17px,3.5vw,22px)",fontWeight:900,marginBottom:6 }}>{card.prompt}</h2>
-      <p style={{ color:"#E2EAF6",fontSize:13,marginBottom:20 }}>Tap a term, then its matching definition.</p>
-      <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14 }}>
-        <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
-          <p style={{ color:T.muted,fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1,marginBottom:2 }}>Terms</p>
-          {card.pairs.map((p,i)=>{
-            const matched=matchDone.has(String(i)); const sel=matchSel?.type==="term"&&matchSel?.idx===i
-            return <button key={i} onClick={()=>handleTerm(i)} style={{ background:matched?"rgba(52,211,153,.1)":sel?`${color}20`:T.card,border:`2px solid ${matched?"#34D399":sel?color:T.border}`,borderRadius:12,padding:"12px 14px",cursor:matched?"default":"pointer",textAlign:"left",fontFamily:"inherit",transition:"all .15s" }}>
-              <p style={{ color:matched?"#34D399":sel?T.white:T.muted,fontWeight:700,fontSize:13 }}>{p.term}</p>
-            </button>
-          })}
-        </div>
-        <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
-          <p style={{ color:T.muted,fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1,marginBottom:2 }}>Definitions</p>
-          {shuffledDefs.map((def,pos)=>{
-            const termIdx=card.pairs.findIndex(p=>p.def===def); const matched=matchDone.has(String(termIdx)); const wrong=matchSel?.type==="wrong"&&matchSel?.defPos===pos
-            return <button key={pos} onClick={()=>handleDef(pos)} style={{ background:matched?"rgba(52,211,153,.1)":wrong?T.redDim:matchSel?.type==="term"?`${color}08`:T.card,border:`2px solid ${matched?"#34D399":wrong?T.red:matchSel?.type==="term"?color+"30":T.border}`,borderRadius:12,padding:"12px 14px",cursor:matched?"default":"pointer",textAlign:"left",fontFamily:"inherit",transition:"all .15s" }}>
-              <p style={{ color:matched?"#34D399":T.muted,fontWeight:600,fontSize:12,lineHeight:1.4 }}>{def}</p>
-            </button>
-          })}
-        </div>
-      </div>
-      {allDone && (
-        <div className="ls-fadein" style={{ background:"rgba(52,211,153,.1)",border:"1px solid rgba(52,211,153,.3)",borderRadius:14,padding:"14px 18px" }}>
-          <p style={{ color:"#34D399",fontWeight:700,fontSize:14,marginBottom:4 }}>All matched! 🎉</p>
-          {card.explanation && <p style={{ color:"#D8E8F8",fontSize:14,lineHeight:1.65 }}>{card.explanation}</p>}
-        </div>
-      )}
-    </div>
-  )
-}
-
-function RankCard({ card, color, ranked, setRanked }) {
-  const remaining = card.items?.filter(x=>!ranked.includes(x))||[]
-  const allDone   = ranked.length===card.items?.length
-  return (
-    <div>
-      <h2 style={{ color:T.white,fontSize:"clamp(17px,3.5vw,22px)",fontWeight:900,marginBottom:6 }}>{card.prompt}</h2>
-      <p style={{ color:"#E2EAF6",fontSize:13,marginBottom:20 }}>Tap in your preferred order.</p>
-      {ranked.length>0 && (
-        <div style={{ marginBottom:14 }}>
-          <p style={{ color:T.muted,fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1,marginBottom:8 }}>Your ranking</p>
-          {ranked.map((item,i)=>(
-            <div key={item} onClick={()=>setRanked(r=>r.filter(x=>x!==item))} style={{ display:"flex",alignItems:"center",gap:10,background:`${color}12`,border:`1px solid ${color}30`,borderRadius:11,padding:"10px 14px",marginBottom:6,cursor:"pointer" }}>
-              <span style={{ color,fontWeight:900,fontSize:14,width:22 }}>#{i+1}</span>
-              <p style={{ color:T.white,fontSize:13,fontWeight:600,flex:1 }}>{item}</p>
-              <X size={12} color={T.muted}/>
-            </div>
-          ))}
-        </div>
-      )}
-      {remaining.length>0 && (
-        <div>
-          <p style={{ color:T.muted,fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1,marginBottom:8 }}>Options</p>
-          {remaining.map(item=>(
-            <div key={item} onClick={()=>setRanked(r=>[...r,item])} style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:11,padding:"10px 14px",marginBottom:6,cursor:"pointer" }}>
-              <p style={{ color:"#E2EAF6",fontSize:13,fontWeight:600 }}>{item}</p>
-            </div>
-          ))}
-        </div>
-      )}
-      {allDone && card.answer && (
-        <div className="ls-fadein" style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px 16px",marginTop:12 }}>
-          <p style={{ color:T.muted,fontSize:12,lineHeight:1.7 }}>{card.answer}</p>
-        </div>
-      )}
-    </div>
-  )
-}
-
-function GrowthChartCard({ color, hint }) {
-  const [monthly, setMonthly] = useState(300)
-  const years = 30
-  const data = useMemo(()=>{
-    const pts = []
-    let total=0, balance=0
-    for(let y=0;y<=years;y++){
-      if(y>0){ total+=monthly*12; balance=(balance+monthly*12)*1.07 }
-      pts.push({ year:y, contributed:Math.round(total), growth:Math.round(balance) })
-    }
-    return pts
-  },[monthly])
-  const fmtAx = v => v>=1e6?`£${(v/1e6).toFixed(1)}M`:v>=1000?`£${(v/1000).toFixed(0)}k`:""
-  const finalBal = data[years]?.growth||0
-  const finalCon = data[years]?.contributed||0
-
-  return (
-    <div>
-      <h2 style={{ color:T.white,fontSize:"clamp(17px,3.5vw,22px)",fontWeight:900,marginBottom:6 }}>See compound interest in action</h2>
-      <p style={{ color:"#E2EAF6",fontSize:13,marginBottom:20,lineHeight:1.5 }}>Adjust your monthly investment to see what compound interest does over 30 years.</p>
-
-      {/* Slider */}
-      <div style={{ marginBottom:20 }}>
-        <div style={{ display:"flex",justifyContent:"space-between",marginBottom:8 }}>
-          <p style={{ color:"#E2EAF6",fontSize:13 }}>Monthly investment</p>
-          <p style={{ color,fontWeight:800,fontSize:16 }}>£{monthly.toLocaleString("en-GB")}</p>
-        </div>
-        <input type="range" min="50" max="2000" step="50" value={monthly} onChange={e=>setMonthly(Number(e.target.value))}
-          style={{ width:"100%",accentColor:color,height:6,cursor:"pointer" }}/>
-        <div style={{ display:"flex",justifyContent:"space-between",marginTop:4 }}>
-          <span style={{ color:"#8FA3BE",fontSize:12 }}>£50</span>
-          <span style={{ color:"#8FA3BE",fontSize:12 }}>£2,000</span>
-        </div>
-      </div>
-
-      {/* Stats */}
-      <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16 }}>
-        <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"12px 14px" }}>
-          <p style={{ color:T.muted,fontSize:12,marginBottom:2 }}>You put in</p>
-          <p style={{ color:T.white,fontWeight:800,fontSize:18 }}>{fmtK(finalCon)}</p>
-        </div>
-        <div style={{ background:`${color}12`,border:`1.5px solid ${color}35`,borderRadius:12,padding:"12px 14px" }}>
-          <p style={{ color:T.muted,fontSize:12,marginBottom:2 }}>You end up with</p>
-          <p style={{ color,fontWeight:800,fontSize:18 }}>{fmtK(finalBal)}</p>
-        </div>
-      </div>
-      <div style={{ background:T.amberDim,border:`1px solid ${T.amberBorder}`,borderRadius:12,padding:"10px 14px",marginBottom:16 }}>
-        <p style={{ color:T.amber,fontWeight:700,fontSize:13 }}>💡 Compound interest adds {fmtK(finalBal-finalCon)} on top of what you invested</p>
-      </div>
-
-      {/* Chart */}
-      <div style={{ height:160 }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top:4,right:4,bottom:0,left:0 }}>
-            <defs>
-              <linearGradient id="gGrowth" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%"  stopColor={color} stopOpacity={.3}/>
-                <stop offset="95%" stopColor={color} stopOpacity={0}/>
-              </linearGradient>
-              <linearGradient id="gContrib" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%"  stopColor={T.muted} stopOpacity={.2}/>
-                <stop offset="95%" stopColor={T.muted} stopOpacity={0}/>
-              </linearGradient>
-            </defs>
-            <XAxis dataKey="year" tick={{ fontSize:10,fill:T.muted }} axisLine={false} tickLine={false} interval={5}/>
-            <YAxis tick={{ fontSize:9,fill:T.subtle }} axisLine={false} tickLine={false} tickFormatter={fmtAx} width={42}/>
-            <Tooltip formatter={(v,name)=>[fmt(v),name==="growth"?"Total value":"Amount contributed"]} labelFormatter={v=>`Year ${v}`} contentStyle={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:10,fontSize:12,color:T.white }}/>
-            <Area type="monotone" dataKey="contributed" stroke={T.muted}   strokeWidth={1.5} strokeDasharray="4 3" fill="url(#gContrib)" dot={false}/>
-            <Area type="monotone" dataKey="growth"      stroke={color}      strokeWidth={2.5} fill="url(#gGrowth)" dot={false}/>
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
-
-      {hint && <p style={{ color:T.subtle,fontSize:12,lineHeight:1.6,marginTop:12 }}>💡 {hint}</p>}
     </div>
   )
 }
 
 /* ════════════════════════════════════════════════════════════════════
-   ME TAB
+   ME TAB (profile, XP, personality)
    ════════════════════════════════════════════════════════════════════ */
-/* ════════════════════════════════════════════════════════════════════
-   MONEY PERSONALITY CARD
-   ════════════════════════════════════════════════════════════════════ */
+function MeTab(){
+  const{state,reset}=useApp()
+  const{profile}=state
+  const currentLevel=profile.currentLevel||1
+  const phase=getPhase(currentLevel)
+  const phaseColor=PHASE_COLORS[phase]
+  const completedCount=(profile.completedLevels||[]).length
+  const xp=profile.xp||0
+  const isHalal=profile.situations?.includes("faith")
+  const initials=(profile.name||"?").slice(0,2).toUpperCase()
 
-/* ════════════════════════════════════════════════════════════════════
-   PERSONALITY QUIZ, full interactive UI
-   ════════════════════════════════════════════════════════════════════ */
-function PersonalityQuiz({ state, save, onClose }) {
-  const [step, setStep]       = useState(0)         // 0 = intro, 1-12 = questions, 13 = result
-  const [answers, setAnswers] = useState({})
-  const [selected, setSelected] = useState(null)
-  const [result, setResult]   = useState(null)
-  const [animDir, setAnimDir] = useState("in")
+  // XP milestones
+  const milestones=[0,100,250,500,800,1200,1725]
+  const currentMilestone=milestones.filter(m=>m<=xp).pop()||0
+  const nextMilestone=milestones.find(m=>m>xp)||milestones[milestones.length-1]
+  const xpPct=nextMilestone>currentMilestone?Math.round(((xp-currentMilestone)/(nextMilestone-currentMilestone))*100):100
 
-  const total = PERSONALITY_QUIZ.length
-  const q     = PERSONALITY_QUIZ[step - 1]
-  const isIntro  = step === 0
-  const isResult = step > total
+  return(
+    <div style={{flex:1,overflowY:"auto",paddingBottom:100}}>
+      <div style={{padding:"32px 20px 24px",textAlign:"center"}}>
+        {/* Avatar */}
+        <div style={{width:72,height:72,borderRadius:22,background:`linear-gradient(135deg,${T.teal},${T.purple})`,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 14px",boxShadow:`0 8px 32px rgba(15,191,184,.3)`}}>
+          <p style={{color:"#FFFFFF",fontWeight:900,fontSize:24}}>{initials}</p>
+        </div>
+        <p style={{color:T.white,fontWeight:800,fontSize:20}}>{profile.name||"You"}</p>
+        <p style={{color:T.muted,fontSize:13,marginTop:4}}>Level {currentLevel} of 15</p>
 
-  function next() {
-    if(isIntro) { setStep(1); return }
-    if(selected === null) return
-    const newAnswers = { ...answers, [q.id]: selected }
-    setAnswers(newAnswers)
-    setAnimDir("out")
-    setTimeout(() => {
-      if(step >= total) {
-        const r = calcQuizPersonality(newAnswers, state)
-        setResult(r)
-        save({ ...state, profile: { ...state.profile, personalityResult: r } })
-        setStep(total + 1)
-      } else {
-        setStep(s => s + 1)
-        setSelected(null)
-      }
-      setAnimDir("in")
-    }, 180)
-  }
-
-  function back() {
-    if(step <= 1) { onClose(); return }
-    setAnimDir("out")
-    setTimeout(() => {
-      setStep(s => s - 1)
-      const prevQ = PERSONALITY_QUIZ[step - 2]
-      setSelected(answers[prevQ?.id] ?? null)
-      setAnimDir("in")
-    }, 180)
-  }
-
-  const pct = step === 0 ? 0 : Math.round((step / total) * 100)
-
-  return (
-    <div style={{ position:"fixed",inset:0,background:T.bg,zIndex:300,display:"flex",flexDirection:"column",overflowY:"auto" }}>
-      <style>{`@keyframes quizIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}`}</style>
-
-      {/* Top bar */}
-      <div style={{ padding:"16px 20px",display:"flex",alignItems:"center",gap:14,borderBottom:`1px solid ${T.border}`,position:"sticky",top:0,background:T.bg,zIndex:10 }}>
-        <button onClick={isResult ? onClose : back} style={{ background:"none",border:"none",cursor:"pointer",color:T.muted,padding:4,fontFamily:"inherit" }}>
-          {isResult ? <span style={{ fontSize:13,fontWeight:700 }}>Done</span> : <span style={{ fontSize:20 }}>←</span>}
-        </button>
-        <div style={{ flex:1 }}>
-          {!isIntro && !isResult && (
-            <>
-              <div style={{ display:"flex",justifyContent:"space-between",marginBottom:5 }}>
-                <p style={{ color:T.muted,fontSize:11,fontWeight:700 }}>Question {step} of {total}</p>
-                <p style={{ color:T.teal,fontSize:11,fontWeight:700 }}>{pct}%</p>
-              </div>
-              <div style={{ background:T.surface,borderRadius:99,height:4,overflow:"hidden" }}>
-                <div style={{ width:`${pct}%`,height:"100%",background:`linear-gradient(90deg,${T.teal},${T.purple})`,borderRadius:99,transition:"width .4s ease" }}/>
-              </div>
-            </>
-          )}
-          {(isIntro || isResult) && <p style={{ color:T.muted,fontSize:12,fontWeight:600 }}>Money Personality</p>}
+        {/* Identity pills */}
+        <div style={{display:"flex",gap:6,justifyContent:"center",flexWrap:"wrap",marginTop:14}}>
+          <span style={{background:T.faint,color:T.white,fontSize:11,fontWeight:700,padding:"5px 12px",borderRadius:99,border:`1px solid ${T.border}`}}>⚡ Level {currentLevel}</span>
+          <span style={{background:`${phaseColor}12`,color:phaseColor,fontSize:11,fontWeight:700,padding:"5px 12px",borderRadius:99,border:`1px solid ${phaseColor}30`}}>{PHASE_EMOJIS[phase]} {phase}</span>
+          {isHalal&&<span style={{background:T.tealDim,color:T.teal,fontSize:11,fontWeight:700,padding:"5px 12px",borderRadius:99,border:`1px solid ${T.tealBorder}`}}>🌙 Halal finance</span>}
         </div>
       </div>
 
-      <div style={{ flex:1,padding:"28px 20px 40px",maxWidth:520,margin:"0 auto",width:"100%" }}>
-
-        {/* INTRO */}
-        {isIntro && (
-          <div style={{ animation:"quizIn .3s ease" }}>
-            <div style={{ fontSize:56,marginBottom:20,textAlign:"center" }}>🧠</div>
-            <h1 style={{ color:T.white,fontWeight:900,fontSize:26,textAlign:"center",marginBottom:12,lineHeight:1.2 }}>
-              Find out your money personality
-            </h1>
-            <p style={{ color:"#E2EAF6",fontSize:15,textAlign:"center",lineHeight:1.7,marginBottom:32 }}>
-              12 scenario questions. No right answers. Takes about 4 minutes.
-            </p>
-            <div style={{ display:"flex",flexDirection:"column",gap:10,marginBottom:32 }}>
-              {[
-                { icon:"🎯", text:"Your money archetype, one of 8 types" },
-                { icon:"📊", text:"How you make financial decisions" },
-                { icon:"💡", text:"Your specific blind spots and strengths" },
-                { icon:"🗺️", text:"What this means in real-life scenarios" },
-              ].map((item,i)=>(
-                <div key={i} style={{ display:"flex",alignItems:"center",gap:12,background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"12px 14px" }}>
-                  <span style={{ fontSize:20 }}>{item.icon}</span>
-                  <p style={{ color:"#E2EAF6",fontSize:13,fontWeight:500 }}>{item.text}</p>
-                </div>
-              ))}
-            </div>
-            <button onClick={next} style={{ width:"100%",background:`linear-gradient(135deg,${T.teal},${T.purple})`,border:"none",borderRadius:16,padding:"16px",color:T.bg,fontWeight:900,fontSize:16,cursor:"pointer",fontFamily:"inherit" }}>
-              Start the quiz
-            </button>
-          </div>
-        )}
-
-        {/* QUESTION */}
-        {!isIntro && !isResult && q && (
-          <div key={step} style={{ animation:"quizIn .25s ease" }}>
-            <div style={{ marginBottom:8 }}>
-              <span style={{ background:T.purpleDim,color:T.purple,fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:99,border:`1px solid ${T.purpleBorder}`,letterSpacing:.8,textTransform:"uppercase" }}>
-                {q.dimension.replace(/_/g," ")}
-              </span>
-            </div>
-            <h2 style={{ color:T.white,fontWeight:900,fontSize:21,lineHeight:1.25,marginBottom:6,marginTop:14 }}>{q.headline}</h2>
-            <p style={{ color:"#8FA3BE",fontSize:14,marginBottom:28 }}>{q.sub}</p>
-
-            <div style={{ display:"flex",flexDirection:"column",gap:10,marginBottom:32 }}>
-              {q.options.map((opt, oi) => {
-                const sel = selected === oi
-                return (
-                  <button key={oi} onClick={()=>setSelected(oi)}
-                    style={{
-                      background: sel ? `linear-gradient(135deg,${T.tealDim},${T.purpleDim})` : T.card,
-                      border: `2px solid ${sel ? T.teal : T.border}`,
-                      borderRadius:14, padding:"15px 18px",
-                      cursor:"pointer", textAlign:"left", fontFamily:"inherit",
-                      color: sel ? T.white : "#E2EAF6",
-                      fontWeight: sel ? 700 : 500, fontSize:14, lineHeight:1.4,
-                      transition:"all .15s",
-                      boxShadow: sel ? `0 0 20px ${T.teal}20` : "none",
-                      display:"flex", alignItems:"center", gap:12
-                    }}>
-                    <div style={{ width:28,height:28,borderRadius:"50%",flexShrink:0,border:`2px solid ${sel?T.teal:T.border}`,background:sel?T.teal:"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:900,color:sel?T.bg:T.muted,transition:"all .15s" }}>
-                      {sel ? "✓" : String.fromCharCode(65+oi)}
-                    </div>
-                    {opt.label}
-                  </button>
-                )
-              })}
-            </div>
-
-            <button onClick={next} disabled={selected===null}
-              style={{ width:"100%",background:selected!==null?`linear-gradient(135deg,${T.teal},${T.purple})`:`${T.surface}`,border:`1px solid ${selected!==null?T.teal:T.border}`,borderRadius:16,padding:"15px",color:selected!==null?T.bg:T.muted,fontWeight:900,fontSize:15,cursor:selected!==null?"pointer":"default",fontFamily:"inherit",transition:"all .2s" }}>
-              {step < total ? "Next question" : "See my result"}
-            </button>
-          </div>
-        )}
-
-        {/* RESULT */}
-        {isResult && result && (
-          <PersonalityResult result={result} onClose={onClose}/>
-        )}
-      </div>
-    </div>
-  )
-}
-
-function PersonalityResult({ result, onClose }) {
-  const arch = result.archetype
-  const [tab, setTab] = useState("overview") // overview | scenarios | blindspot
-
-  const DIM_LABELS = {
-    sg:  { security:"Security-focused", balanced:"Security-leaning", growth:"Growth-focused" },
-    pf:  { present:"Present-focused",   balanced:"Balanced",         future:"Future-focused" },
-    si:  { systematic:"Systematic",     balanced:"Balanced",         intuitive:"Intuitive" },
-    ic:  { independent:"Independent",   collaborative:"Collaborative" },
-    as_: { scarcity:"Scarcity mindset", balanced:"Balanced",         abundance:"Abundance mindset" },
-    sc:  { simplicity:"Simplicity-first",complexity:"Complexity-comfortable" },
-    er:  { cautious:"Cautious",         balanced:"Balanced",         adventurous:"Adventurous" },
-  }
-  const dims = result.dimensions
-  const DIM_TIPS = {
-    "Risk appetite":      "How comfortable you are with investment risk and potential losses. High = comfortable seeing portfolio drops. Low = prefers certainty.",
-    "Time horizon":       "Whether you naturally think short-term (next few months) or long-term (decades). Affects how you should invest your pension and savings.",
-    "Decision style":     "Data-driven = researches thoroughly before deciding. Intuitive = trusts gut feel and moves faster. Neither is better, both have blind spots.",
-    "Advice preference":  "Whether you prefer to decide independently or value trusted guidance. Affects whether a financial adviser would genuinely help you.",
-    "Money mindset":      "Abundance = believes there will always be enough. Scarcity-cautious = carries background worry about money running out, even when it won't.",
-    "Complexity comfort": "Simplicity = wants one account, one plan, no fuss. Loves detail = enjoys understanding every layer of a financial product or portfolio.",
-  }
-  const [activeTip, setActiveTip] = useState(null)
-  const dimRows = [
-    { key:"Risk appetite",        val: dims.sg==="growth"?"High":dims.sg==="security"?"Low":"Medium",          color: dims.sg==="growth"?T.teal:dims.sg==="security"?T.amber:T.muted },
-    { key:"Time horizon",         val: dims.pf==="future"?"Long-term":"Short-term",                             color: dims.pf==="future"?T.teal:T.amber },
-    { key:"Decision style",       val: dims.si==="systematic"?"Data-driven":"Intuitive",                        color: T.purple },
-    { key:"Advice preference",    val: dims.ic==="collaborative"?"Seeks guidance":"Self-directed",              color: T.blue },
-    { key:"Money mindset",        val: dims.as_==="abundance"?"Abundance":"Scarcity-cautious",                  color: dims.as_==="abundance"?T.green:T.red },
-    { key:"Complexity comfort",   val: dims.sc==="complexity"?"Loves detail":"Wants simplicity",               color: T.muted },
-  ]
-
-  return (
-    <div style={{ animation:"quizIn .3s ease" }}>
-      {/* Archetype hero */}
-      <div style={{ textAlign:"center",marginBottom:28 }}>
-        <div style={{ width:80,height:80,borderRadius:24,background:`${arch.color}20`,border:`2px solid ${arch.color}50`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:40,margin:"0 auto 16px",boxShadow:`0 0 40px ${arch.color}30` }}>
-          {arch.emoji}
-        </div>
-        <p style={{ color:arch.color,fontWeight:700,fontSize:11,letterSpacing:1.5,textTransform:"uppercase",marginBottom:8 }}>Your money personality</p>
-        <h2 style={{ color:T.white,fontWeight:900,fontSize:28,marginBottom:8 }}>{arch.name}</h2>
-        <p style={{ color:arch.headline?arch.color:T.muted,fontWeight:700,fontSize:15,marginBottom:14 }}>{arch.headline}</p>
-        <p style={{ color:"#E2EAF6",fontSize:14,lineHeight:1.7 }}>{arch.summary}</p>
-      </div>
-
-      {/* Tab switcher */}
-      <div style={{ display:"flex",gap:6,marginBottom:20,background:T.surface,borderRadius:12,padding:4 }}>
-        {[["overview","Overview"],["scenarios","What this means"],["blindspot","Blind spot"]].map(([id,label])=>(
-          <button key={id} onClick={()=>setTab(id)}
-            style={{ flex:1,background:tab===id?T.card:"transparent",border:`1px solid ${tab===id?T.border:"transparent"}`,borderRadius:9,padding:"8px 4px",cursor:"pointer",fontFamily:"inherit",color:tab===id?T.white:T.muted,fontWeight:tab===id?700:500,fontSize:12,transition:"all .15s" }}>
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {/* Overview tab */}
-      {tab==="overview" && (
-        <div style={{ animation:"quizIn .2s ease" }}>
-          <p style={{ color:T.muted,fontSize:11,fontWeight:700,letterSpacing:1.2,textTransform:"uppercase",marginBottom:10 }}>Your financial profile</p>
-          <div style={{ display:"flex",flexDirection:"column",gap:8,marginBottom:20 }}>
-            {dimRows.map(d=>(
-              <div key={d.key} style={{ background:T.card,border:`1px solid ${activeTip===d.key?arch.color+"50":T.border}`,borderRadius:10,padding:"10px 14px",transition:"border .15s" }}>
-                <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
-                  <div style={{ display:"flex",alignItems:"center",gap:6 }}>
-                    <p style={{ color:"#8FA3BE",fontSize:13 }}>{d.key}</p>
-                    <button onClick={()=>setActiveTip(activeTip===d.key?null:d.key)}
-                      style={{ background:`${arch.color}20`,border:`1px solid ${arch.color}30`,borderRadius:"50%",width:16,height:16,cursor:"pointer",fontFamily:"inherit",fontSize:9,fontWeight:800,color:arch.color,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>?</button>
-                  </div>
-                  <p style={{ color:d.color,fontWeight:700,fontSize:13 }}>{d.val}</p>
-                </div>
-                {activeTip===d.key && (
-                  <p className="ls-fadein" style={{ color:"#E2EAF6",fontSize:12,lineHeight:1.55,marginTop:8,paddingTop:8,borderTop:`1px solid ${T.border}` }}>{DIM_TIPS[d.key]}</p>
-                )}
-              </div>
-            ))}
-          </div>
-          <p style={{ color:T.muted,fontSize:11,fontWeight:700,letterSpacing:1.2,textTransform:"uppercase",marginBottom:10 }}>Strengths</p>
-          <div style={{ display:"flex",flexDirection:"column",gap:7 }}>
-            {(arch.traits||[]).map((t,i)=>(
-              <div key={i} style={{ display:"flex",alignItems:"flex-start",gap:10 }}>
-                <span style={{ color:arch.color,fontSize:14,marginTop:1 }}>✓</span>
-                <p style={{ color:"#E2EAF6",fontSize:13,lineHeight:1.5 }}>{t}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Scenarios tab */}
-      {tab==="scenarios" && (
-        <div style={{ animation:"quizIn .2s ease" }}>
-          <p style={{ color:"#D8E8F8",fontSize:14,lineHeight:1.65,marginBottom:16 }}>Based on your profile, here is how you are likely to think and act with money:</p>
-          <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
-            {(arch.scenarios||[]).map((s,i)=>(
-              <div key={i} style={{ background:T.card,border:`1px solid ${arch.color}25`,borderRadius:12,padding:"13px 15px",display:"flex",gap:10,alignItems:"flex-start" }}>
-                <span style={{ fontSize:15,marginTop:1 }}>→</span>
-                <p style={{ color:"#E2EAF6",fontSize:13,lineHeight:1.55 }}>{s}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Blind spot tab */}
-      {tab==="blindspot" && (
-        <div style={{ animation:"quizIn .2s ease" }}>
-          <div style={{ background:T.amberDim,border:`1.5px solid ${T.amberBorder}`,borderRadius:16,padding:"18px",marginBottom:20 }}>
-            <p style={{ color:T.amber,fontWeight:700,fontSize:13,marginBottom:8 }}>⚠ Your main blind spot</p>
-            <p style={{ color:"#E2EAF6",fontSize:14,lineHeight:1.65 }}>{arch.blind_spot}</p>
-          </div>
-          <div style={{ background:`${arch.color}12`,border:`1.5px solid ${arch.color}30`,borderRadius:16,padding:"18px" }}>
-            <p style={{ color:arch.color,fontWeight:700,fontSize:13,marginBottom:8 }}>→ Your next move</p>
-            <p style={{ color:"#E2EAF6",fontSize:14,lineHeight:1.65 }}>{arch.next_step}</p>
-          </div>
-        </div>
-      )}
-
-      <button onClick={onClose} style={{ width:"100%",marginTop:28,background:`linear-gradient(135deg,${T.teal},${T.purple})`,border:"none",borderRadius:16,padding:"15px",color:T.bg,fontWeight:900,fontSize:15,cursor:"pointer",fontFamily:"inherit" }}>
-        Back to dashboard
-      </button>
-    </div>
-  )
-}
-
-function MoneyPersonalityCard({ state, save, onOpenQuiz }) {
-  // Prefer quiz result; fallback to behavioural inference
-  const quizResult = state.profile?.personalityResult
-  const p = quizResult || calcPersonality(state)
-  const arch = p.archetype
-  const [showMode, setShowMode] = useState(false)
-  const mode = PRIORITY_MODES.find(m=>m.id===(state.profile?.mode||"grow"))||PRIORITY_MODES[0]
-
-  const DIM_LABELS = {
-    mindset:   { security:"Security-focused", growth:"Growth-focused",   freedom:"Freedom-focused" },
-    behaviour: { starter:"Starter",           saver:"Saver",             builder:"Builder",         investor:"Investor" },
-    risk:      { cautious:"Cautious",          balanced:"Balanced",       adventurous:"Adventurous" },
-  }
-
-  return (
-    <div style={{ marginBottom:16 }}>
-      <div style={{ background:T.card,border:`1.5px solid ${arch.color}35`,borderRadius:20,padding:"22px",position:"relative",overflow:"hidden" }}>
-        <div style={{ position:"absolute",top:0,right:0,width:120,height:120,background:`radial-gradient(circle at 100% 0%,${arch.color}15,transparent 70%)`,pointerEvents:"none" }}/>
-
-        <div style={{ display:"flex",alignItems:"flex-start",gap:14,marginBottom:16,position:"relative" }}>
-          <div style={{ width:56,height:56,borderRadius:16,background:`${arch.color}20`,border:`2px solid ${arch.color}40`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,flexShrink:0 }}>
-            {arch.emoji}
-          </div>
-          <div style={{ flex:1 }}>
-            <p style={{ color:"#8FA3BE",fontSize:11,fontWeight:700,letterSpacing:1.2,textTransform:"uppercase",marginBottom:4 }}>Your money personality</p>
-            <p style={{ color:T.white,fontWeight:900,fontSize:20,marginBottom:4 }}>{arch.name}</p>
-            <p style={{ color:"#E2EAF6",fontSize:13,lineHeight:1.55 }}>{arch.summary}</p>
-          </div>
+      <div style={{padding:"0 18px",maxWidth:500,margin:"0 auto"}}>
+        {/* Where you are */}
+        <div style={{background:T.card,border:`1.5px solid ${phaseColor}25`,borderRadius:20,padding:"20px",marginBottom:16}}>
+          <p style={{color:phaseColor,fontWeight:800,fontSize:14,marginBottom:6}}>{PHASE_EMOJIS[phase]} {phase} · Levels {phase==="Foundations"?"1 to 3":phase==="Stabilise"?"4 to 6":phase==="Optimise"?"7 to 9":phase==="Grow"?"10 to 12":"13 to 15"}</p>
+          <p style={{color:"#C8D8EC",fontSize:13,lineHeight:1.5}}>
+            {phase==="Foundations"?"Getting the real picture. Knowing your numbers is the foundation everything else builds on.":
+             phase==="Stabilise"?"Building the safety net and clearing costly debt. The foundation that makes everything else possible.":
+             phase==="Optimise"?"Making your money work harder. Free employer money, smart tax, and systems that run themselves.":
+             phase==="Grow"?"Growing real wealth. ISAs, index funds, and pension strategy that compounds for decades.":
+             "Protecting what you have built. Income protection, a will, and an annual review that keeps everything on track."}
+          </p>
         </div>
 
-        {/* 3 dimensions */}
-        <div style={{ display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:16 }}>
-          {[
-            { label:"Mindset",  val:DIM_LABELS.mindset[p.mindset],   color:T.teal },
-            { label:"Behaviour",val:DIM_LABELS.behaviour[p.behaviour],color:T.purple },
-            { label:"Risk",     val:DIM_LABELS.risk[p.risk],          color:T.amber },
-          ].map(d=>(
-            <div key={d.label} style={{ background:T.surface,borderRadius:12,padding:"10px 10px" }}>
-              <p style={{ color:"#8FA3BE",fontSize:10,fontWeight:700,letterSpacing:.8,textTransform:"uppercase",marginBottom:3 }}>{d.label}</p>
-              <p style={{ color:d.color,fontWeight:800,fontSize:12 }}>{d.val}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Locked insights */}
-        <div style={{ borderTop:`1px solid ${T.border}`,paddingTop:14 }}>
-          <p style={{ color:"#8FA3BE",fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:10 }}>Deeper insights</p>
-          <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
-            {PERSONALITY_LOCKED.map(l=>{
-              const done = l.check(state)
-              return (
-                <div key={l.id} style={{ display:"flex",alignItems:"center",gap:10,background:done?`${arch.color}10`:T.faint,borderRadius:10,padding:"10px 12px",border:`1px solid ${done?arch.color+"30":T.border}` }}>
-                  <span style={{ fontSize:16,flexShrink:0 }}>{l.icon}</span>
-                  <p style={{ color:done?T.white:"#8FA3BE",fontWeight:done?700:500,fontSize:13,flex:1 }}>{l.label}</p>
-                  {done
-                    ? <span style={{ color:arch.color,fontSize:11,fontWeight:700 }}>Unlocked ✓</span>
-                    : <span style={{ color:"#8FA3BE",fontSize:11 }}>{l.unlock}</span>
-                  }
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* Mode selector */}
-      {/* Retake / view result buttons */}
-      <div style={{ display:"flex",gap:8,marginBottom:8 }}>
-        {quizResult
-          ? <button onClick={onOpenQuiz} style={{ flex:1,background:`${arch.color}15`,border:`1px solid ${arch.color}35`,borderRadius:10,padding:"9px 14px",cursor:"pointer",fontFamily:"inherit",color:arch.color,fontWeight:700,fontSize:12 }}>View full result →</button>
-          : <button onClick={onOpenQuiz} style={{ flex:1,background:T.purpleDim,border:`1px solid ${T.purpleBorder}`,borderRadius:10,padding:"9px 14px",cursor:"pointer",fontFamily:"inherit",color:T.purple,fontWeight:700,fontSize:12 }}>Take the quiz →</button>
-        }
-      </div>
-
-      <div style={{ marginTop:4 }}>
-        <button onClick={()=>setShowMode(v=>!v)}
-          style={{ width:"100%",background:T.card,border:`1px solid ${mode.border}`,borderRadius:14,padding:"13px 18px",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:12,justifyContent:"space-between" }}>
-          <div style={{ display:"flex",alignItems:"center",gap:10 }}>
-            <span style={{ fontSize:18 }}>{mode.icon}</span>
-            <div style={{ textAlign:"left" }}>
-              <p style={{ color:"#8FA3BE",fontSize:11,fontWeight:700,letterSpacing:.8,textTransform:"uppercase",marginBottom:1 }}>Your focus mode</p>
-              <p style={{ color:T.white,fontWeight:700,fontSize:13 }}>{mode.label}</p>
-            </div>
-          </div>
-          <p style={{ color:mode.color,fontSize:12,fontWeight:700 }}>Change</p>
-        </button>
-
-        {showMode && (
-          <div className="ls-fadein" style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:"14px",marginTop:8 }}>
-            <p style={{ color:"#E2EAF6",fontSize:13,marginBottom:12,fontWeight:500 }}>What do you want LifeSmart to focus on?</p>
-            <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
-              {PRIORITY_MODES.map(m=>{
-                const sel = m.id===(state.profile?.mode||"grow")
-                return (
-                  <button key={m.id} onClick={()=>{ save({...state,profile:{...state.profile,mode:m.id}}); setShowMode(false) }}
-                    style={{ background:sel?m.dim:T.faint,border:`1.5px solid ${sel?m.color:T.border}`,borderRadius:12,padding:"12px 14px",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:12,textAlign:"left" }}>
-                    <span style={{ fontSize:20 }}>{m.icon}</span>
-                    <div style={{ flex:1 }}>
-                      <p style={{ color:sel?T.white:"#E2EAF6",fontWeight:700,fontSize:14 }}>{m.label}</p>
-                      <p style={{ color:sel?"#E2EAF6":"#8FA3BE",fontSize:12 }}>{m.sub}</p>
-                    </div>
-                    {sel && <Check size={16} color={m.color}/>}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-function MeTab() {
-  const { state, reset, save, toast } = useApp()
-  const [showQuiz,   setShowQuiz]   = useState(false)
-  const [showResult, setShowResult] = useState(false)
-  const quizResult = state.profile?.personalityResult
-  if(showQuiz)   return <PersonalityQuiz state={state} save={save} onClose={()=>setShowQuiz(false)}/>
-  if(showResult && quizResult) return <div style={{ position:"fixed",inset:0,background:T.bg,zIndex:300,overflowY:"auto" }}>
-    <div style={{ padding:"24px 20px 60px",maxWidth:520,margin:"0 auto" }}>
-      <button onClick={()=>setShowResult(false)} style={{ background:"none",border:"none",cursor:"pointer",color:T.muted,fontSize:20,padding:4,marginBottom:16 }}>←</button>
-      <PersonalityResult result={quizResult} onClose={()=>setShowResult(false)}/>
-    </div>
-  </div>
-  const xp      = state.profile.points||0
-  const lvl     = getLevelInfo(xp)
-  const nextLvl = getNextLevel(xp)
-  const pctToNext = nextLvl ? Math.round(((xp-lvl.min)/(nextLvl.min-lvl.min))*100) : 100
-  const earned  = BADGES.filter(b=>b.condition(state))
-  const locked  = BADGES.filter(b=>!b.condition(state))
-  const { netWorth } = calcTotals(state.assets, state.debts)
-  const completedLessons = state.completedLessons||[]
-  const priorityGoals = (state.priorityGoals||[]).map(id=>PRIORITY_GOALS.find(g=>g.id===id)).filter(Boolean)
-
-  return (
-    <div style={{ flex:1,overflowY:"auto",paddingBottom:100 }}>
-      <div style={{ padding:"24px 18px",maxWidth:900,margin:"0 auto",width:"100%" }}>
-
-        {/* Profile hero */}
-        <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:20,padding:"24px",marginBottom:16,position:"relative",overflow:"hidden" }}>
-          <StarField count={12}/>
-          <div style={{ position:"relative",display:"flex",alignItems:"flex-start",gap:16,marginBottom:20 }}>
-            {(()=>{ const ar = state.profile?.personalityResult?.archetype; return (
-            <div style={{ width:60,height:60,borderRadius:18,background:ar?`${ar.color}20`:T.tealDim,border:`2px solid ${ar?ar.color:T.teal}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,flexShrink:0,boxShadow:`0 0 24px ${ar?ar.color:T.teal}30` }}>
-              {ar?ar.emoji:"🚀"}
-            </div>
-            )})()}
-            <div style={{ flex:1 }}>
-              <p style={{ color:T.white,fontWeight:900,fontSize:20,marginBottom:2 }}>{state.profile.name||"Your profile"}</p>
-              {state.profile.age && <p style={{ color:"#E2EAF6",fontSize:13,marginBottom:4 }}>Age {state.profile.age}</p>}
-              <div style={{ display:"flex",alignItems:"center",gap:6 }}>
-                <span style={{ fontSize:14 }}>{lvl.emoji}</span>
-                <span style={{ color:"#E2EAF6",fontSize:13 }}>Level {lvl.level} {lvl.label}</span>
-              </div>
-            </div>
-            <div style={{ textAlign:"right" }}>
-              <p style={{ color:T.teal,fontWeight:900,fontSize:24 }}>{xp}</p>
-              <p style={{ color:"#8FA3BE",fontSize:12 }}>XP</p>
-            </div>
-          </div>
-          {nextLvl && (
+        {/* XP & Progress */}
+        <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:20,padding:"20px",marginBottom:16}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
             <div>
-              <div style={{ background:T.surface,borderRadius:99,height:8,overflow:"hidden",marginBottom:5 }}>
-                <div style={{ width:`${pctToNext}%`,height:"100%",background:`linear-gradient(90deg,${T.teal},${T.tealMid})`,borderRadius:99,transition:"width .8s ease" }}/>
-              </div>
-              <div style={{ display:"flex",justifyContent:"space-between" }}>
-                <span style={{ color:"#8FA3BE",fontSize:12 }}>{xp} XP</span>
-                <span style={{ color:"#8FA3BE",fontSize:12 }}>{nextLvl.emoji} {nextLvl.label} at {nextLvl.min} XP</span>
-              </div>
+              <p style={{color:T.teal,fontWeight:900,fontSize:28}}>{xp} XP</p>
+              <p style={{color:T.muted,fontSize:12}}>Total earned</p>
             </div>
-          )}
+            <div style={{textAlign:"right"}}>
+              <p style={{color:T.white,fontWeight:700,fontSize:14}}>{completedCount} levels done</p>
+              <p style={{color:T.muted,fontSize:12}}>{15-completedCount} remaining</p>
+            </div>
+          </div>
+          <div style={{background:T.surface,borderRadius:99,height:6,overflow:"hidden"}}>
+            <div style={{width:`${xpPct}%`,height:"100%",background:`linear-gradient(90deg,${T.teal},${T.purple})`,borderRadius:99,transition:"width .6s"}}/>
+          </div>
+          <p style={{color:T.muted,fontSize:11,marginTop:6}}>{nextMilestone-xp} XP to next milestone</p>
         </div>
-
-        {/* Quick stats */}
-        <div style={{ display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:16 }}>
-          {[
-            { l:"Net worth",  v:fmtK(netWorth),            c:netWorth>=0?T.teal:T.red },
-            { l:"Lessons",    v:`${completedLessons.length}/${LESSONS.length}`, c:T.purple },
-            { l:"Badges",     v:`${earned.length}/${BADGES.length}`,            c:T.amber  },
-          ].map(k=>(
-            <div key={k.l} style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px",textAlign:"center" }}>
-              <p style={{ color:k.c,fontWeight:900,fontSize:20 }}>{k.v}</p>
-              <p style={{ color:T.muted,fontSize:11,marginTop:3 }}>{k.l}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Money Personality Card */}
-        <MoneyPersonalityCard state={state} save={save}
-          onOpenQuiz={quizResult ? ()=>setShowResult(true) : ()=>setShowQuiz(true)}/>
-
-        {/* Priorities */}
-        {priorityGoals.length > 0 && (
-          <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:"18px",marginBottom:16 }}>
-            <p style={{ color:"#6B8CB8",fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:12 }}>Your priorities</p>
-            <div style={{ display:"flex",flexWrap:"wrap",gap:8 }}>
-              {priorityGoals.map(g=>(
-                <div key={g.id} style={{ background:`${g.color}15`,border:`1px solid ${g.color}40`,borderRadius:99,padding:"5px 12px",display:"flex",alignItems:"center",gap:6 }}>
-                  <span style={{ fontSize:14 }}>{g.icon}</span>
-                  <span style={{ color:T.white,fontWeight:700,fontSize:12 }}>{g.label}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Level roadmap */}
-        <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:18,padding:"20px",marginBottom:16 }}>
-          <p style={{ color:"#6B8CB8",fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:14 }}>Level roadmap</p>
-          <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
-            {XP_LEVELS.map(l=>{
-              const curr = getLevelInfo(xp).level===l.level
-              const done = xp >= l.min
-              return (
-                <div key={l.level} style={{ display:"flex",alignItems:"center",gap:12,background:curr?`${T.teal}10`:undefined,border:`1px solid ${curr?T.tealBorder:T.border}`,borderRadius:11,padding:"11px 14px" }}>
-                  <div style={{ width:34,height:34,borderRadius:10,background:done?`${T.teal}20`:"transparent",border:`2px solid ${done?T.teal:T.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0 }}>
-                    {done?l.emoji:"🔒"}
-                  </div>
-                  <div style={{ flex:1 }}>
-                    <p style={{ color:done?T.white:T.subtle,fontWeight:700,fontSize:13 }}>Level {l.level}: {l.label}</p>
-                    <p style={{ color:"#8FA3BE",fontSize:12 }}>{l.min} XP</p>
-                  </div>
-                  {curr&&<span style={{ background:T.tealDim,color:T.teal,fontSize:10,fontWeight:700,padding:"2px 9px",borderRadius:99,border:`1px solid ${T.tealBorder}` }}>You</span>}
-                  {done&&!curr&&<Check size={14} color="#34D399"/>}
-                </div>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* Badges */}
-        {earned.length>0 && (
-          <div style={{ marginBottom:16 }}>
-            <p style={{ color:"#6B8CB8",fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:12 }}>Badges earned</p>
-            <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))",gap:10 }}>
-              {earned.map(b=>(
-                <div key={b.id} style={{ background:T.card,border:`1px solid ${T.tealBorder}`,borderRadius:14,padding:"14px",textAlign:"center" }}>
-                  <div style={{ fontSize:26,marginBottom:6 }}>{b.emoji}</div>
-                  <p style={{ color:T.white,fontWeight:700,fontSize:12,marginBottom:2 }}>{b.label}</p>
-                  <p style={{ color:T.muted,fontSize:10,lineHeight:1.4 }}>{b.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {locked.length>0 && (
-          <div style={{ marginBottom:20 }}>
-            <p style={{ color:"#6B8CB8",fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:12 }}>Locked</p>
-            <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))",gap:10 }}>
-              {locked.map(b=>(
-                <div key={b.id} style={{ background:T.faint,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px",textAlign:"center",opacity:.6 }}>
-                  <div style={{ fontSize:26,marginBottom:6,filter:"grayscale(1)" }}>{b.emoji}</div>
-                  <p style={{ color:T.subtle,fontWeight:700,fontSize:12,marginBottom:2 }}>{b.label}</p>
-                  <p style={{ color:T.subtle,fontSize:10,lineHeight:1.4 }}>{b.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Reset */}
-        <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:16,overflow:"hidden" }}>
-          <button onClick={()=>{ if(window.confirm("Reset all data? This cannot be undone.")) reset() }}
-            style={{ width:"100%",background:"none",border:"none",padding:"16px 20px",cursor:"pointer",display:"flex",alignItems:"center",gap:12,fontFamily:"inherit",color:T.red }}>
-            <Trash2 size={16}/>
-            <span style={{ fontWeight:700,fontSize:14 }}>Reset all data</span>
-          </button>
-        </div>
-
-        <p style={{ color:"#8FA3BE",fontSize:12,textAlign:"center",marginTop:16 }}>🔒 Your data stays on your device LifeSmart</p>
+        <button onClick={()=>{if(window.confirm("Reset all progress? This cannot be undone."))reset()}}
+          style={{width:"100%",background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:"14px 18px",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:10}}>
+          <RotateCcw size={16} color={T.muted}/>
+          <p style={{color:T.muted,fontWeight:700,fontSize:14}}>Reset progress</p>
+        </button>
       </div>
     </div>
   )
@@ -5377,34 +1199,25 @@ function MeTab() {
 /* ════════════════════════════════════════════════════════════════════
    BOTTOM NAV
    ════════════════════════════════════════════════════════════════════ */
-function BottomNav() {
-  const { tab, setTab, state } = useApp()
-  const completedLessons = state.completedLessons||[]
-  const hasNewLesson = completedLessons.length < LESSONS.length
-
-  const TABS = [
-    { icon:Home,       label:"Home",      idx:0 },
-    { icon:BookOpen,   label:"Learn",     idx:1, dot:hasNewLesson },
-    { icon:BarChart2,  label:"Analytics", idx:2 },
-    { icon:User,       label:"Me",        idx:3 },
+function BottomNav(){
+  const{tab,setTab}=useApp()
+  const TABS=[
+    {icon:Home,label:"Home",idx:0},
+    {icon:Map,label:"Plan",idx:1},
+    {icon:BookOpen,label:"Learn",idx:2},
+    {icon:User,label:"Me",idx:3},
   ]
-
-  return (
-    <nav style={{ background:"rgba(11,20,36,.95)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderTop:`1px solid rgba(255,255,255,.06)`,display:"flex",alignItems:"center",height:66,flexShrink:0,paddingBottom:"env(safe-area-inset-bottom,0px)",boxShadow:"0 -4px 32px rgba(0,0,0,.3)" }}>
+  return(
+    <nav style={{background:"rgba(11,20,36,.95)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderTop:`1px solid rgba(255,255,255,.06)`,display:"flex",alignItems:"center",height:66,flexShrink:0,paddingBottom:"env(safe-area-inset-bottom,0px)",boxShadow:"0 -4px 32px rgba(0,0,0,.3)"}}>
       {TABS.map(t=>{
-        const active = tab===t.idx
-        const Icon = t.icon
-        return (
+        const active=tab===t.idx
+        const Icon=t.icon
+        return(
           <button key={t.idx} onClick={()=>setTab(t.idx)}
-            style={{ flex:1,background:"none",border:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:4,padding:"8px 0",position:"relative" }}>
-            <div style={{ position:"relative" }}>
-              <Icon size={21} color={active?T.teal:T.muted} strokeWidth={active?2.5:1.8}/>
-              {t.dot && !active && (
-                <div style={{ position:"absolute",top:-2,right:-2,width:7,height:7,borderRadius:"50%",background:T.teal,border:`2px solid ${T.surface}` }}/>
-              )}
-            </div>
-            <span style={{ fontSize:10,fontWeight:active?700:500,color:active?T.teal:T.muted,letterSpacing:.2 }}>{t.label}</span>
-            {active && <div style={{ position:"absolute",bottom:0,left:"50%",transform:"translateX(-50%)",width:18,height:3,borderRadius:"3px 3px 0 0",background:T.teal }}/>}
+            style={{flex:1,background:"none",border:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:4,padding:"8px 0",position:"relative"}}>
+            <Icon size={21} color={active?T.teal:T.muted} strokeWidth={active?2.5:1.8}/>
+            <span style={{fontSize:10,fontWeight:active?700:500,color:active?T.teal:T.muted,letterSpacing:.2}}>{t.label}</span>
+            {active&&<div style={{position:"absolute",bottom:0,left:"50%",transform:"translateX(-50%)",width:18,height:3,borderRadius:"3px 3px 0 0",background:T.teal}}/>}
           </button>
         )
       })}
@@ -5413,64 +1226,40 @@ function BottomNav() {
 }
 
 /* ════════════════════════════════════════════════════════════════════
-   APP SHELL
+   APP SHELL + ROUTER + EXPORT
    ════════════════════════════════════════════════════════════════════ */
-function AppShell() {
-  const { tab } = useApp()
-  const CONTENT = [<HomeTab/>, <LearnTab/>, <AnalyticsTab/>, <MeTab/>]
-
-  return (
-    <div style={{ height:"100dvh",display:"flex",flexDirection:"column",background:T.bg,overflow:"hidden" }}>
-      {/* Top bar */}
-      <header style={{ background:"rgba(11,20,36,.95)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderBottom:"1px solid rgba(255,255,255,.05)",padding:"0 20px",height:50,display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0,position:"relative",zIndex:10,boxShadow:"0 4px 24px rgba(0,0,0,.25)" }}>
-        <div style={{ display:"flex",alignItems:"center",gap:8 }}>
-          <div style={{ width:28,height:28,borderRadius:8,background:"linear-gradient(135deg,rgba(15,191,184,.3),rgba(167,139,250,.3))",border:"1px solid rgba(15,191,184,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:15 }}>🚀</div>
-          <span style={{ color:"#FFFFFF",fontSize:13,fontWeight:800,letterSpacing:2 }}>LIFESMART</span>
-        </div>
-        <div style={{ display:"flex",alignItems:"center",gap:8 }}>
-          <XPBadge/>
+function AppShell(){
+  const{tab}=useApp()
+  const CONTENT=[<HomeTab/>,<PlanTab/>,<LearnTab/>,<MeTab/>]
+  return(
+    <div style={{height:"100dvh",display:"flex",flexDirection:"column",background:T.bg,overflow:"hidden"}}>
+      <header style={{background:"rgba(11,20,36,.95)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderBottom:"1px solid rgba(255,255,255,.05)",padding:"0 20px",height:50,display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0,zIndex:10,boxShadow:"0 4px 24px rgba(0,0,0,.25)"}}>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          <div style={{width:28,height:28,borderRadius:8,background:"linear-gradient(135deg,rgba(15,191,184,.3),rgba(167,139,250,.3))",border:"1px solid rgba(15,191,184,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:15}}>🚀</div>
+          <span style={{color:"#FFFFFF",fontSize:13,fontWeight:800,letterSpacing:2}}>LIFESMART</span>
         </div>
       </header>
-
-      {/* Tab content */}
-      <div style={{ flex:1,overflow:"hidden",display:"flex",flexDirection:"column",minHeight:0 }}>
+      <div style={{flex:1,overflow:"hidden",display:"flex",flexDirection:"column",minHeight:0}}>
         {CONTENT[tab]}
       </div>
-
       <BottomNav/>
     </div>
   )
 }
 
-function XPBadge() {
-  const { state } = useApp()
-  const xp  = state.profile.points||0
-  const lvl = getLevelInfo(xp)
-  return (
-    <div style={{ display:"flex",alignItems:"center",gap:6,background:T.card,border:`1px solid ${T.border}`,borderRadius:99,padding:"4px 12px" }}>
-      <span style={{ fontSize:13 }}>{lvl.emoji}</span>
-      <span style={{ color:T.teal,fontWeight:800,fontSize:12 }}>{xp} XP</span>
-    </div>
-  )
+function Router(){
+  const{state}=useApp()
+  if(state.profile.onboardingComplete)return<AppShell/>
+  return<Onboarding/>
 }
 
-/* ════════════════════════════════════════════════════════════════════
-   ROUTER + EXPORT
-   ════════════════════════════════════════════════════════════════════ */
-function Router() {
-  const { state } = useApp()
-  if(state.profile.onboardingComplete) return <AppShell/>
-  return <Onboarding/>
-}
-
-export default function App() {
+export default function App(){
   useEffect(()=>{
-    // Ensure correct mobile viewport, prevents slight zoom-in on mobile
-    let meta = document.querySelector('meta[name="viewport"]')
-    if(!meta){ meta = document.createElement('meta'); meta.name='viewport'; document.head.appendChild(meta) }
-    meta.content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no'
+    let meta=document.querySelector('meta[name="viewport"]')
+    if(!meta){meta=document.createElement('meta');meta.name='viewport';document.head.appendChild(meta)}
+    meta.content='width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no'
   },[])
-  return (
+  return(
     <AppProvider>
       <Router/>
     </AppProvider>
