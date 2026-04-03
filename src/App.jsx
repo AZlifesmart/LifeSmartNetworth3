@@ -1763,6 +1763,13 @@ function HomeTab() {
                         <p style={{ color:"#8FA3BE", fontSize:13 }}>Add your numbers to unlock</p>
                       </>
                     )}
+                    <div style={{ borderTop:"1px solid rgba(245,158,11,.3)", marginTop:12, paddingTop:10,
+                      display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
+                      <span style={{ color:T.amber, fontSize:13 }}>{expandProj ? "▴" : "▾"}</span>
+                      <p style={{ color:T.amber, fontSize:12, fontWeight:700 }}>
+                        {expandProj ? "Close" : "Tap to see chart"}
+                      </p>
+                    </div>
                   </button>
                   {expandProj && (
                     <div className="ls-fadein" style={{ background:T.card,
@@ -1781,13 +1788,7 @@ function HomeTab() {
             })()}
           </div>
         </div>
-        <p style={{ color:"#6B8CB8", fontSize:12, textAlign:"center", marginTop:8, marginBottom:6 }}>
-          ↑ Tap either number to expand the detail
-        </p>
-        <p style={{ color:"#8FA3BE", fontSize:14, lineHeight:1.65, textAlign:"center",
-          marginBottom:16, padding:"0 8px" }}>
-          This is your starting point. What you do next matters more than this number.
-        </p>
+        <div style={{ marginBottom:16 }}/>
 
         {/* ══ SECTION 2: THREE METRIC TILES ══ */}
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:22 }}>
@@ -1815,9 +1816,9 @@ function HomeTab() {
                   {target > 0 ? fmtK(target) : "—"}
                 </p>
                 <div style={{ position:"relative", marginBottom:4 }}>
-                  <div style={{ background:T.faint, borderRadius:99, height:8, overflow:"hidden" }}>
+                  <div style={{ background:"rgba(255,255,255,.10)", borderRadius:99, height:8, overflow:"hidden" }}>
                     <div style={{ width:`${pct}%`, height:"100%", borderRadius:99,
-                      background:`linear-gradient(90deg,${T.amber}70,${T.amber})`,
+                      background:`linear-gradient(90deg,#F59E0B,#FBBF24)`,
                       minWidth: pct > 0 ? 10 : 0, transition:"width .5s" }}/>
                   </div>
                 </div>
@@ -1989,46 +1990,39 @@ function HomeTab() {
           return (
             <div style={{ marginBottom:24 }}>
               {/* Header */}
-              {/* Learning header — condensed */}
-              <div style={{ marginBottom:16 }}>
-                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
-                  <div>
-                    <p style={{ color:T.white, fontWeight:900, fontSize:20, marginBottom:3 }}>Your financial guide</p>
-                    <p style={{ color:"#8FA3BE", fontSize:13 }}>
-                      {completedLevels.length === 0
-                        ? "Most people were never taught this. You're about to change that."
-                        : completedLevels.length < 9
-                          ? `Step ${nextLv.n} of 9 — keep going. Every level is something real you can act on.`
-                          : "All 9 levels done. You are ahead of most people financially."
-                      }
-                    </p>
-                  </div>
-                  <button onClick={() => setTab(1)}
-                    style={{ background:"rgba(167,139,250,.15)", border:"1px solid rgba(167,139,250,.35)",
-                      borderRadius:10, padding:"6px 12px", cursor:"pointer", fontFamily:"inherit",
-                      color:T.purple, fontSize:12, fontWeight:700, flexShrink:0, marginLeft:10 }}>All →</button>
-                </div>
-                <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                  <div style={{ flex:1, background:T.surface, borderRadius:99, height:5, overflow:"hidden" }}>
+              {/* Learning intro — merged with tiles */}
+              <div style={{ marginBottom:20 }}>
+                <p style={{ color:T.teal, fontSize:11, fontWeight:800, letterSpacing:1.5,
+                  textTransform:"uppercase", marginBottom:14 }}>Your path to financial freedom</p>
+
+                <p style={{ color:"#FFFFFF", fontWeight:900, fontSize:22, lineHeight:1.2, marginBottom:10,
+                  letterSpacing:-.3 }}>Let's get you to financial freedom</p>
+
+                <p style={{ color:"#C8D8EC", fontSize:15, fontWeight:600, marginBottom:6 }}>
+                  You've seen your numbers.
+                </p>
+
+                <p style={{ color:"#8FA3BE", fontSize:14, lineHeight:1.7, marginBottom:12 }}>
+                  Most people are never taught how money actually works — and end up wishing they started earlier.
+                  We've made this simple. Work through the levels, take the small actions they suggest, and watch it compound.
+                </p>
+
+                <p style={{ color:"#C8D8EC", fontSize:14, fontWeight:700, fontStyle:"italic",
+                  lineHeight:1.5, marginBottom:16, paddingLeft:14,
+                  borderLeft:`3px solid ${T.teal}` }}>
+                  No one else will fix your finances until you take charge.
+                </p>
+
+                <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
+                  <div style={{ flex:1, background:"rgba(255,255,255,.08)", borderRadius:99, height:5, overflow:"hidden" }}>
                     <div style={{ width:`${pct}%`, height:"100%",
                       background:`linear-gradient(90deg,${T.teal},${T.purple})`,
                       borderRadius:99, transition:"width .5s ease" }}/>
                   </div>
                   <p style={{ color:"#8FA3BE", fontSize:12, fontWeight:700, flexShrink:0 }}>
-                    {completedLevels.length}/9
+                    {completedLevels.length}/9 levels
                   </p>
                 </div>
-                {completedLevels.length === 0 && (
-                  <div style={{ background:"rgba(167,139,250,.08)", border:"1px solid rgba(167,139,250,.2)",
-                    borderRadius:14, padding:"12px 14px", marginTop:10,
-                    display:"flex", alignItems:"center", gap:10 }}>
-                    <span style={{ fontSize:18, flexShrink:0 }}>💡</span>
-                    <p style={{ color:"#C8D8EC", fontSize:13, lineHeight:1.5 }}>
-                      Complete these levels and you will be ahead of 90% of people financially.
-                      Time matters more than what you have — start today.
-                    </p>
-                  </div>
-                )}
               </div>
 
               {/* 2-column portrait tile grid */}
@@ -2110,12 +2104,6 @@ function HomeTab() {
 
         {/* ══ SECTION 5: GOALS ══ */}
         <DashboardGoals goals={goals} surplus={surplus} save={save} state={state} toast={toast} setTab={setTab}/>
-        {!hasPriorities && <GoalPickerSection state={state} save={save} toast={toast}/>}
-        {hasPriorities && (
-          <>
-            <GoalLinkedLessons priorityGoals={priorityGoals} completedLessons={state.completedLessons||[]} setTab={setTab}/>
-          </>
-        )}
       </div>
     </div>
   )
@@ -3013,204 +3001,161 @@ function AnalyticsTab() {
 
   return (
     <div style={{ flex:1, overflowY:"auto", paddingBottom:100 }}>
-
-      {/* Sheet panels */}
       {sheet==="asset" && <Sheet title={editItem?"Edit asset":"Add asset"} onClose={()=>{setSheet(null);setEditItem(null)}}><AssetSheet item={editItem} onClose={()=>{setSheet(null);setEditItem(null)}} onSave={saveAsset}/></Sheet>}
       {sheet==="debt"  && <Sheet title={editItem?"Edit debt":"Add debt"}   onClose={()=>{setSheet(null);setEditItem(null)}}><DebtSheet  item={editItem} onClose={()=>{setSheet(null);setEditItem(null)}} onSave={saveDebt}/></Sheet>}
 
-      {/* ── HERO HEADER ── */}
-      <div style={{ background:"rgba(10,19,34,.97)", backdropFilter:"blur(16px)",
-        padding:"20px 20px 0", borderBottom:"1px solid rgba(255,255,255,.06)" }}>
+      {/* HEADER */}
+      <div style={{ padding:"20px 20px 16px", borderBottom:"1px solid rgba(255,255,255,.06)",
+        background:"linear-gradient(180deg,rgba(15,191,184,.08) 0%,transparent 100%)" }}>
         <div style={{ maxWidth:600, margin:"0 auto" }}>
-          <h2 style={{ color:T.white, fontWeight:900, fontSize:22, marginBottom:4, letterSpacing:-.3 }}>
-            Track and Grow
-          </h2>
-          <p style={{ color:"#8FA3BE", fontSize:13, lineHeight:1.6, marginBottom:14 }}>
-            Wealth does not grow by accident. The simple act of tracking it changes how you think about every financial decision.
-          </p>
-
-          {/* Net worth banner */}
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
-            background:`${netWorth>=0?T.tealDim:T.redDim}`, border:`1.5px solid ${netWorth>=0?T.tealBorder:T.redBorder}`,
-            borderRadius:"16px 16px 0 0", padding:"14px 16px" }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:14 }}>
             <div>
-              <p style={{ color:netWorth>=0?T.teal:T.red, fontSize:11, fontWeight:700,
-                letterSpacing:1, textTransform:"uppercase", marginBottom:3 }}>Net worth</p>
-              <p style={{ color:netWorth>=0?T.teal:T.red, fontWeight:900, fontSize:32, lineHeight:1,
-                textShadow:netWorth>=0?`0 0 20px ${T.teal}50`:`0 0 20px ${T.red}40` }}>
-                {fmt(netWorth)}
-              </p>
+              <p style={{ color:T.teal, fontSize:11, fontWeight:800, letterSpacing:1.5,
+                textTransform:"uppercase", marginBottom:4 }}>Financial snapshot</p>
+              <h2 style={{ color:T.white, fontWeight:900, fontSize:22, letterSpacing:-.3 }}>Track and Grow</h2>
             </div>
             <div style={{ textAlign:"right" }}>
-              <div style={{ marginBottom:6 }}>
-                <p style={{ color:T.green, fontWeight:800, fontSize:16 }}>{fmt(totalAssets)}</p>
-                <p style={{ color:"#6B8CB8", fontSize:11 }}>assets</p>
-              </div>
-              <div>
-                <p style={{ color:totalDebts>0?T.red:"#6B8CB8", fontWeight:800, fontSize:16 }}>{fmt(totalDebts)}</p>
-                <p style={{ color:"#6B8CB8", fontSize:11 }}>debts</p>
-              </div>
+              <p style={{ color:netWorth>=0?T.teal:T.red, fontWeight:900, fontSize:28,
+                textShadow:netWorth>=0?`0 0 20px ${T.teal}40`:`0 0 20px ${T.red}40` }}>{fmt(netWorth)}</p>
+              <p style={{ color:"#8FA3BE", fontSize:11 }}>net worth</p>
             </div>
           </div>
 
-          {/* Unlock insights strip */}
-          <div style={{ background:"linear-gradient(135deg,rgba(167,139,250,.15),rgba(15,191,184,.08))",
-            border:"1px solid rgba(167,139,250,.25)", borderTop:"none",
-            borderRadius:"0 0 16px 16px", padding:"12px 16px",
-            display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
-            <p style={{ color:"#C8D8EC", fontSize:13 }}>
-              <span style={{ color:T.purple, fontWeight:700 }}>Unlock deeper insights</span> — add spending breakdown
-            </p>
-            <button onClick={()=>{/* TODO */}} style={{ background:T.purple, border:"none",
-              borderRadius:10, padding:"7px 14px", color:"#FFFFFF", fontWeight:700,
-              fontSize:12, cursor:"pointer", fontFamily:"inherit" }}>Unlock →</button>
+          {/* Summary row */}
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8, marginBottom:12 }}>
+            {[
+              { label:"Assets", val:fmt(totalAssets), color:T.green },
+              { label:"Debts",  val:fmt(totalDebts),  color:totalDebts>0?T.red:"#8FA3BE" },
+              { label:"Surplus",val:`${fmtK(Math.abs(surplus))}/mo`, color:surplus>=0?T.teal:T.red },
+            ].map((s,i) => (
+              <div key={i} style={{ background:T.card, border:`1px solid ${T.border}`,
+                borderRadius:12, padding:"10px 12px", textAlign:"center" }}>
+                <p style={{ color:s.color, fontWeight:800, fontSize:15 }}>{s.val}</p>
+                <p style={{ color:"#6B8CB8", fontSize:11, marginTop:2 }}>{s.label}</p>
+              </div>
+            ))}
           </div>
+
+          <p style={{ color:"#8FA3BE", fontSize:12, lineHeight:1.6, marginBottom:4 }}>
+            You cannot improve what you do not track. Come back regularly — accurate numbers lead to better decisions.
+          </p>
         </div>
       </div>
 
       <div style={{ maxWidth:600, margin:"0 auto", padding:"16px 18px" }}>
 
-        {/* ── NARRATIVE ── */}
-        <div style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:18,
-          padding:"16px", marginBottom:18 }}>
-          <p style={{ color:"#C8D8EC", fontSize:14, lineHeight:1.7, marginBottom:10 }}>
-            <span style={{ color:T.white, fontWeight:700 }}>Most people never track this.</span> If you do, you will make better decisions and stay in control of your money.
-          </p>
-          <p style={{ color:"#8FA3BE", fontSize:13, lineHeight:1.65 }}>
-            Once this is accurate, you can start making smarter moves — from budgeting to investing and long-term planning. You can even walk into a financial advisor meeting with a clear snapshot of your position. You cannot improve what you do not track.
-          </p>
-        </div>
-
-        {/* ── ASSETS ── */}
+        {/* ASSETS */}
         <div style={{ marginBottom:18 }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
-            <div>
-              <p style={{ color:"#FFFFFF", fontWeight:800, fontSize:16 }}>Assets</p>
-              <p style={{ color:T.green, fontWeight:700, fontSize:13 }}>{fmt(totalAssets)}</p>
-            </div>
+            <p style={{ color:"#FFFFFF", fontWeight:800, fontSize:16 }}>
+              Assets <span style={{ color:T.green, fontWeight:700, fontSize:14, marginLeft:8 }}>{fmt(totalAssets)}</span>
+            </p>
             <button onClick={() => { setEditItem(null); setSheet("asset") }}
               style={{ background:T.tealDim, border:`1px solid ${T.tealBorder}`, borderRadius:10,
-                padding:"8px 14px", color:T.teal, fontWeight:700, fontSize:13,
+                padding:"7px 14px", color:T.teal, fontWeight:700, fontSize:13,
                 cursor:"pointer", fontFamily:"inherit" }}>+ Add</button>
           </div>
           {state.assets.length === 0 ? (
-            <div style={{ background:T.faint, border:`1px dashed ${T.border}`, borderRadius:14,
-              padding:"20px", textAlign:"center" }}>
-              <p style={{ color:"#6B8CB8", fontSize:14 }}>No assets added yet</p>
-              <p style={{ color:"#4A6080", fontSize:12, marginTop:4 }}>Add your savings, pension, property and more</p>
-            </div>
+            <button onClick={() => { setEditItem(null); setSheet("asset") }}
+              style={{ width:"100%", background:T.faint, border:`1px dashed ${T.border}`, borderRadius:14,
+                padding:"20px", textAlign:"center", cursor:"pointer", fontFamily:"inherit" }}>
+              <p style={{ color:"#6B8CB8", fontSize:14 }}>+ Add your first asset</p>
+              <p style={{ color:"#4A6080", fontSize:12, marginTop:4 }}>Savings, pension, property and more</p>
+            </button>
           ) : (
-            <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
-              {state.assets.map(a => (
-                <div key={a.id} style={{ display:"flex", alignItems:"center", gap:12,
-                  background:T.card, border:`1px solid ${T.border}`, borderRadius:14, padding:"12px 14px" }}>
-                  <div style={{ width:36, height:36, borderRadius:10, background:"rgba(52,211,153,.12)",
-                    border:"1px solid rgba(52,211,153,.2)", display:"flex", alignItems:"center",
-                    justifyContent:"center", fontSize:16, flexShrink:0 }}>
+            <div style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:16, overflow:"hidden" }}>
+              {state.assets.map((a, idx) => (
+                <div key={a.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"11px 14px",
+                  borderBottom: idx < state.assets.length-1 ? `1px solid ${T.border}` : "none" }}>
+                  <span style={{ fontSize:18, flexShrink:0 }}>
                     {ASSET_TYPES.find(t=>t.cat===a.category||t.id===a.category)?.icon || "📦"}
-                  </div>
+                  </span>
                   <div style={{ flex:1, minWidth:0 }}>
-                    <p style={{ color:"#FFFFFF", fontWeight:700, fontSize:14 }}>{a.name}</p>
-                    {a.monthlyIncome > 0 && (
-                      <p style={{ color:T.teal, fontSize:11 }}>+{fmt(a.monthlyIncome)}/mo income</p>
-                    )}
+                    <p style={{ color:"#FFFFFF", fontWeight:700, fontSize:13 }}>{a.name}</p>
+                    {a.monthlyIncome > 0 && <p style={{ color:T.teal, fontSize:11 }}>+{fmt(a.monthlyIncome)}/mo</p>}
                   </div>
-                  <p style={{ color:T.green, fontWeight:800, fontSize:15, flexShrink:0 }}>{fmt(a.value)}</p>
-                  <div style={{ display:"flex", gap:6 }}>
-                    <button onClick={() => { setEditItem(a); setSheet("asset") }}
-                      style={{ background:"rgba(255,255,255,.06)", border:"none", borderRadius:8,
-                        padding:"6px 10px", color:"#8FA3BE", fontSize:12, cursor:"pointer",
-                        fontFamily:"inherit" }}>Edit</button>
-                    <button onClick={() => deleteAsset(a)}
-                      style={{ background:"rgba(248,113,113,.1)", border:"none", borderRadius:8,
-                        padding:"6px 10px", color:T.red, fontSize:12, cursor:"pointer",
-                        fontFamily:"inherit" }}>✕</button>
-                  </div>
+                  <p style={{ color:T.green, fontWeight:800, fontSize:14, marginRight:8 }}>{fmt(a.value)}</p>
+                  <button onClick={() => { setEditItem(a); setSheet("asset") }}
+                    style={{ background:"rgba(255,255,255,.06)", border:"none", borderRadius:8,
+                      padding:"5px 9px", color:"#8FA3BE", fontSize:11, cursor:"pointer", fontFamily:"inherit" }}>✎</button>
+                  <button onClick={() => deleteAsset(a)}
+                    style={{ background:"rgba(248,113,113,.10)", border:"none", borderRadius:8,
+                      padding:"5px 9px", color:T.red, fontSize:11, cursor:"pointer", fontFamily:"inherit" }}>✕</button>
                 </div>
               ))}
             </div>
           )}
         </div>
 
-        {/* ── DEBTS ── */}
+        {/* DEBTS */}
         <div style={{ marginBottom:18 }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
-            <div>
-              <p style={{ color:"#FFFFFF", fontWeight:800, fontSize:16 }}>Debts</p>
-              <p style={{ color:totalDebts>0?T.red:"#6B8CB8", fontWeight:700, fontSize:13 }}>{fmt(totalDebts)}</p>
-            </div>
+            <p style={{ color:"#FFFFFF", fontWeight:800, fontSize:16 }}>
+              Debts <span style={{ color:totalDebts>0?T.red:"#8FA3BE", fontWeight:700, fontSize:14, marginLeft:8 }}>{fmt(totalDebts)}</span>
+            </p>
             <button onClick={() => { setEditItem(null); setSheet("debt") }}
               style={{ background:T.redDim, border:`1px solid ${T.redBorder}`, borderRadius:10,
-                padding:"8px 14px", color:T.red, fontWeight:700, fontSize:13,
+                padding:"7px 14px", color:T.red, fontWeight:700, fontSize:13,
                 cursor:"pointer", fontFamily:"inherit" }}>+ Add</button>
           </div>
           {state.debts.length === 0 ? (
             <div style={{ background:T.faint, border:`1px dashed ${T.border}`, borderRadius:14,
-              padding:"20px", textAlign:"center" }}>
+              padding:"16px", textAlign:"center" }}>
               <p style={{ color:"#6B8CB8", fontSize:14 }}>No debts recorded</p>
             </div>
           ) : (
-            <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
-              {state.debts.map(d => (
-                <div key={d.id} style={{ display:"flex", alignItems:"center", gap:12,
-                  background:T.card, border:`1px solid ${d.interestRate>15?T.redBorder:T.border}`,
-                  borderRadius:14, padding:"12px 14px" }}>
-                  <div style={{ width:36, height:36, borderRadius:10, background:"rgba(248,113,113,.10)",
-                    border:"1px solid rgba(248,113,113,.2)", display:"flex", alignItems:"center",
-                    justifyContent:"center", fontSize:16, flexShrink:0 }}>
+            <div style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:16, overflow:"hidden" }}>
+              {state.debts.map((d, idx) => (
+                <div key={d.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"11px 14px",
+                  borderBottom: idx < state.debts.length-1 ? `1px solid ${T.border}` : "none",
+                  background: d.interestRate>15 ? "rgba(248,113,113,.04)" : "transparent" }}>
+                  <span style={{ fontSize:18, flexShrink:0 }}>
                     {DEBT_TYPES.find(t=>t.cat===d.category||t.id===d.category)?.icon || "💳"}
-                  </div>
+                  </span>
                   <div style={{ flex:1, minWidth:0 }}>
-                    <p style={{ color:"#FFFFFF", fontWeight:700, fontSize:14 }}>{d.name}</p>
-                    <p style={{ color: d.interestRate>15?T.red:"#8FA3BE", fontSize:11 }}>
-                      {d.interestRate}% APR
-                      {d.interestRate > 15 && " · high interest"}
+                    <p style={{ color:"#FFFFFF", fontWeight:700, fontSize:13 }}>{d.name}</p>
+                    <p style={{ color:d.interestRate>15?T.red:"#8FA3BE", fontSize:11 }}>
+                      {d.interestRate}% APR{d.interestRate>15?" · high interest":""}
                     </p>
                   </div>
-                  <p style={{ color:T.red, fontWeight:800, fontSize:15, flexShrink:0 }}>{fmt(d.balance)}</p>
-                  <div style={{ display:"flex", gap:6 }}>
-                    <button onClick={() => { setEditItem(d); setSheet("debt") }}
-                      style={{ background:"rgba(255,255,255,.06)", border:"none", borderRadius:8,
-                        padding:"6px 10px", color:"#8FA3BE", fontSize:12, cursor:"pointer",
-                        fontFamily:"inherit" }}>Edit</button>
-                    {!d.isAutoCreated && <button onClick={() => deleteDebt(d)}
-                      style={{ background:"rgba(248,113,113,.1)", border:"none", borderRadius:8,
-                        padding:"6px 10px", color:T.red, fontSize:12, cursor:"pointer",
-                        fontFamily:"inherit" }}>✕</button>}
-                  </div>
+                  <p style={{ color:T.red, fontWeight:800, fontSize:14, marginRight:8 }}>{fmt(d.balance)}</p>
+                  <button onClick={() => { setEditItem(d); setSheet("debt") }}
+                    style={{ background:"rgba(255,255,255,.06)", border:"none", borderRadius:8,
+                      padding:"5px 9px", color:"#8FA3BE", fontSize:11, cursor:"pointer", fontFamily:"inherit" }}>✎</button>
+                  {!d.isAutoCreated && <button onClick={() => deleteDebt(d)}
+                    style={{ background:"rgba(248,113,113,.10)", border:"none", borderRadius:8,
+                      padding:"5px 9px", color:T.red, fontSize:11, cursor:"pointer", fontFamily:"inherit" }}>✕</button>}
                 </div>
               ))}
             </div>
           )}
         </div>
 
-        {/* ── INCOME ── */}
+        {/* INCOME */}
         <div style={{ marginBottom:18 }}>
-          <p style={{ color:"#FFFFFF", fontWeight:800, fontSize:16, marginBottom:10 }}>Income and Spending</p>
+          <p style={{ color:"#FFFFFF", fontWeight:800, fontSize:16, marginBottom:10 }}>Income</p>
           <IncomeSection income={state.income} assets={state.assets} onSave={saveIncome}/>
         </div>
 
-        {/* ── SPENDING BREAKDOWN ── */}
+        {/* CHARTS */}
         <SpendingBreakdownChart state={state} save={saveSpending}/>
-
-        {/* ── NET WORTH HISTORY ── */}
         <NetWorthMomentumChart state={state}/>
-
-        {/* ── ASSET BREAKDOWN CHART ── */}
         <AssetBreakdownChart assets={state.assets} totalAssets={totalAssets} onConfirmAssets={()=>{}}/>
 
-        {/* ── COMPARE ── */}
+        {/* COMPARISON */}
+        <NetWorthOverviewSection state={state} save={save} setSection={()=>{}} setSheet={setSheet} setEditItem={setEditItem}/>
+
+        {/* NARRATIVE */}
         <div style={{ background:`linear-gradient(135deg,${T.tealDim},${T.purpleDim})`,
-          border:`1px solid ${T.tealBorder}`, borderRadius:18, padding:"18px",
-          marginTop:8, marginBottom:8 }}>
-          <p style={{ color:T.teal, fontWeight:800, fontSize:15, marginBottom:6 }}>
-            How do you compare?
+          border:`1px solid ${T.tealBorder}`, borderRadius:18, padding:"18px", marginTop:16 }}>
+          <p style={{ color:T.teal, fontWeight:800, fontSize:14, marginBottom:8 }}>
+            Why this matters
           </p>
-          <p style={{ color:"#C8D8EC", fontSize:13, lineHeight:1.65 }}>
-            Come back regularly to update these numbers. The more accurate this snapshot is, the better every financial decision you make will be — from how you budget to what you invest in.
+          <p style={{ color:"#C8D8EC", fontSize:13, lineHeight:1.7 }}>
+            Once this snapshot is accurate, every financial conversation changes — from how you budget to how you invest.
+            You can even share this with a financial advisor and walk in prepared.
           </p>
         </div>
-        <NetWorthOverviewSection state={state} save={save} setSection={()=>{}} setSheet={setSheet} setEditItem={setEditItem}/>
 
       </div>
     </div>
@@ -4406,6 +4351,7 @@ function LearnTab() {
   const { state, save, toast } = useApp()
   const [activeLevel, setActiveLevel] = useState(null)
   const [showConfetti, setShowConfetti] = useState(false)
+  const [activeCourse, setActiveCourse] = useState("main")
 
   const completedLevels = state.completedLevels || []
   const doneSet = new Set(completedLevels)
@@ -4442,8 +4388,6 @@ function LearnTab() {
   }
 
   const phases = ["Foundations","Stabilise","Optimise","Grow"]
-
-  const [activeCourse, setActiveCourse] = useState("main")
 
   const COURSES = [
     { id:"main",    label:"Financial Freedom",   emoji:"🚀", desc:"Your complete 9-step guide to financial independence",   color:T.teal   },
