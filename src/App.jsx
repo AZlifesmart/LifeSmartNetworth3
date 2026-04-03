@@ -870,8 +870,6 @@ function WelcomeScreen({ onNext }) {
     { id:"learn",  icon:"💡", label:"Learn the basics",            sub:"Understand money properly",                 color:T.purple },
     { id:"action", icon:"🎯", label:"Take action",                 sub:"Get a clear plan and move forward",         color:T.amber  },
   ]
-  const MODES_PLACEHOLDER = [beat the numbers", color:T.teal },
-      ]
 
   if(screen === "splash") return (
     <div style={{ minHeight:"100dvh", background:T.bg, display:"flex", flexDirection:"column",
