@@ -447,14 +447,14 @@ function calcQuizPersonality(answers, state) {
 
 
 const ASSET_TYPES = [
-  { id:"property",    label:"Property",     icon:"🏠", cat:"primary_residence", desc:"Home, flat, land",         hint:"Check Zoopla or Rightmove",          bucket:"life"   },
+  { id:"property",    label:"Primary Home",  icon:"🏠", cat:"primary_residence", desc:"Your main residenced",         hint:"Check Zoopla or Rightmove",          bucket:"life"   },
   { id:"savings",     label:"Savings",      icon:"💰", cat:"savings",           desc:"Cash, ISA, current acct",  hint:"Check your banking app",             bucket:"safety" },
   { id:"pension",     label:"Pension",      icon:"🏛️", cat:"pension",           desc:"Workplace or personal",    hint:"Your pension provider app or letter", bucket:"wealth" },
   { id:"investments", label:"Investments",  icon:"📈", cat:"investments",       desc:"Stocks, funds, S&S ISA",   hint:"Your ISA or investment platform",    bucket:"wealth" },
   { id:"vehicle",     label:"Vehicle",      icon:"🚗", cat:"vehicle",           desc:"Car, motorbike",           hint:"Check AutoTrader with your reg plate",bucket:"life"   },
-  { id:"gold",        label:"Gold/Crypto",  icon:"✨", cat:"other",             desc:"Precious metals, crypto",  hint:"Your exchange or wallet balance",     bucket:"wealth" },
+  { id:"gold",        label:"Gold",          icon:"✨", cat:"other",             desc:"Physical gold, precious metals, crypto",  hint:"Your exchange or wallet balance",     bucket:"wealth" },
   { id:"business",    label:"Business",     icon:"💼", cat:"business",          desc:"Business equity",          hint:"Estimated value of your stake",       bucket:"wealth" },
-  { id:"other",       label:"Other",        icon:"📦", cat:"other",             desc:"Art, collectibles, other", hint:"Estimated resale value",              bucket:"life"   },
+  { id:"other",       label:"Other Assets", icon:"📦", cat:"other",             desc:"Crypto, art, jewellery, collectibleses, other", hint:"Estimated resale value",              bucket:"life"   },
 ]
 
 const DEBT_TYPES = [
@@ -533,7 +533,7 @@ const DEFAULTS = {
   assets:[], debts:[],
   income: { primary:0, primarySource:"Salary", additional:[] },
   spending: { monthly:0, breakdown:{} },
-  goals:[], history:[], completedLessons:[], completedLevels:[], currentLevel:1, badges:[],
+  goals:[], history:[], completedLessons:[], completedLevels:[], currentLevel:1, pendingLearnLevel:null, badges:[],
   priorityGoals: [],
   dashboardTiles: []
 }
@@ -862,13 +862,16 @@ function WelcomeScreen({ onNext }) {
   const [name, setNameLocal] = useState("")
   const [age, setAgeLocal] = useState("")
   const [mode, setMode] = useState(null)
+  const [aboutTags, setAboutTags] = useState([])
 
   const MODES = [
-    { id:"grow",   icon:"📈", label:"Grow my wealth",              sub:"Track everything, grow your net worth, beat the numbers", color:T.teal },
-    { id:"safety", icon:"🛡️", label:"Feel financially secure",     sub:"Understand your safety net, reduce money stress, sleep better", color:T.green },
-    { id:"learn",  icon:"💡", label:"Learn about money",           sub:"Build real financial knowledge from scratch, no jargon", color:T.purple },
-    { id:"action", icon:"🎯", label:"Take action on my finances",  sub:"Invest, buy a home, clear debt, get a clear plan", color:T.amber },
+    { id:"grow",   icon:"📈", label:"Grow my money",               sub:"Build wealth over time",                    color:T.teal   },
+    { id:"safety", icon:"🛡️", label:"Feel secure",                 sub:"Reduce stress and build a safety net",     color:T.blue   },
+    { id:"learn",  icon:"💡", label:"Learn the basics",            sub:"Understand money properly",                 color:T.purple },
+    { id:"action", icon:"🎯", label:"Take action",                 sub:"Get a clear plan and move forward",         color:T.amber  },
   ]
+  const MODES_PLACEHOLDER = [beat the numbers", color:T.teal },
+      ]
 
   if(screen === "splash") return (
     <div style={{ minHeight:"100dvh", background:T.bg, display:"flex", flexDirection:"column",
@@ -908,16 +911,16 @@ function WelcomeScreen({ onNext }) {
         padding:"50px 28px 20px", maxWidth:460, margin:"0 auto", width:"100%" }}>
         <h1 style={{ color:"#FFFFFF", fontWeight:900, fontSize:"clamp(26px,6vw,34px)",
           lineHeight:1.1, marginBottom:10, letterSpacing:-.5 }}>
-          Take control of your money
+          What do you want to improve?
         </h1>
         <p style={{ color:"#8FA3BE", fontSize:15, lineHeight:1.55, marginBottom:8 }}>
           People who track their finances build <strong style={{ color:T.teal }}>4× more wealth</strong>. Not because they earn more, because they make better decisions.
         </p>
         <p style={{ color:"#8FA3BE", fontSize:15, lineHeight:1.55, marginBottom:28 }}>
-          We will teach you the key concepts and give you the tools to act on them.
+          Pick one to start. You can change this later.
         </p>
         <p style={{ color:"#FFFFFF", fontWeight:800, fontSize:15, marginBottom:14 }}>
-          What matters most to you right now?
+          
         </p>
         <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
           {MODES.map(m=>{
@@ -952,7 +955,7 @@ function WelcomeScreen({ onNext }) {
         </div>
       </div>
       <div style={{ position:"relative", zIndex:1, padding:"0 28px 48px", maxWidth:460, margin:"0 auto", width:"100%" }}>
-        <button onClick={()=>{ if(mode) setScreen("name") }}
+        <button onClick={()=>{ if(mode) setScreen("about") }}
           disabled={!mode}
           style={{ width:"100%", padding:"17px",
             background: mode ? `linear-gradient(135deg,${T.teal},${T.purple})` : "rgba(255,255,255,.05)",
@@ -969,6 +972,66 @@ function WelcomeScreen({ onNext }) {
           fontSize:13, cursor:"pointer", fontFamily:"inherit", width:"100%", marginTop:12, padding:8, fontWeight:500 }}>
           Back
         </button>
+      </div>
+    </div>
+  )
+
+    const ABOUT_OPTIONS = [
+    { id:"employed",   icon:"💼", label:"Full time job" },
+    { id:"selfempl",   icon:"🏢", label:"Self employed" },
+    { id:"student",    icon:"🎓", label:"Student" },
+    { id:"seeking",    icon:"🔍", label:"Seeking a job or want to move" },
+    { id:"stress",     icon:"😟", label:"I have had financial stress recently" },
+    { id:"faith",      icon:"🌙", label:"Faith guides my financial decisions" },
+    { id:"lifeevent",  icon:"🎯", label:"Big life event coming up or recently" },
+  ]
+
+  if(screen === "about") return (
+    <div style={{ minHeight:"100dvh", background:T.bg, display:"flex", flexDirection:"column",
+      position:"relative", overflow:"hidden" }}>
+      <StarField count={16}/>
+      <div className="ls-fadein" style={{ position:"relative", zIndex:1, flex:1, overflowY:"auto",
+        padding:"50px 28px 20px", maxWidth:460, margin:"0 auto", width:"100%" }}>
+        <h1 style={{ color:"#FFFFFF", fontWeight:900, fontSize:"clamp(26px,6vw,34px)",
+          lineHeight:1.1, marginBottom:8, letterSpacing:-.5 }}>Which of these apply to you?</h1>
+        <p style={{ color:"#8FA3BE", fontSize:15, lineHeight:1.5, marginBottom:28 }}>
+          Choose all that apply. This helps us personalise your experience.
+        </p>
+        <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+          {ABOUT_OPTIONS.map(opt => {
+            const sel = aboutTags.includes(opt.id)
+            return (
+              <button key={opt.id}
+                onClick={() => setAboutTags(prev => sel ? prev.filter(x=>x!==opt.id) : [...prev, opt.id])}
+                style={{ display:"flex", alignItems:"center", gap:14,
+                  background: sel ? "rgba(15,191,184,.12)" : "rgba(255,255,255,.03)",
+                  border:`2px solid ${sel ? T.teal : "rgba(255,255,255,.08)"}`,
+                  borderRadius:16, padding:"15px 18px", cursor:"pointer",
+                  fontFamily:"inherit", textAlign:"left", transition:"all .15s" }}>
+                <span style={{ fontSize:20, flexShrink:0 }}>{opt.icon}</span>
+                <p style={{ color: sel ? "#FFFFFF" : "#C8D8EC", fontWeight: sel ? 700 : 500,
+                  fontSize:15, flex:1 }}>{opt.label}</p>
+                {sel && <div style={{ width:22, height:22, borderRadius:"50%", background:T.teal,
+                  display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                  <Check size={13} color="#060C18"/>
+                </div>}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+      <div style={{ position:"relative", zIndex:1, padding:"0 28px 48px", maxWidth:460, margin:"0 auto", width:"100%" }}>
+        <button onClick={() => setScreen("name")}
+          style={{ width:"100%", padding:"17px",
+            background:`linear-gradient(135deg,${T.teal},${T.purple})`,
+            border:"none", borderRadius:18, color:"#FFFFFF",
+            fontWeight:900, fontSize:17, cursor:"pointer",
+            fontFamily:"inherit", boxShadow:"0 4px 24px rgba(15,191,184,.3)" }}>
+          Continue
+        </button>
+        <button onClick={() => setScreen("priority")} style={{ background:"none", border:"none",
+          color:"#4A6080", fontSize:13, cursor:"pointer", fontFamily:"inherit",
+          width:"100%", marginTop:12, padding:8 }}>Back</button>
       </div>
     </div>
   )
@@ -1351,74 +1414,83 @@ function WowScreen({ assets, debts, income, spending, name, onFinish }) {
   const totalAssets = Object.values(assets).reduce((s,v)=>s+(v||0),0)
   const totalDebts  = Object.values(debts).reduce((s,v)=>s+(v||0),0)
   const netWorth    = totalAssets - totalDebts
-  const surplus     = income > 0 && spending > 0 ? income - spending : null
   const nwPos       = netWorth >= 0
 
-  const getMessage = () => {
-    if(netWorth > 200000) return "Serious wealth. Now let\'s make every pound work harder."
-    if(netWorth > 50000)  return "Solid foundations. From here, everything compounds."
-    if(netWorth > 0)      return "You\'re in the green. Every decision from here matters."
-    if(netWorth > -20000) return "Everyone starts somewhere. Yours starts now."
-    return "More runway than you think. Let\'s use it."
-  }
+  const dynamicMsg = netWorth > 50000
+    ? "You are in a strong position to build from here."
+    : netWorth > 0
+      ? "You have a solid starting point. From here it compounds."
+      : "This is where you start. It can improve quickly with the right moves."
 
   return (
-    <div style={{ minHeight:"100vh",background:T.bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"40px 24px",position:"relative",overflow:"hidden" }}>
-      <StarField count={60}/>
-      <div style={{ position:"absolute",top:0,left:0,right:0,height:300,background:`radial-gradient(ellipse at 50% 0%,${nwPos?T.teal:T.red}18 0%,transparent 70%)`,pointerEvents:"none" }}/>
+    <div style={{ minHeight:"100vh", background:T.bg, display:"flex", flexDirection:"column",
+      alignItems:"center", justifyContent:"center", padding:"40px 24px", position:"relative", overflow:"hidden" }}>
+      <StarField count={50}/>
+      <div style={{ position:"absolute", top:0, left:0, right:0, height:320,
+        background:`radial-gradient(ellipse at 50% 0%,${nwPos?T.teal:T.red}20 0%,transparent 70%)`,
+        pointerEvents:"none" }}/>
 
-      <div className="ls-fadein" style={{ position:"relative",textAlign:"center",maxWidth:440,width:"100%" }}>
-        <div className="ls-float" style={{ fontSize:64,marginBottom:20 }}>{nwPos?"🚀":"📊"}</div>
+      <div className="ls-fadein" style={{ position:"relative", textAlign:"center", maxWidth:420, width:"100%" }}>
+        <div className="ls-float" style={{ fontSize:64, marginBottom:16 }}>
+          {nwPos ? "🚀" : "📊"}
+        </div>
 
-        <p style={{ fontSize:12,fontWeight:700,color:T.teal,letterSpacing:2,textTransform:"uppercase",marginBottom:12 }}>
-          {name ? `${name}'s financial picture` : "Your financial picture"}
+        <p style={{ fontSize:12, fontWeight:700, color:T.teal, letterSpacing:2,
+          textTransform:"uppercase", marginBottom:6 }}>
+          This is your starting point
         </p>
 
-        <div className="ls-numpop" style={{ marginBottom:12 }}>
-          <div style={{ fontSize:"clamp(44px,10vw,68px)",fontWeight:900,lineHeight:1,
-            color:nwPos?T.teal:T.red, letterSpacing:-1,
+        <div className="ls-numpop" style={{ marginBottom:8 }}>
+          <div style={{ fontSize:"clamp(52px,12vw,72px)", fontWeight:900, lineHeight:1,
+            color:nwPos?T.teal:T.red, letterSpacing:-2,
             textShadow:nwPos?`0 0 60px ${T.teal}60`:`0 0 60px ${T.red}40` }}>
             {fmt(netWorth)}
           </div>
-          <p style={{ color:"#E2EAF6",fontSize:15,marginTop:6,fontWeight:700 }}>Net worth</p>
+          <p style={{ color:"#E2EAF6", fontSize:14, marginTop:6, fontWeight:600 }}>Net worth</p>
         </div>
 
-        <p style={{ color:"#E2EAF6",fontSize:16,lineHeight:1.7,marginBottom:28,maxWidth:340,margin:"0 auto 28px",fontWeight:500 }}>
-          {getMessage()}
+        <p style={{ color:"#E2EAF6", fontSize:15, lineHeight:1.65, marginBottom:6,
+          maxWidth:340, margin:"0 auto 6px" }}>
+          From here, everything you do compounds.
+        </p>
+        <p style={{ color:nwPos?T.teal:"#8FA3BE", fontSize:14, lineHeight:1.5,
+          marginBottom:28, maxWidth:320, margin:"0 auto 28px", fontWeight:500 }}>
+          {dynamicMsg}
         </p>
 
-        <div style={{ display:"grid",gridTemplateColumns:surplus!==null?"repeat(3,1fr)":"repeat(2,1fr)",gap:10,marginBottom:36 }}>
-          <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px 10px" }}>
-            <p style={{ color:T.green,fontWeight:900,fontSize:20 }}>{fmtK(totalAssets)}</p>
-            <p style={{ color:T.muted,fontSize:11,marginTop:2 }}>Assets</p>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:24 }}>
+          <div style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:16, padding:"14px" }}>
+            <p style={{ color:T.green, fontWeight:900, fontSize:22 }}>{fmtK(totalAssets)}</p>
+            <p style={{ color:"#8FA3BE", fontSize:12, marginTop:2 }}>Assets</p>
           </div>
-          <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px 10px" }}>
-            <p style={{ color:totalDebts>0?T.red:T.muted,fontWeight:900,fontSize:20 }}>{fmtK(totalDebts)}</p>
-            <p style={{ color:T.muted,fontSize:11,marginTop:2 }}>Debts</p>
+          <div style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:16, padding:"14px" }}>
+            <p style={{ color:totalDebts>0?T.red:"#8FA3BE", fontWeight:900, fontSize:22 }}>{fmtK(totalDebts)}</p>
+            <p style={{ color:"#8FA3BE", fontSize:12, marginTop:2 }}>Debts</p>
           </div>
-          {surplus!==null && (
-            <div style={{ background:T.card,border:`1px solid ${surplus>=0?T.tealBorder:T.redBorder}`,borderRadius:14,padding:"14px 10px" }}>
-              <p style={{ color:surplus>=0?T.teal:T.red,fontWeight:900,fontSize:20 }}>{fmtK(Math.abs(surplus))}</p>
-              <p style={{ color:T.muted,fontSize:11,marginTop:2 }}>{surplus>=0?"/ month surplus":"/ month shortfall"}</p>
-            </div>
-          )}
         </div>
 
-        {/* "What people wish" hook */}
-        <div style={{ background:"linear-gradient(135deg,rgba(167,139,250,.15),rgba(15,191,184,.08))",border:"1px solid rgba(167,139,250,.3)",borderRadius:18,padding:"18px 20px",marginBottom:20 }}>
-          <p style={{ color:"rgba(167,139,250,.8)",fontSize:11,fontWeight:700,letterSpacing:1.2,textTransform:"uppercase",marginBottom:10 }}>What people wish they had done sooner</p>
-          <p style={{ color:"#FFFFFF",fontWeight:700,fontSize:15,fontStyle:"italic",lineHeight:1.5,marginBottom:8 }}>"If I had tracked this 5 years ago, everything would look different now."</p>
-          <p style={{ color:"#8FA3BE",fontSize:13 }}>You are starting today. That already puts you ahead.</p>
+        <div style={{ background:"linear-gradient(135deg,rgba(167,139,250,.15),rgba(15,191,184,.08))",
+          border:"1px solid rgba(167,139,250,.25)", borderRadius:18, padding:"18px 20px", marginBottom:24 }}>
+          <p style={{ color:"rgba(167,139,250,.7)", fontSize:11, fontWeight:700,
+            letterSpacing:1.2, textTransform:"uppercase", marginBottom:8 }}>What people say</p>
+          <p style={{ color:"#FFFFFF", fontWeight:700, fontSize:16, fontStyle:"italic",
+            lineHeight:1.55, marginBottom:6 }}>
+            "I wish I started tracking this earlier."
+          </p>
+          <p style={{ color:"#8FA3BE", fontSize:14 }}>
+            You are starting now. That already puts you ahead.
+          </p>
         </div>
 
-        <Btn onClick={onFinish} style={{ fontSize:16,padding:"16px 28px",width:"100%" }}>
-          Go to my dashboard →
+        <Btn onClick={onFinish} style={{ fontSize:16, padding:"18px", width:"100%" }}>
+          See your next steps →
         </Btn>
-        <p style={{ color:"#8FA3BE",fontSize:12,marginTop:12 }}>Your projection and lessons are ready</p>
+        <p style={{ color:"#6B8CB8", fontSize:13, marginTop:12 }}>Your projection and guide are ready</p>
       </div>
     </div>
   )
 }
+
 
 /* ════════════════════════════════════════════════════════════════════
    HOME TAB
@@ -1432,7 +1504,7 @@ function HomeTab() {
   const bk         = buckets(assets)
   const hasSpending= (spending?.monthly||0) > 0
   const hasIncome  = (income?.primary||0) > 0
-  const safetyMonths = (bk.safetyNet > 0 && spending.monthly > 0) ? Math.floor(bk.safetyNet / spending.monthly) : null
+  const safetyMonths = (bk.safetyNet > 0 && spending.monthly > 0) ? parseFloat((bk.safetyNet / spending.monthly).toFixed(1)) : null
   const fireNumber   = hasSpending ? spending.monthly * 12 * 25 : null
   const [showEdit, setShowEdit] = useState(false)
   const [showQuiz, setShowQuiz] = useState(false)
@@ -1567,8 +1639,7 @@ function HomeTab() {
 
         {/* ══ SECTION 1: TWO TAPPABLE TILES ══ */}
         <div style={{ marginTop:18, marginBottom:12 }}>
-          <p style={{ color:"#8FA3BE", fontSize:11, fontWeight:700, letterSpacing:1.2,
-            textTransform:"uppercase", marginBottom:10 }}>Tap either card to expand</p>
+
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
 
             {/* NET WORTH */}
@@ -1579,7 +1650,7 @@ function HomeTab() {
                   border:`2px solid ${netWorth>=0 ? T.teal : T.red}`,
                   borderRadius: expandNW ? "20px 20px 0 0" : 20,
                   padding:"18px 16px", cursor:"pointer", fontFamily:"inherit",
-                  textAlign:"left", transition:"all .2s",
+                  textAlign:"left", transition:"all .2s", minHeight:148,
                   boxShadow:`0 0 20px ${netWorth>=0?T.teal:T.red}25` }}>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
                   <p style={{ color:netWorth>=0?T.teal:T.red, fontSize:11, fontWeight:800,
@@ -1667,7 +1738,7 @@ function HomeTab() {
                       border:`2px solid ${T.amber}`,
                       borderRadius: expandProj ? "20px 20px 0 0" : 20,
                       padding:"18px 16px", cursor:"pointer", fontFamily:"inherit",
-                      textAlign:"left", transition:"all .2s",
+                      textAlign:"left", transition:"all .2s", minHeight:148,
                       boxShadow:`0 0 20px ${T.amber}25` }}>
                     <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
                       <p style={{ color:T.amber, fontSize:11, fontWeight:800,
@@ -1715,6 +1786,13 @@ function HomeTab() {
             })()}
           </div>
         </div>
+        <p style={{ color:"#6B8CB8", fontSize:12, textAlign:"center", marginTop:8, marginBottom:6 }}>
+          ↑ Tap either number to expand the detail
+        </p>
+        <p style={{ color:"#8FA3BE", fontSize:14, lineHeight:1.65, textAlign:"center",
+          marginBottom:16, padding:"0 8px" }}>
+          This is your starting point. What you do next matters more than this number.
+        </p>
 
         {/* ══ SECTION 2: THREE METRIC TILES ══ */}
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:22 }}>
@@ -1735,19 +1813,21 @@ function HomeTab() {
                     borderRadius:99, width:20, height:20, display:"flex", alignItems:"center",
                     justifyContent:"center" }}>?</span>
                 </div>
-                <p style={{ color:T.amber, fontWeight:900, fontSize:22, lineHeight:1, marginBottom:2 }}>
-                  {pct}%
-                </p>
-                <div style={{ background:T.faint, borderRadius:99, height:5, overflow:"hidden", marginBottom:8 }}>
-                  <div style={{ width:`${pct}%`, height:"100%", borderRadius:99,
-                    background:`linear-gradient(90deg,${T.amber}80,${T.amber})`,
-                    minWidth: pct > 0 ? 8 : 0 }}/>
-                </div>
-                <p style={{ color:"#E2EAF6", fontWeight:700, fontSize:12, lineHeight:1.3, marginBottom:2 }}>
+                <p style={{ color:"#E2EAF6", fontWeight:800, fontSize:12, lineHeight:1.3, marginBottom:4 }}>
                   Freedom number
                 </p>
+                <p style={{ color:T.amber, fontWeight:900, fontSize:20, lineHeight:1, marginBottom:6 }}>
+                  {target > 0 ? fmtK(target) : "—"}
+                </p>
+                <div style={{ position:"relative", marginBottom:4 }}>
+                  <div style={{ background:T.faint, borderRadius:99, height:8, overflow:"hidden" }}>
+                    <div style={{ width:`${pct}%`, height:"100%", borderRadius:99,
+                      background:`linear-gradient(90deg,${T.amber}70,${T.amber})`,
+                      minWidth: pct > 0 ? 10 : 0, transition:"width .5s" }}/>
+                  </div>
+                </div>
                 <p style={{ color:"#8FA3BE", fontSize:11 }}>
-                  {target > 0 ? fmtK(target) : "Add spending"}
+                  {pct > 0 ? `${pct}% of target` : "Add spending to calculate"}
                 </p>
               </button>
             )
@@ -1830,6 +1910,19 @@ function HomeTab() {
           })()}
         </div>
 
+        {/* Metric explanations */}
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:20 }}>
+          <p style={{ color:"#8FA3BE", fontSize:11, lineHeight:1.5, textAlign:"center" }}>
+            You're {fireNumber ? `${Math.min(100,Math.round((Math.max(0,netWorth)/fireNumber)*100))}% of the way` : "building toward"} financial freedom. Keep going.
+          </p>
+          <p style={{ color:"#8FA3BE", fontSize:11, lineHeight:1.5, textAlign:"center" }}>
+            {safetyMonths != null ? `You have ${safetyMonths} months covered.` : "Add your savings."} Aim for 3 to 6 months.
+          </p>
+          <p style={{ color:drag>0?"#F87171":"#8FA3BE", fontSize:11, lineHeight:1.5, textAlign:"center" }}>
+            {drag>0 ? `£${Math.round(drag/12).toLocaleString("en-GB")} lost monthly. This is slowing you down.` : "No interest drag. Good position."}
+          </p>
+        </div>
+
         {/* ══ SECTION 3: PERSONALITY ══ */}
         {!quizResult && (
           <button onClick={() => setShowQuiz(true)}
@@ -1901,6 +1994,31 @@ function HomeTab() {
           return (
             <div style={{ marginBottom:24 }}>
               {/* Header */}
+              {/* Strong action intro */}
+              <div style={{ background:"linear-gradient(135deg,rgba(15,191,184,.10),rgba(167,139,250,.08))",
+                border:"1.5px solid rgba(15,191,184,.20)", borderRadius:20, padding:"20px",
+                marginBottom:18 }}>
+                <p style={{ color:T.teal, fontSize:11, fontWeight:800, letterSpacing:1.2,
+                  textTransform:"uppercase", marginBottom:10 }}>Your path to financial freedom</p>
+                <p style={{ color:"#FFFFFF", fontWeight:800, fontSize:17, lineHeight:1.4, marginBottom:10 }}>
+                  Most people are never taught the basics of money — and spend years wishing they had been.
+                </p>
+                <p style={{ color:"#C8D8EC", fontSize:14, lineHeight:1.65, marginBottom:12 }}>
+                  These 9 levels are your guide. Work through them, implement the small changes they suggest, and your financial position will compound faster than you think.
+                </p>
+                <p style={{ color:"#C8D8EC", fontSize:14, lineHeight:1.65, marginBottom:12 }}>
+                  No one else can fix your finances until you take charge. It is easier than you think. And time matters more than what you have right now — so start today.
+                </p>
+                <div style={{ background:"rgba(255,255,255,.05)", borderRadius:14, padding:"14px 16px" }}>
+                  <p style={{ color:T.purple, fontWeight:800, fontSize:14, marginBottom:4 }}>
+                    Most people never complete this.
+                  </p>
+                  <p style={{ color:"#C8D8EC", fontSize:13, lineHeight:1.55 }}>
+                    If you do, you will be ahead of 90% of people financially. Start now.
+                  </p>
+                </div>
+              </div>
+
               <div style={{ marginBottom:14 }}>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
                   <p style={{ color:T.white, fontWeight:900, fontSize:20 }}>Your financial guide</p>
@@ -1941,7 +2059,7 @@ function HomeTab() {
                       {showPhaseDivider && idx % 2 === 0 && (
                         <div style={{ gridColumn:"1 / -1" }}/>
                       )}
-                      <button onClick={() => setTab(1)} className="ls-card-lift"
+                      <button onClick={() => { save({...state, pendingLearnLevel:lv.n}); setTab(1) }} className="ls-card-lift"
                         style={{ width:"100%", background:T.card,
                           border:`2px solid ${isCurrent ? lv.color : isDone ? T.green+"35" : T.border}`,
                           borderRadius:22, overflow:"hidden", cursor:"pointer",
@@ -2910,158 +3028,210 @@ function AnalyticsTab() {
   function saveSpending(sp){ save({ ...state, spending:sp }); toast("✓ Spending updated") }
 
   return (
-    <div style={{ flex:1,overflowY:"auto",paddingBottom:100 }}>
-      {/* Header */}
-      <div style={{ background:"rgba(10,19,34,.97)",backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)",padding:"20px 18px 16px",borderBottom:"1px solid rgba(255,255,255,.05)" }}>
-        <div style={{ maxWidth:900,margin:"0 auto" }}>
-          <h2 style={{ color:T.white,fontWeight:900,fontSize:22,marginBottom:4,letterSpacing:-.3 }}>Track & Update</h2>
-          <p style={{ color:T.muted,fontSize:13,marginBottom:16 }}>Keep your figures accurate. 5 minutes a month changes everything.</p>
+    <div style={{ flex:1, overflowY:"auto", paddingBottom:100 }}>
 
-          {/* Summary strip */}
-          <div style={{ display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8 }}>
-            {[
-              { label:"Net Worth", value:fmt(netWorth), color:netWorth>=0?T.teal:T.red },
-              { label:"Assets", value:fmt(totalAssets), color:T.green },
-              { label:"Debts", value:fmt(totalDebts), color:totalDebts>0?T.red:T.muted },
-            ].map((s,i)=>(
-              <div key={i} style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"12px 14px",textAlign:"center" }}>
-                <p style={{ color:s.color,fontWeight:900,fontSize:18 }}>{s.value}</p>
-                <p style={{ color:T.muted,fontSize:11,fontWeight:600,marginTop:2 }}>{s.label}</p>
+      {/* Sheet panels */}
+      {sheet==="asset" && <Sheet title={editItem?"Edit asset":"Add asset"} onClose={()=>{setSheet(null);setEditItem(null)}}><AssetSheet item={editItem} onClose={()=>{setSheet(null);setEditItem(null)}} onSave={saveAsset}/></Sheet>}
+      {sheet==="debt"  && <Sheet title={editItem?"Edit debt":"Add debt"}   onClose={()=>{setSheet(null);setEditItem(null)}}><DebtSheet  item={editItem} onClose={()=>{setSheet(null);setEditItem(null)}} onSave={saveDebt}/></Sheet>}
+
+      {/* ── HERO HEADER ── */}
+      <div style={{ background:"rgba(10,19,34,.97)", backdropFilter:"blur(16px)",
+        padding:"20px 20px 0", borderBottom:"1px solid rgba(255,255,255,.06)" }}>
+        <div style={{ maxWidth:600, margin:"0 auto" }}>
+          <h2 style={{ color:T.white, fontWeight:900, fontSize:22, marginBottom:4, letterSpacing:-.3 }}>
+            Track and Grow
+          </h2>
+          <p style={{ color:"#8FA3BE", fontSize:13, lineHeight:1.6, marginBottom:14 }}>
+            Wealth does not grow by accident. The simple act of tracking it changes how you think about every financial decision.
+          </p>
+
+          {/* Net worth banner */}
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
+            background:`${netWorth>=0?T.tealDim:T.redDim}`, border:`1.5px solid ${netWorth>=0?T.tealBorder:T.redBorder}`,
+            borderRadius:"16px 16px 0 0", padding:"14px 16px" }}>
+            <div>
+              <p style={{ color:netWorth>=0?T.teal:T.red, fontSize:11, fontWeight:700,
+                letterSpacing:1, textTransform:"uppercase", marginBottom:3 }}>Net worth</p>
+              <p style={{ color:netWorth>=0?T.teal:T.red, fontWeight:900, fontSize:32, lineHeight:1,
+                textShadow:netWorth>=0?`0 0 20px ${T.teal}50`:`0 0 20px ${T.red}40` }}>
+                {fmt(netWorth)}
+              </p>
+            </div>
+            <div style={{ textAlign:"right" }}>
+              <div style={{ marginBottom:6 }}>
+                <p style={{ color:T.green, fontWeight:800, fontSize:16 }}>{fmt(totalAssets)}</p>
+                <p style={{ color:"#6B8CB8", fontSize:11 }}>assets</p>
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div style={{ padding:"20px 18px",maxWidth:900,margin:"0 auto",width:"100%" }}>
-
-        {/* All sections shown inline, no tabs */}
-        {/* ── ASSETS ── */}
-        <AssetsSection assets={state.assets} totalAssets={totalAssets}
-          onAdd={()=>{ setEditItem(null); setSheet("asset") }}
-          onEdit={a=>{ setEditItem(a); setSheet("asset") }}
-          onDelete={deleteAsset}/>
-
-        <div style={{ height:1,background:T.border,margin:"20px 0" }}/>
-
-        {/* ── DEBTS ── */}
-        <DebtsSection debts={state.debts} totalDebts={totalDebts} drag={drag}
-          onAdd={()=>{ setEditItem(null); setSheet("debt") }}
-          onEdit={d=>{ setEditItem(d); setSheet("debt") }}
-          onDelete={deleteDebt}/>
-
-        <div style={{ height:1,background:T.border,margin:"20px 0" }}/>
-
-        {/* ── INCOME & SPENDING ── */}
-        <IncomeSection income={state.income} assets={state.assets} onSave={saveIncome}/>
-
-        <div style={{ height:1,background:T.border,margin:"20px 0" }}/>
-
-        {/* ── Unlock More Insights ── */}
-        <div style={{ position:"relative",marginBottom:20 }}>
-          {/* Hero unlock button */}
-          <button onClick={()=>setSheet("insights")}
-            style={{ width:"100%",background:`linear-gradient(135deg,rgba(15,191,184,.12),rgba(167,139,250,.08))`,
-              border:`1.5px solid ${T.tealBorder}`,borderRadius:22,padding:"20px 22px",
-              cursor:"pointer",fontFamily:"inherit",textAlign:"left",marginBottom:16,
-              boxShadow:`0 8px 32px rgba(15,191,184,.12)`,position:"relative",overflow:"hidden" }}>
-            <div style={{ position:"absolute",top:-30,right:-30,width:120,height:120,borderRadius:"50%",background:"radial-gradient(circle,rgba(15,191,184,.2) 0%,transparent 70%)",pointerEvents:"none" }}/>
-            <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",position:"relative" }}>
-              <div style={{ display:"flex",alignItems:"center",gap:14 }}>
-                <div style={{ width:48,height:48,borderRadius:14,background:"rgba(15,191,184,.15)",border:`1px solid ${T.tealBorder}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24 }}>✨</div>
-                <div>
-                  <p style={{ color:T.white,fontWeight:900,fontSize:16 }}>Unlock More Insights</p>
-                  <p style={{ color:T.muted,fontSize:12,marginTop:2 }}>Add a few more figures to reveal detailed analysis</p>
-                </div>
-              </div>
-              <div style={{ background:T.teal,borderRadius:12,padding:"8px 16px",flexShrink:0 }}>
-                <p style={{ color:"#060C18",fontSize:13,fontWeight:800 }}>Go →</p>
+              <div>
+                <p style={{ color:totalDebts>0?T.red:"#6B8CB8", fontWeight:800, fontSize:16 }}>{fmt(totalDebts)}</p>
+                <p style={{ color:"#6B8CB8", fontSize:11 }}>debts</p>
               </div>
             </div>
-          </button>
+          </div>
 
-          {/* Blurred chart previews grid */}
-          <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:12 }}>
-            {[
-              { icon:"📊", label:"Asset Breakdown", color:T.teal, bars:[65,40,80,30] },
-              { icon:"🥧", label:"Spending Analysis", color:T.purple, bars:[50,30,20,45] },
-              { icon:"👥", label:"Peer Comparison", color:T.blue, bars:[45,70,55,60] },
-              { icon:"📈", label:"Net Worth Trend", color:T.amber, bars:[20,35,45,60,55,70] },
-            ].map((chart,i)=>(
-              <div key={i} style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:18,padding:"16px",position:"relative",overflow:"hidden" }}>
-                <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:12 }}>
-                  <span style={{ fontSize:16 }}>{chart.icon}</span>
-                  <p style={{ color:T.subtle,fontWeight:700,fontSize:12 }}>{chart.label}</p>
-                </div>
-                {/* Fake blurred chart */}
-                <div style={{ display:"flex",alignItems:"flex-end",gap:4,height:50,filter:"blur(4px)",opacity:.35,pointerEvents:"none" }}>
-                  {chart.bars.map((h,j)=>(
-                    <div key={j} style={{ flex:1,height:`${h}%`,background:chart.color,borderRadius:"3px 3px 0 0" }}/>
-                  ))}
-                </div>
-                {/* Lock overlay */}
-                <div style={{ position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(6,12,24,.3)" }}>
-                  <div style={{ background:"rgba(6,12,24,.7)",borderRadius:10,padding:"6px 12px",display:"flex",alignItems:"center",gap:5 }}>
-                    <Lock size={11} color={T.muted}/>
-                    <span style={{ color:T.muted,fontSize:11,fontWeight:700 }}>Locked</span>
-                  </div>
-                </div>
-              </div>
-            ))}
+          {/* Unlock insights strip */}
+          <div style={{ background:"linear-gradient(135deg,rgba(167,139,250,.15),rgba(15,191,184,.08))",
+            border:"1px solid rgba(167,139,250,.25)", borderTop:"none",
+            borderRadius:"0 0 16px 16px", padding:"12px 16px",
+            display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
+            <p style={{ color:"#C8D8EC", fontSize:13 }}>
+              <span style={{ color:T.purple, fontWeight:700 }}>Unlock deeper insights</span> — add spending breakdown
+            </p>
+            <button onClick={()=>{/* TODO */}} style={{ background:T.purple, border:"none",
+              borderRadius:10, padding:"7px 14px", color:"#FFFFFF", fontWeight:700,
+              fontSize:12, cursor:"pointer", fontFamily:"inherit" }}>Unlock →</button>
           </div>
         </div>
       </div>
 
-      {/* Insights popup */}
-      {sheet==="insights" && (
-        <Sheet title="Unlock Insights" onClose={()=>setSheet(null)}>
-          <p style={{ color:"#C8D8EC",fontSize:14,lineHeight:1.6,marginBottom:20 }}>
-            Get detailed charts and analysis by providing a few more quick figures. Choose which insight to unlock.
-          </p>
-          <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
-            {[
-              { icon:"📊", label:"Asset Breakdown", desc:"See productive vs lifestyle assets", color:T.teal, unlocked:state.assets.length>=2, action:"Add 2+ assets" },
-              { icon:"🥧", label:"Spending Analysis", desc:"Needs, wants and savings ratio", color:T.purple, unlocked:!!(state.spending?.breakdown && Object.keys(state.spending.breakdown).length>0), action:"Categorise spending" },
-              { icon:"👥", label:"Peer Comparison", desc:"Compare to others your age", color:T.blue, unlocked:!!(state.profile?.age && state.assets.length>0), action:"Add age + assets" },
-              { icon:"📈", label:"Net Worth Trend", desc:"Track changes over time", color:T.amber, unlocked:(state.history||[]).length>=2, action:"Update figures monthly" },
-            ].map((insight,i)=>(
-              <div key={i} style={{ background:insight.unlocked?`${insight.color}08`:T.card,border:`1.5px solid ${insight.unlocked?`${insight.color}30`:T.border}`,borderRadius:16,padding:"16px 18px",display:"flex",alignItems:"center",gap:14 }}>
-                <div style={{ width:44,height:44,borderRadius:13,background:insight.unlocked?`${insight.color}18`:T.faint,border:`1px solid ${insight.unlocked?`${insight.color}30`:T.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0 }}>{insight.icon}</div>
-                <div style={{ flex:1 }}>
-                  <p style={{ color:insight.unlocked?T.white:T.muted,fontWeight:700,fontSize:14 }}>{insight.label}</p>
-                  <p style={{ color:insight.unlocked?"#C8D8EC":T.subtle,fontSize:12 }}>{insight.desc}</p>
-                </div>
-                {insight.unlocked
-                  ? <div style={{ background:`${insight.color}20`,borderRadius:8,padding:"5px 10px" }}><Check size={14} color={insight.color}/></div>
-                  : <div style={{ background:T.faint,borderRadius:8,padding:"4px 10px" }}><p style={{ color:T.muted,fontSize:10,fontWeight:700 }}>{insight.action}</p></div>
-                }
-              </div>
-            ))}
-          </div>
-          {state.profile?.age && state.assets.length>0 && (()=>{
-            const bench = ageBenchmark(state.profile.age)
-            if(!bench) return null
-            return (
-              <div style={{ marginTop:20,background:T.surface,borderRadius:14,padding:"16px 18px",border:`1px solid ${T.blueBorder}` }}>
-                <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:10 }}>
-                  <span style={{ fontSize:18 }}>👥</span>
-                  <p style={{ color:T.white,fontWeight:700,fontSize:14 }}>How You Compare</p>
-                </div>
-                <p style={{ color:"#C8D8EC",fontSize:13,lineHeight:1.55 }}>
-                  People your age who track their finances typically have around <strong style={{ color:T.teal }}>{fmtK(bench.tracked)}</strong> in net worth.
-                  The UK median for your age group is <strong style={{ color:T.muted }}>{fmtK(bench.median)}</strong>.
-                  {netWorth >= bench.tracked ? " You are ahead of most people who actively track." : netWorth >= bench.median ? " You are above the national median." : " Tracking is the first step to closing the gap."}
-                </p>
-              </div>
-            )
-          })()}
-        </Sheet>
-      )}
+      <div style={{ maxWidth:600, margin:"0 auto", padding:"16px 18px" }}>
 
-      {sheet==="asset" && <AssetSheet item={editItem} onClose={()=>{ setSheet(null); setEditItem(null) }} onSave={saveAsset}/>}
-      {sheet==="debt"  && <DebtSheet  item={editItem} onClose={()=>{ setSheet(null); setEditItem(null) }} onSave={saveDebt}/>}
+        {/* ── NARRATIVE ── */}
+        <div style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:18,
+          padding:"16px", marginBottom:18 }}>
+          <p style={{ color:"#C8D8EC", fontSize:14, lineHeight:1.7, marginBottom:10 }}>
+            <span style={{ color:T.white, fontWeight:700 }}>Most people never track this.</span> If you do, you will make better decisions and stay in control of your money.
+          </p>
+          <p style={{ color:"#8FA3BE", fontSize:13, lineHeight:1.65 }}>
+            Once this is accurate, you can start making smarter moves — from budgeting to investing and long-term planning. You can even walk into a financial advisor meeting with a clear snapshot of your position. You cannot improve what you do not track.
+          </p>
+        </div>
+
+        {/* ── ASSETS ── */}
+        <div style={{ marginBottom:18 }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
+            <div>
+              <p style={{ color:"#FFFFFF", fontWeight:800, fontSize:16 }}>Assets</p>
+              <p style={{ color:T.green, fontWeight:700, fontSize:13 }}>{fmt(totalAssets)}</p>
+            </div>
+            <button onClick={() => { setEditItem(null); setSheet("asset") }}
+              style={{ background:T.tealDim, border:`1px solid ${T.tealBorder}`, borderRadius:10,
+                padding:"8px 14px", color:T.teal, fontWeight:700, fontSize:13,
+                cursor:"pointer", fontFamily:"inherit" }}>+ Add</button>
+          </div>
+          {state.assets.length === 0 ? (
+            <div style={{ background:T.faint, border:`1px dashed ${T.border}`, borderRadius:14,
+              padding:"20px", textAlign:"center" }}>
+              <p style={{ color:"#6B8CB8", fontSize:14 }}>No assets added yet</p>
+              <p style={{ color:"#4A6080", fontSize:12, marginTop:4 }}>Add your savings, pension, property and more</p>
+            </div>
+          ) : (
+            <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+              {state.assets.map(a => (
+                <div key={a.id} style={{ display:"flex", alignItems:"center", gap:12,
+                  background:T.card, border:`1px solid ${T.border}`, borderRadius:14, padding:"12px 14px" }}>
+                  <div style={{ width:36, height:36, borderRadius:10, background:"rgba(52,211,153,.12)",
+                    border:"1px solid rgba(52,211,153,.2)", display:"flex", alignItems:"center",
+                    justifyContent:"center", fontSize:16, flexShrink:0 }}>
+                    {ASSET_TYPES.find(t=>t.cat===a.category||t.id===a.category)?.icon || "📦"}
+                  </div>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <p style={{ color:"#FFFFFF", fontWeight:700, fontSize:14 }}>{a.name}</p>
+                    {a.monthlyIncome > 0 && (
+                      <p style={{ color:T.teal, fontSize:11 }}>+{fmt(a.monthlyIncome)}/mo income</p>
+                    )}
+                  </div>
+                  <p style={{ color:T.green, fontWeight:800, fontSize:15, flexShrink:0 }}>{fmt(a.value)}</p>
+                  <div style={{ display:"flex", gap:6 }}>
+                    <button onClick={() => { setEditItem(a); setSheet("asset") }}
+                      style={{ background:"rgba(255,255,255,.06)", border:"none", borderRadius:8,
+                        padding:"6px 10px", color:"#8FA3BE", fontSize:12, cursor:"pointer",
+                        fontFamily:"inherit" }}>Edit</button>
+                    <button onClick={() => deleteAsset(a)}
+                      style={{ background:"rgba(248,113,113,.1)", border:"none", borderRadius:8,
+                        padding:"6px 10px", color:T.red, fontSize:12, cursor:"pointer",
+                        fontFamily:"inherit" }}>✕</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* ── DEBTS ── */}
+        <div style={{ marginBottom:18 }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
+            <div>
+              <p style={{ color:"#FFFFFF", fontWeight:800, fontSize:16 }}>Debts</p>
+              <p style={{ color:totalDebts>0?T.red:"#6B8CB8", fontWeight:700, fontSize:13 }}>{fmt(totalDebts)}</p>
+            </div>
+            <button onClick={() => { setEditItem(null); setSheet("debt") }}
+              style={{ background:T.redDim, border:`1px solid ${T.redBorder}`, borderRadius:10,
+                padding:"8px 14px", color:T.red, fontWeight:700, fontSize:13,
+                cursor:"pointer", fontFamily:"inherit" }}>+ Add</button>
+          </div>
+          {state.debts.length === 0 ? (
+            <div style={{ background:T.faint, border:`1px dashed ${T.border}`, borderRadius:14,
+              padding:"20px", textAlign:"center" }}>
+              <p style={{ color:"#6B8CB8", fontSize:14 }}>No debts recorded</p>
+            </div>
+          ) : (
+            <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+              {state.debts.map(d => (
+                <div key={d.id} style={{ display:"flex", alignItems:"center", gap:12,
+                  background:T.card, border:`1px solid ${d.interestRate>15?T.redBorder:T.border}`,
+                  borderRadius:14, padding:"12px 14px" }}>
+                  <div style={{ width:36, height:36, borderRadius:10, background:"rgba(248,113,113,.10)",
+                    border:"1px solid rgba(248,113,113,.2)", display:"flex", alignItems:"center",
+                    justifyContent:"center", fontSize:16, flexShrink:0 }}>
+                    {DEBT_TYPES.find(t=>t.cat===d.category||t.id===d.category)?.icon || "💳"}
+                  </div>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <p style={{ color:"#FFFFFF", fontWeight:700, fontSize:14 }}>{d.name}</p>
+                    <p style={{ color: d.interestRate>15?T.red:"#8FA3BE", fontSize:11 }}>
+                      {d.interestRate}% APR
+                      {d.interestRate > 15 && " · high interest"}
+                    </p>
+                  </div>
+                  <p style={{ color:T.red, fontWeight:800, fontSize:15, flexShrink:0 }}>{fmt(d.balance)}</p>
+                  <div style={{ display:"flex", gap:6 }}>
+                    <button onClick={() => { setEditItem(d); setSheet("debt") }}
+                      style={{ background:"rgba(255,255,255,.06)", border:"none", borderRadius:8,
+                        padding:"6px 10px", color:"#8FA3BE", fontSize:12, cursor:"pointer",
+                        fontFamily:"inherit" }}>Edit</button>
+                    {!d.isAutoCreated && <button onClick={() => deleteDebt(d)}
+                      style={{ background:"rgba(248,113,113,.1)", border:"none", borderRadius:8,
+                        padding:"6px 10px", color:T.red, fontSize:12, cursor:"pointer",
+                        fontFamily:"inherit" }}>✕</button>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* ── INCOME ── */}
+        <div style={{ marginBottom:18 }}>
+          <p style={{ color:"#FFFFFF", fontWeight:800, fontSize:16, marginBottom:10 }}>Income and Spending</p>
+          <IncomeSection income={state.income} assets={state.assets} onSave={saveIncome}/>
+        </div>
+
+        {/* ── SPENDING BREAKDOWN ── */}
+        <SpendingBreakdownChart state={state} save={saveSpending}/>
+
+        {/* ── NET WORTH HISTORY ── */}
+        <NetWorthMomentumChart state={state}/>
+
+        {/* ── ASSET BREAKDOWN CHART ── */}
+        <AssetBreakdownChart assets={state.assets} totalAssets={totalAssets} onConfirmAssets={()=>{}}/>
+
+        {/* ── COMPARE ── */}
+        <div style={{ background:`linear-gradient(135deg,${T.tealDim},${T.purpleDim})`,
+          border:`1px solid ${T.tealBorder}`, borderRadius:18, padding:"18px",
+          marginTop:8, marginBottom:8 }}>
+          <p style={{ color:T.teal, fontWeight:800, fontSize:15, marginBottom:6 }}>
+            How do you compare?
+          </p>
+          <p style={{ color:"#C8D8EC", fontSize:13, lineHeight:1.65 }}>
+            Come back regularly to update these numbers. The more accurate this snapshot is, the better every financial decision you make will be — from how you budget to what you invest in.
+          </p>
+        </div>
+        <NetWorthOverviewSection state={state} save={save} setSection={()=>{}} setSheet={setSheet} setEditItem={setEditItem}/>
+
+      </div>
     </div>
   )
+}
 }
 
 function NetWorthOverviewSection({ state, save, setSection, setSheet, setEditItem }) {
@@ -4275,6 +4445,16 @@ function LearnTab() {
     setActiveLevel(null)
   }
 
+  // Auto-open pending level from HomeTab
+  const { save: saveCtx } = useApp()
+  React.useEffect(() => {
+    const pending = state.pendingLearnLevel
+    if(pending && activeLevel === null) {
+      save({ ...state, pendingLearnLevel:null })
+      setActiveLevel(pending)
+    }
+  }, [])
+
   if(activeLevel !== null) {
     const lv = LEVELS.find(l => l.n === activeLevel)
     if(!lv) { setActiveLevel(null); return null }
@@ -4283,94 +4463,229 @@ function LearnTab() {
 
   const phases = ["Foundations","Stabilise","Optimise","Grow"]
 
+  const [activeCourse, setActiveCourse] = useState("main")
+
+  const COURSES = [
+    { id:"main",    label:"Financial Freedom",   emoji:"🚀", desc:"Your complete 9-step guide to financial independence",   color:T.teal   },
+    { id:"ibd",     label:"IBD and PE",          emoji:"🏦", desc:"3 x 90-minute webinars on investment banking and PE",     color:T.purple },
+    { id:"extra",   label:"Money Knowledge",     emoji:"💡", desc:"History of money, basic economics, and broader context",  color:T.amber  },
+  ]
+
+  const IBD_CONTENT = [
+    { n:1, title:"Breaking into Investment Banking",   hook:"The market, the roles, and how to position yourself",   emoji:"🏦", done:false },
+    { n:2, title:"Private Equity Fundamentals",        hook:"How PE funds work, deal structures, and career paths",  emoji:"📊", done:false },
+    { n:3, title:"Interview Prep and Case Studies",    hook:"Technicals, modelling, and what interviewers really want", emoji:"🎯", done:false },
+  ]
+
+  const EXTRA_CONTENT = [
+    { n:1, title:"The History of Money",               hook:"From barter to Bitcoin — how money evolved",                emoji:"📜", done:false },
+    { n:2, title:"Basic Economics",                    hook:"Supply, demand, inflation — the forces shaping your money",  emoji:"📈", done:false },
+    { n:3, title:"The Psychology of Money",            hook:"Why we make irrational financial decisions and how to stop",  emoji:"🧠", done:false },
+    { n:4, title:"Global Finance",                     hook:"How central banks, bonds and markets connect to your wallet", emoji:"🌍", done:false },
+  ]
+
+  const lvGrads = [
+    "linear-gradient(135deg,#8B0000,#C0392B)",
+    "linear-gradient(135deg,#7B1A1A,#E74C3C)",
+    "linear-gradient(135deg,#6B1111,#C0392B)",
+    "linear-gradient(135deg,#5C0A0A,#A93226)",
+    "linear-gradient(135deg,#7D4000,#E67E22)",
+    "linear-gradient(135deg,#6E3600,#CA6F1E)",
+    "linear-gradient(135deg,#1A3C5C,#2980B9)",
+    "linear-gradient(135deg,#0A4A2A,#27AE60)",
+    "linear-gradient(135deg,#083D22,#1E8449)",
+  ]
+
   return (
     <div style={{ flex:1, overflowY:"auto", paddingBottom:100 }}>
       <Confetti active={showConfetti}/>
-      <div style={{ padding:"24px 20px 16px", borderBottom:`1px solid rgba(255,255,255,.05)` }}>
-        <h2 style={{ color:T.white, fontWeight:900, fontSize:22, letterSpacing:-.3 }}>Your financial journey</h2>
-        <p style={{ color:T.muted, fontSize:13, marginTop:4 }}>9 levels. Each one builds on the last. Each one changes something real.</p>
-        {/* Progress bar */}
-        <div style={{ marginTop:14, background:T.surface, borderRadius:99, height:5, overflow:"hidden" }}>
-          <div style={{ width:`${(completedLevels.length/9)*100}%`, height:"100%",
-            background:`linear-gradient(90deg,${T.teal},${T.purple})`, borderRadius:99,
-            transition:"width .5s ease" }}/>
+
+      {/* Header */}
+      <div style={{ padding:"20px 20px 0", borderBottom:"1px solid rgba(255,255,255,.05)" }}>
+        <div style={{ maxWidth:600, margin:"0 auto" }}>
+          <h2 style={{ color:T.white, fontWeight:900, fontSize:22, letterSpacing:-.3, marginBottom:4 }}>
+            Courses
+          </h2>
+          <p style={{ color:"#8FA3BE", fontSize:13, marginBottom:14 }}>
+            Start with Financial Freedom — the guide that changes everything.
+          </p>
+
+          {/* Course selector tabs */}
+          <div style={{ display:"flex", gap:8, overflowX:"auto", paddingBottom:14,
+            scrollbarWidth:"none", WebkitOverflowScrolling:"touch" }}>
+            {COURSES.map(c => {
+              const active = activeCourse === c.id
+              return (
+                <button key={c.id} onClick={() => setActiveCourse(c.id)}
+                  style={{ flexShrink:0, display:"flex", alignItems:"center", gap:8,
+                    background: active ? c.color+"20" : "rgba(255,255,255,.04)",
+                    border:`2px solid ${active ? c.color : "rgba(255,255,255,.08)"}`,
+                    borderRadius:14, padding:"10px 16px", cursor:"pointer",
+                    fontFamily:"inherit", transition:"all .15s" }}>
+                  <span style={{ fontSize:16 }}>{c.emoji}</span>
+                  <p style={{ color: active ? "#FFFFFF" : "#8FA3BE", fontWeight: active ? 700 : 500,
+                    fontSize:13, whiteSpace:"nowrap" }}>{c.label}</p>
+                </button>
+              )
+            })}
+          </div>
         </div>
-        <p style={{ color:T.muted, fontSize:11, marginTop:6 }}>{completedLevels.length} of 9 levels complete</p>
       </div>
 
       <div style={{ padding:"16px 18px", maxWidth:600, margin:"0 auto" }}>
-        {phases.map(phase => {
-          const phaseLevels = LEVELS.filter(l => l.phase === phase)
-          const pc = PC[phase] || T.teal
-          return (
-            <div key={phase} style={{ marginBottom:24 }}>
-              <p style={{ color:pc, fontWeight:800, fontSize:11, letterSpacing:.8,
-                textTransform:"uppercase", marginBottom:12 }}>{phase}</p>
-              <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-                {phaseLevels.map(lv => {
-                  const isDone = doneSet.has(lv.n)
-                  const isCurrent = lv.n === currentLevel && !isDone
-                  const isLocked = lv.n > currentLevel && !isDone
-                  return (
-                    <button key={lv.n} onClick={() => setActiveLevel(lv.n)}
-                      className="ls-card-lift"
-                      style={{
-                        background: isCurrent ? `linear-gradient(145deg,${pc}14,${pc}06)` : isDone ? `${T.green}08` : T.card,
-                        border: `1.5px solid ${isCurrent ? pc+'40' : isDone ? T.green+'25' : T.border}`,
-                        borderRadius:18, padding:"16px 18px", cursor:"pointer",
-                        fontFamily:"inherit", textAlign:"left",
-                        opacity: isLocked ? 0.55 : 1,
-                        boxShadow: isCurrent ? `0 0 24px ${pc}15` : "none"
-                      }}>
-                      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:6 }}>
-                        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                          <div style={{
-                            width:26, height:26, borderRadius:"50%",
-                            background: isDone ? T.green : isCurrent ? pc : T.faint,
-                            border: `2px solid ${isDone ? T.green : isCurrent ? pc : T.border}`,
-                            display:"flex", alignItems:"center", justifyContent:"center",
-                            fontSize:11, fontWeight:900, flexShrink:0,
-                            boxShadow: isCurrent ? `0 0 10px ${pc}50` : "none"
-                          }}>
-                            {isDone
-                              ? <Check size={12} color="#070D1A"/>
-                              : isLocked
-                                ? <Lock size={10} color={T.subtle}/>
-                                : <span style={{ color: isCurrent ? "#070D1A" : T.subtle }}>{lv.n}</span>
-                            }
-                          </div>
-                          <span style={{ color: isDone ? T.green : isCurrent ? pc : T.muted,
-                            fontSize:10, fontWeight:700, letterSpacing:.5, textTransform:"uppercase" }}>
-                            Level {lv.n}
-                          </span>
-                        </div>
-                        <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                          {isCurrent && <span style={{ background:pc, color:"#070D1A", fontSize:10, fontWeight:700, padding:"2px 9px", borderRadius:99 }}>Current</span>}
-                          {isDone && <span style={{ background:T.greenDim, color:T.green, fontSize:10, fontWeight:700, padding:"2px 9px", borderRadius:99 }}>✓ Done</span>}
-                          {isLocked && <span style={{ background:T.faint, color:T.muted, fontSize:10, fontWeight:700, padding:"2px 9px", borderRadius:99 }}>Browse</span>}
-                          <span style={{ color:T.muted, fontSize:11 }}>~{lv.time}min</span>
-                        </div>
-                      </div>
-                      <p style={{ color: isDone ? "#6A8098" : T.white, fontWeight:700, fontSize:14,
-                        lineHeight:1.3, textDecoration: isDone ? "line-through" : "none",
-                        marginBottom:4 }}>{lv.title}</p>
-                      <p style={{ color:T.muted, fontSize:12, lineHeight:1.4 }}>
-                        {lv.hook.length > 70 ? lv.hook.slice(0,68)+"..." : lv.hook}
-                      </p>
-                      <div style={{ display:"flex", gap:8, marginTop:8 }}>
-                        <span style={{ color:T.muted, fontSize:10 }}>📖 {lv.sections.length} sections</span>
-                        <span style={{ color:T.muted, fontSize:10 }}>⚡ +{lv.xp} XP</span>
-                      </div>
-                    </button>
-                  )
-                })}
-              </div>
+
+        {/* ── MAIN COURSE: Financial Freedom ── */}
+        {activeCourse === "main" && (
+          <div>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:6 }}>
+              <p style={{ color:"#FFFFFF", fontWeight:800, fontSize:17 }}>Financial Freedom Guide</p>
+              <p style={{ color:"#8FA3BE", fontSize:13 }}>{completedLevels.length}/9 done</p>
             </div>
-          )
-        })}
+            <div style={{ background:T.surface, borderRadius:99, height:4, overflow:"hidden", marginBottom:18 }}>
+              <div style={{ width:`${(completedLevels.length/9)*100}%`, height:"100%",
+                background:`linear-gradient(90deg,${T.teal},${T.purple})`,
+                borderRadius:99, transition:"width .5s ease" }}/>
+            </div>
+
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+              {LEVELS.map((lv, idx) => {
+                const isDone = doneSet.has(lv.n)
+                const isCurrent = lv.n === currentLevel && !isDone
+                return (
+                  <button key={lv.n} onClick={() => setActiveLevel(lv.n)}
+                    className="ls-card-lift"
+                    style={{ background:T.card,
+                      border:`2px solid ${isCurrent ? (PC[lv.phase]||T.teal)+"60" : isDone ? T.green+"30" : T.border}`,
+                      borderRadius:22, overflow:"hidden", cursor:"pointer",
+                      fontFamily:"inherit", textAlign:"left",
+                      boxShadow: isCurrent ? `0 4px 24px ${PC[lv.phase]||T.teal}20` : "none" }}>
+                    <div style={{ height:110, background: isDone
+                        ? "linear-gradient(135deg,rgba(52,211,153,.25),rgba(52,211,153,.08))"
+                        : lvGrads[idx % lvGrads.length],
+                      display:"flex", alignItems:"center", justifyContent:"center",
+                      position:"relative", overflow:"hidden" }}>
+                      <div style={{ position:"absolute", inset:0,
+                        background:"radial-gradient(circle at 70% 30%,rgba(255,255,255,.10) 0%,transparent 60%)" }}/>
+                      <div style={{ position:"absolute", top:8, left:10,
+                        background:"rgba(0,0,0,.35)", borderRadius:99, padding:"3px 9px" }}>
+                        <p style={{ color:"rgba(255,255,255,.9)", fontSize:10, fontWeight:700,
+                          letterSpacing:.5, textTransform:"uppercase" }}>{lv.phase}</p>
+                      </div>
+                      <div style={{ position:"absolute", top:8, right:10,
+                        background: isDone ? "rgba(52,211,153,.35)" : isCurrent ? "rgba(255,255,255,.25)" : "rgba(0,0,0,.4)",
+                        borderRadius:99, padding:"3px 9px" }}>
+                        <p style={{ color:"#FFFFFF", fontSize:10, fontWeight:800 }}>
+                          {isDone ? "✓ Done" : isCurrent ? "Current" : `Step ${lv.n}`}
+                        </p>
+                      </div>
+                      <span style={{ fontSize:44, position:"relative", zIndex:1 }}>
+                        {isDone ? "✅" : lv.sections[0]?.emoji || "📊"}
+                      </span>
+                    </div>
+                    <div style={{ padding:"14px 13px 16px" }}>
+                      <p style={{ color:isDone?"#6A8098":T.white, fontWeight:800, fontSize:14,
+                        lineHeight:1.3, marginBottom:6,
+                        textDecoration:isDone?"line-through":"none" }}>{lv.title}</p>
+                      <p style={{ color:isDone?"#4A6080":"#C8D8EC", fontSize:12, lineHeight:1.5,
+                        marginBottom:10 }}>{lv.hook}</p>
+                      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                        <p style={{ color:isCurrent?(PC[lv.phase]||T.teal):isDone?T.green:"#6B8CB8",
+                          fontSize:11, fontWeight:700 }}>
+                          {isDone ? "Completed" : isCurrent ? "Continue →" : "Start →"}
+                        </p>
+                        <div style={{ background:`${PC[lv.phase]||T.teal}18`, borderRadius:99, padding:"2px 8px" }}>
+                          <p style={{ color:PC[lv.phase]||T.teal, fontSize:10, fontWeight:700 }}>+{lv.xp} XP</p>
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ── IBD / PE COURSE ── */}
+        {activeCourse === "ibd" && (
+          <div>
+            <div style={{ background:"linear-gradient(135deg,rgba(167,139,250,.15),rgba(15,191,184,.08))",
+              border:"1px solid rgba(167,139,250,.25)", borderRadius:18, padding:"18px", marginBottom:18 }}>
+              <p style={{ color:T.purple, fontWeight:800, fontSize:15, marginBottom:6 }}>
+                Investment Banking and Private Equity
+              </p>
+              <p style={{ color:"#C8D8EC", fontSize:13, lineHeight:1.65 }}>
+                3 live webinars of 90 minutes each, covering how to break into IBD and PE, understand deal structures, and ace your interviews.
+              </p>
+            </div>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+              {IBD_CONTENT.map((item, idx) => (
+                <button key={item.n} className="ls-card-lift"
+                  style={{ background:T.card, border:`2px solid rgba(167,139,250,.25)`,
+                    borderRadius:22, overflow:"hidden", cursor:"pointer",
+                    fontFamily:"inherit", textAlign:"left" }}>
+                  <div style={{ height:110,
+                    background:`linear-gradient(135deg,rgba(88,28,252,.35),rgba(167,139,250,.15))`,
+                    display:"flex", alignItems:"center", justifyContent:"center",
+                    position:"relative", overflow:"hidden" }}>
+                    <div style={{ position:"absolute", top:8, left:10, background:"rgba(0,0,0,.4)",
+                      borderRadius:99, padding:"3px 9px" }}>
+                      <p style={{ color:"rgba(255,255,255,.9)", fontSize:10, fontWeight:700 }}>Webinar {item.n}</p>
+                    </div>
+                    <span style={{ fontSize:44 }}>{item.emoji}</span>
+                  </div>
+                  <div style={{ padding:"14px 13px 16px" }}>
+                    <p style={{ color:T.white, fontWeight:800, fontSize:14, lineHeight:1.3, marginBottom:6 }}>{item.title}</p>
+                    <p style={{ color:"#C8D8EC", fontSize:12, lineHeight:1.5 }}>{item.hook}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── EXTRA KNOWLEDGE COURSE ── */}
+        {activeCourse === "extra" && (
+          <div>
+            <div style={{ background:"linear-gradient(135deg,rgba(245,158,11,.12),rgba(15,191,184,.06))",
+              border:"1px solid rgba(245,158,11,.25)", borderRadius:18, padding:"18px", marginBottom:18 }}>
+              <p style={{ color:T.amber, fontWeight:800, fontSize:15, marginBottom:6 }}>
+                Broaden your money knowledge
+              </p>
+              <p style={{ color:"#C8D8EC", fontSize:13, lineHeight:1.65 }}>
+                Context that makes everything else click — from why money exists to how global markets affect your pocket.
+              </p>
+            </div>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+              {EXTRA_CONTENT.map((item) => (
+                <button key={item.n} className="ls-card-lift"
+                  style={{ background:T.card, border:`2px solid rgba(245,158,11,.22)`,
+                    borderRadius:22, overflow:"hidden", cursor:"pointer",
+                    fontFamily:"inherit", textAlign:"left" }}>
+                  <div style={{ height:110,
+                    background:"linear-gradient(135deg,rgba(180,100,0,.35),rgba(245,158,11,.15))",
+                    display:"flex", alignItems:"center", justifyContent:"center",
+                    position:"relative", overflow:"hidden" }}>
+                    <div style={{ position:"absolute", top:8, left:10, background:"rgba(0,0,0,.4)",
+                      borderRadius:99, padding:"3px 9px" }}>
+                      <p style={{ color:"rgba(255,255,255,.9)", fontSize:10, fontWeight:700 }}>Module {item.n}</p>
+                    </div>
+                    <span style={{ fontSize:44 }}>{item.emoji}</span>
+                  </div>
+                  <div style={{ padding:"14px 13px 16px" }}>
+                    <p style={{ color:T.white, fontWeight:800, fontSize:14, lineHeight:1.3, marginBottom:6 }}>{item.title}</p>
+                    <p style={{ color:"#C8D8EC", fontSize:12, lineHeight:1.5 }}>{item.hook}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   )
+}
+
 }
 
 /* ════════════════════════════════════════════════════════════════════
