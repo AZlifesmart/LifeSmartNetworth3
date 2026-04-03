@@ -1522,6 +1522,7 @@ function HomeTab() {
     )
   }
 
+  return (
     <div style={{ flex:1, overflowY:"auto", paddingBottom:100 }}>
       {activeTooltip && <TooltipModal id={activeTooltip}/>}
 
