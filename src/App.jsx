@@ -3230,7 +3230,6 @@ function AnalyticsTab() {
     </div>
   )
 }
-}
 
 function NetWorthOverviewSection({ state, save, setSection, setSheet, setEditItem }) {
   function saveFromOverview(newState){ save(newState) }
