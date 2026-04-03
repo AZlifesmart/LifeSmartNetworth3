@@ -1486,7 +1486,19 @@ function HomeTab() {
     </div>
   </div>
 
-  return (
+
+  const TOOLTIPS = {
+    networth:   { title:"Net Worth",               body:"Everything you own minus everything you owe. Assets (savings, pension, property, investments) minus liabilities (mortgage, loans, credit cards). This is the only number that tells the full story of your financial position." },
+    projection: { title:"Wealth Projection",       body:"Based on your current net worth, monthly surplus and age. The conservative line assumes modest growth. The optimistic line shows what happens with the right decisions: opening an ISA, maximising your pension match, completing lessons." },
+    freedom:    { title:"Financial Freedom Number", body:"The portfolio size that could cover your essential spending forever without you working. Calculated as 25x your annual essential costs, based on the 4% rule. A well-invested portfolio can sustain 4% withdrawals indefinitely. A target, not a promise." },
+    safety:     { title:"Safety Net",               body:"How many months of essential spending your liquid savings would cover if your income stopped tomorrow. 3 months is the minimum. 6 is solid. This is your financial floor: it determines whether a setback stays manageable or becomes a debt spiral." },
+    drag:       { title:"Interest Drag",            body:"The total annual cost of your debts in interest payments. Every pound here is money leaving your wealth and going to lenders. Clearing high-interest debt is the highest guaranteed return you can get." }
+  }
+
+  const TooltipModal = ({ id }) => {
+    const t = TOOLTIPS[id]
+    if(!t) return null
+    return (
       <div onClick={() => setActiveTooltip(null)} style={{
         position:"fixed", inset:0, zIndex:500,
         background:"rgba(7,13,26,.85)", backdropFilter:"blur(6px)",
@@ -1510,7 +1522,6 @@ function HomeTab() {
     )
   }
 
-  return (
     <div style={{ flex:1, overflowY:"auto", paddingBottom:100 }}>
       {activeTooltip && <TooltipModal id={activeTooltip}/>}
 
