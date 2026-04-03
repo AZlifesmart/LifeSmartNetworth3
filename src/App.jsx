@@ -1437,6 +1437,7 @@ function HomeTab() {
   const [showEdit, setShowEdit] = useState(false)
   const [showQuiz, setShowQuiz] = useState(false)
   const [showResult, setShowResult] = useState(false)
+  const [activeTooltip, setActiveTooltip] = useState(null)
 
   const mode      = PRIORITY_MODES.find(m=>m.id===(profile?.mode||"grow")) || PRIORITY_MODES[0]
   const quizResult= profile?.personalityResult
@@ -1486,324 +1487,401 @@ function HomeTab() {
   </div>
 
   return (
-    <div style={{ flex:1,overflowY:"auto",paddingBottom:100 }}>
-
-      {/* ── Hero strip ──────────────────────────────────────────────── */}
-      <div style={{ position:"relative",background:`linear-gradient(180deg,${mode.color}14 0%,transparent 100%)`,padding:"28px 20px 20px" }}>
-        <StarField count={10}/>
-        <div style={{ position:"relative",maxWidth:1100,margin:"0 auto" }}>
-          <div style={{ display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10 }}>
-            <div>
-              <p style={{ fontSize:11,fontWeight:700,color:mode.color,letterSpacing:1.5,textTransform:"uppercase",marginBottom:4 }}>
-                {mode.tagline(profile.name||"")}
-              </p>
-              <div style={{ fontSize:"clamp(34px,8vw,52px)",fontWeight:900,lineHeight:1,
-                color:netWorth>=0?T.teal:T.red,
-                textShadow:netWorth>=0?`0 0 40px ${T.teal}40`:`0 0 40px ${T.red}30` }}>
-                {fmt(netWorth)}
-              </div>
-            </div>
-            <div style={{ display:"flex",flexDirection:"column",gap:6,alignItems:"flex-end" }}>
-              <button onClick={()=>setShowEdit(!showEdit)}
-                style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:10,padding:"7px 12px",cursor:"pointer",color:T.muted,fontSize:12,fontWeight:700,fontFamily:"inherit" }}>
-                Update ✎
-              </button>
-              {arch && (
-                <button onClick={()=>setShowResult(true)}
-                  style={{ background:`${arch.color}18`,border:`1px solid ${arch.color}40`,borderRadius:10,padding:"6px 10px",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:5 }}>
-                  <span style={{ fontSize:14 }}>{arch.emoji}</span>
-                  <span style={{ color:arch.color,fontSize:11,fontWeight:700 }}>{arch.name}</span>
-                </button>
-              )}
-            </div>
+      <div onClick={() => setActiveTooltip(null)} style={{
+        position:"fixed", inset:0, zIndex:500,
+        background:"rgba(7,13,26,.85)", backdropFilter:"blur(6px)",
+        display:"flex", alignItems:"flex-end", justifyContent:"center", padding:"0 0 20px"
+      }}>
+        <div onClick={e => e.stopPropagation()} className="ls-fadein" style={{
+          background:T.card, border:`1px solid ${T.borderLight}`,
+          borderRadius:24, padding:"28px 24px", maxWidth:480, width:"calc(100% - 32px)"
+        }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+            <p style={{ color:T.white, fontWeight:900, fontSize:18 }}>{t.title}</p>
+            <button onClick={() => setActiveTooltip(null)} style={{
+              background:T.surface, border:`1px solid ${T.border}`, borderRadius:99,
+              width:30, height:30, cursor:"pointer", color:T.muted,
+              display:"flex", alignItems:"center", justifyContent:"center", fontSize:16
+            }}>×</button>
           </div>
-
-          <div style={{ display:"flex",gap:18,flexWrap:"wrap" }}>
-            {[
-              { val:fmtK(totalAssets), label:"Assets", color:T.green },
-              { val:fmtK(totalDebts),  label:"Debts",  color:totalDebts>0?T.red:T.muted },
-              ...(surplus!==0?[{ val:`${fmtK(Math.abs(surplus))}/mo`, label:surplus>0?"Surplus":"Shortfall", color:surplus>0?T.teal:T.red }]:[]),
-            ].map((item,i)=>(
-              <div key={i} style={{ display:"flex",alignItems:"center",gap:6 }}>
-                {i>0 && <div style={{ width:1,height:28,background:T.border }}/>}
-                <div style={{ paddingLeft:i>0?6:0 }}>
-                  <p style={{ color:item.color,fontWeight:800,fontSize:15 }}>{item.val}</p>
-                  <p style={{ color:"#6B8CB8",fontSize:12,fontWeight:500 }}>{item.label}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {showEdit && (
-            <div className="ls-fadein" style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px 16px",marginTop:14 }}>
-              <p style={{ color:"#E2EAF6",fontSize:13,lineHeight:1.5,marginBottom:10 }}>
-                Update your numbers in <strong style={{ color:T.white }}>Analytics</strong>, or reset and start fresh.
-              </p>
-              <div style={{ display:"flex",gap:10 }}>
-                <button onClick={()=>{setTab(2);setShowEdit(false)}} style={{ flex:1,background:T.tealDim,border:`1px solid ${T.tealBorder}`,borderRadius:8,padding:"8px 12px",color:T.teal,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>Go to Analytics →</button>
-                <button onClick={()=>{ if(window.confirm("Restart from scratch? All data will be cleared.")) reset() }}
-                  style={{ background:"none",border:`1px solid ${T.border}`,borderRadius:8,padding:"8px 12px",color:T.muted,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>🔄 Restart</button>
-              </div>
-            </div>
-          )}
+          <p style={{ color:"#C8D8EC", fontSize:15, lineHeight:1.7 }}>{t.body}</p>
         </div>
       </div>
+    )
+  }
 
-      <div style={{ maxWidth:1100,margin:"0 auto",padding:"0 18px" }}>
+  return (
+    <div style={{ flex:1, overflowY:"auto", paddingBottom:100 }}>
+      {activeTooltip && <TooltipModal id={activeTooltip}/>}
 
-        {/* ── LifeSmart Wealth Projection, first thing ─────────────── */}
-        <div style={{ paddingTop:18,marginBottom:20 }}>
-          {netWorth!==0 && hasIncome && (
-            <ProjectionHeroCard nw={netWorth} surplus={surplus} age={profile?.age} />
-          )}
-          {(netWorth===0 || !hasIncome) && (
-            <LockedCard icon="🔮" title="LifeSmart Wealth Projection"
-              description="Add your assets and income in Analytics to unlock your personalised wealth projection."
-              unlock="Go to Analytics →" onUnlock={()=>setTab(2)}/>
-          )}
+      {/* ── Top greeting strip ───────────────────────────────────────── */}
+      <div style={{ position:"relative", background:`linear-gradient(180deg,${mode.color}12 0%,transparent 100%)`,
+        padding:"20px 20px 16px", borderBottom:`1px solid rgba(255,255,255,.04)` }}>
+        <StarField count={8}/>
+        <div style={{ position:"relative", maxWidth:600, margin:"0 auto", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+          <div>
+            <p style={{ fontSize:11, fontWeight:700, color:mode.color, letterSpacing:1.5, textTransform:"uppercase", marginBottom:2 }}>
+              {mode.tagline(profile.name||"")}
+            </p>
+            <p style={{ color:T.muted, fontSize:13 }}>Here is your financial picture</p>
+          </div>
+          <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+            <button onClick={() => setShowEdit(!showEdit)}
+              style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:10, padding:"7px 12px",
+                cursor:"pointer", color:T.muted, fontSize:12, fontWeight:700, fontFamily:"inherit" }}>
+              Update ✎
+            </button>
+          </div>
         </div>
+        {showEdit && (
+          <div className="ls-fadein" style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:14,
+            padding:"14px 16px", marginTop:12, maxWidth:600, margin:"12px auto 0" }}>
+            <p style={{ color:"#E2EAF6", fontSize:13, lineHeight:1.5, marginBottom:10 }}>
+              Update your numbers in <strong style={{ color:T.white }}>Analytics</strong>, or reset and start fresh.
+            </p>
+            <div style={{ display:"flex", gap:10 }}>
+              <button onClick={() => { setTab(2); setShowEdit(false) }}
+                style={{ flex:1, background:T.tealDim, border:`1px solid ${T.tealBorder}`, borderRadius:8,
+                  padding:"8px 12px", color:T.teal, fontWeight:700, fontSize:12, cursor:"pointer", fontFamily:"inherit" }}>
+                Go to Analytics →
+              </button>
+              <button onClick={() => { if(window.confirm("Restart from scratch? All data will be cleared.")) reset() }}
+                style={{ background:"none", border:`1px solid ${T.border}`, borderRadius:8, padding:"8px 12px",
+                  color:T.muted, fontWeight:600, fontSize:12, cursor:"pointer", fontFamily:"inherit" }}>
+                Reset
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
 
-        {/* ── Personality quiz, hero discovery card ──────────────────── */}
-        {!quizResult && (
-          <button onClick={()=>setShowQuiz(true)}
-            style={{ width:"100%",background:"linear-gradient(145deg,rgba(88,28,252,.22) 0%,rgba(15,191,184,.12) 100%)",border:`1.5px solid rgba(167,139,250,.4)`,borderRadius:22,padding:"22px 20px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",marginBottom:20,overflow:"hidden",position:"relative",boxShadow:"0 8px 40px rgba(88,28,252,.18)" }}>
-            {/* Glow orb */}
-            <div style={{ position:"absolute",top:-30,right:-30,width:120,height:120,borderRadius:"50%",background:"radial-gradient(circle,rgba(167,139,250,.35) 0%,transparent 70%)",pointerEvents:"none" }}/>
-            {/* Top row */}
-            <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14 }}>
-              <div style={{ display:"flex",alignItems:"center",gap:10 }}>
-                <span style={{ fontSize:28 }}>🧠</span>
-                <div>
-                  <p style={{ color:"rgba(167,139,250,.8)",fontSize:11,fontWeight:700,letterSpacing:1.2,textTransform:"uppercase" }}>4 minute quiz</p>
-                  <p style={{ color:"#FFFFFF",fontWeight:900,fontSize:18,lineHeight:1.2,marginTop:2 }}>What type of investor are you?</p>
-                </div>
+      <div style={{ maxWidth:600, margin:"0 auto", padding:"0 16px" }}>
+
+        {/* ══════════════════════════════════════════════════════════════
+            SECTION 1 — KEY METRICS (tiles at top)
+            ══════════════════════════════════════════════════════════════ */}
+
+        {/* Row 1: Net Worth (big) + Projection target */}
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginTop:18, marginBottom:10 }}>
+
+          {/* Net Worth tile */}
+          <div style={{ background:`linear-gradient(145deg,${netWorth>=0?T.tealDim:T.redDim},rgba(0,0,0,.1))`,
+            border:`1.5px solid ${netWorth>=0?T.tealBorder:T.redBorder}`,
+            borderRadius:20, padding:"16px 14px", position:"relative", overflow:"hidden" }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8 }}>
+              <p style={{ color:netWorth>=0?T.teal:T.red, fontSize:10, fontWeight:800,
+                letterSpacing:1, textTransform:"uppercase" }}>Net Worth</p>
+              <button onClick={() => setActiveTooltip("networth")}
+                style={{ background:"rgba(255,255,255,.06)", border:"none", borderRadius:99,
+                  width:20, height:20, cursor:"pointer", color:T.muted, fontSize:11,
+                  display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>?</button>
+            </div>
+            <p style={{ color:netWorth>=0?T.teal:T.red, fontWeight:900, fontSize:"clamp(22px,6vw,32px)",
+              lineHeight:1, marginBottom:6, textShadow:netWorth>=0?`0 0 30px ${T.teal}40`:`0 0 30px ${T.red}30` }}>
+              {fmt(netWorth)}
+            </p>
+            <div style={{ display:"flex", gap:8 }}>
+              <div style={{ flex:1 }}>
+                <p style={{ color:T.green, fontWeight:700, fontSize:11 }}>{fmtK(totalAssets)}</p>
+                <p style={{ color:T.muted, fontSize:10 }}>assets</p>
               </div>
-              <div style={{ background:T.purple,borderRadius:12,padding:"8px 16px",flexShrink:0 }}>
-                <p style={{ color:"#FFFFFF",fontSize:13,fontWeight:800 }}>Start →</p>
+              <div style={{ flex:1 }}>
+                <p style={{ color:totalDebts>0?T.red:T.muted, fontWeight:700, fontSize:11 }}>{fmtK(totalDebts)}</p>
+                <p style={{ color:T.muted, fontSize:10 }}>debts</p>
               </div>
             </div>
-            {/* Archetype emoji teasers */}
-            <p style={{ color:"rgba(167,139,250,.7)",fontSize:12,fontWeight:600,marginBottom:10 }}>8 types. Which one are you?</p>
-            <div style={{ display:"flex",gap:8 }}>
-              {["🛡️","🌱","🚀","🧭","⚡","🏗️","🌊","💡"].map((e,i)=>(
-                <div key={i} style={{ width:36,height:36,borderRadius:10,background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.1)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,filter:i>2?"blur(3px) brightness(.5)":"none",transition:"filter .2s" }}>
-                  {e}
+          </div>
+
+          {/* Projection tile */}
+          {(() => {
+            const projData = (netWorth!==0 && hasIncome) ? calcProjection(netWorth, surplus, profile?.age) : null
+            const at70 = projData?.find(d => Math.round(d.age) === 70)
+            return (
+              <div style={{ background:`linear-gradient(145deg,rgba(245,158,11,.10),rgba(0,0,0,.1))`,
+                border:`1.5px solid ${T.amberBorder}`, borderRadius:20, padding:"16px 14px",
+                position:"relative", overflow:"hidden" }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8 }}>
+                  <p style={{ color:T.amber, fontSize:10, fontWeight:800, letterSpacing:1, textTransform:"uppercase" }}>
+                    By age 70
+                  </p>
+                  <button onClick={() => setActiveTooltip("projection")}
+                    style={{ background:"rgba(255,255,255,.06)", border:"none", borderRadius:99,
+                      width:20, height:20, cursor:"pointer", color:T.muted, fontSize:11,
+                      display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>?</button>
                 </div>
-              ))}
-              <div style={{ display:"flex",alignItems:"center",paddingLeft:4 }}>
-                <p style={{ color:"rgba(167,139,250,.6)",fontSize:11,fontWeight:700 }}>Locked</p>
+                {at70
+                  ? <>
+                      <p style={{ color:T.amber, fontWeight:900, fontSize:"clamp(22px,6vw,32px)",
+                        lineHeight:1, marginBottom:6 }}>{fmtK(at70.conservative)}</p>
+                      <p style={{ color:T.muted, fontSize:10, lineHeight:1.4 }}>conservative</p>
+                      {at70.optimistic > at70.conservative && (
+                        <p style={{ color:"#EF9F27", fontSize:10, marginTop:4 }}>
+                          ✨ {fmtK(at70.optimistic)} optimistic
+                        </p>
+                      )}
+                    </>
+                  : <>
+                      <p style={{ color:T.muted, fontWeight:900, fontSize:22, lineHeight:1, marginBottom:6 }}>—</p>
+                      <button onClick={() => setTab(2)}
+                        style={{ background:"none", border:"none", cursor:"pointer", fontFamily:"inherit",
+                          color:T.amber, fontSize:11, fontWeight:700, padding:0, textAlign:"left" }}>
+                        Add numbers to unlock →
+                      </button>
+                    </>
+                }
+              </div>
+            )
+          })()}
+        </div>
+
+        {/* Row 2: Freedom Number + Safety Net + Interest Drag */}
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:18 }}>
+
+          {/* Freedom Number */}
+          <div style={{ background:T.card, border:`1.5px solid ${T.amberBorder}`,
+            borderRadius:18, padding:"14px 12px" }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:6 }}>
+              <span style={{ fontSize:16 }}>🏁</span>
+              <button onClick={() => setActiveTooltip("freedom")}
+                style={{ background:"rgba(255,255,255,.06)", border:"none", borderRadius:99,
+                  width:18, height:18, cursor:"pointer", color:T.muted, fontSize:10,
+                  display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>?</button>
+            </div>
+            <p style={{ color:T.amber, fontWeight:900, fontSize:16, lineHeight:1, marginBottom:4 }}>
+              {fireNumber ? fmtK(fireNumber) : "—"}
+            </p>
+            <p style={{ color:T.muted, fontSize:10, lineHeight:1.3 }}>Freedom number</p>
+          </div>
+
+          {/* Safety Net */}
+          <div style={{ background:T.card, border:`1.5px solid ${T.tealBorder}`,
+            borderRadius:18, padding:"14px 12px" }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:6 }}>
+              <span style={{ fontSize:16 }}>🛡️</span>
+              <button onClick={() => setActiveTooltip("safety")}
+                style={{ background:"rgba(255,255,255,.06)", border:"none", borderRadius:99,
+                  width:18, height:18, cursor:"pointer", color:T.muted, fontSize:10,
+                  display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>?</button>
+            </div>
+            <p style={{ color: safetyMonths!=null ? (safetyMonths>=3?T.teal:T.red) : T.muted,
+              fontWeight:900, fontSize:16, lineHeight:1, marginBottom:4 }}>
+              {safetyMonths!=null ? `${safetyMonths}mo` : "—"}
+            </p>
+            <p style={{ color:T.muted, fontSize:10, lineHeight:1.3 }}>Safety net</p>
+          </div>
+
+          {/* Interest Drag */}
+          <div style={{ background:T.card, border:`1.5px solid ${drag>0?T.redBorder:T.border}`,
+            borderRadius:18, padding:"14px 12px" }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:6 }}>
+              <span style={{ fontSize:16 }}>💸</span>
+              <button onClick={() => setActiveTooltip("drag")}
+                style={{ background:"rgba(255,255,255,.06)", border:"none", borderRadius:99,
+                  width:18, height:18, cursor:"pointer", color:T.muted, fontSize:10,
+                  display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>?</button>
+            </div>
+            <p style={{ color:drag>0?T.red:T.green, fontWeight:900, fontSize:16, lineHeight:1, marginBottom:4 }}>
+              {drag>0 ? fmtK(Math.round(drag)) : "£0"}
+            </p>
+            <p style={{ color:T.muted, fontSize:10, lineHeight:1.3 }}>Interest drag/yr</p>
+          </div>
+        </div>
+
+        {/* ══════════════════════════════════════════════════════════════
+            SECTION 2 — PROJECTION CHART (full, below the tiles)
+            ══════════════════════════════════════════════════════════════ */}
+        <div style={{ marginBottom:20 }}>
+          {netWorth!==0 && hasIncome
+            ? <ProjectionHeroCard nw={netWorth} surplus={surplus} age={profile?.age}/>
+            : <LockedCard icon="🔮" title="LifeSmart Wealth Projection"
+                description="Add your assets and income to unlock your personalised wealth projection."
+                unlock="Go to Analytics →" onUnlock={() => setTab(2)}/>
+          }
+        </div>
+
+        {/* ══════════════════════════════════════════════════════════════
+            SECTION 3 — MONEY PERSONALITY
+            ══════════════════════════════════════════════════════════════ */}
+        {!quizResult && (
+          <button onClick={() => setShowQuiz(true)}
+            style={{ width:"100%", background:"linear-gradient(145deg,rgba(88,28,252,.22) 0%,rgba(15,191,184,.12) 100%)",
+              border:"1.5px solid rgba(167,139,250,.35)", borderRadius:22, padding:"20px",
+              cursor:"pointer", fontFamily:"inherit", textAlign:"left", marginBottom:20,
+              position:"relative", overflow:"hidden" }}>
+            <div style={{ position:"absolute", top:-30, right:-30, width:120, height:120, borderRadius:"50%",
+              background:"radial-gradient(circle,rgba(167,139,250,.2) 0%,transparent 70%)", pointerEvents:"none" }}/>
+            <div style={{ position:"relative" }}>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                  <span style={{ fontSize:28 }}>🧠</span>
+                  <div>
+                    <p style={{ color:"rgba(167,139,250,.8)", fontSize:10, fontWeight:700,
+                      letterSpacing:1.2, textTransform:"uppercase", marginBottom:2 }}>Money Personality</p>
+                    <p style={{ color:"#FFFFFF", fontWeight:900, fontSize:16, lineHeight:1.2 }}>
+                      What type of investor are you?
+                    </p>
+                  </div>
+                </div>
+                <div style={{ background:T.purple, borderRadius:12, padding:"8px 14px", flexShrink:0 }}>
+                  <p style={{ color:"#FFFFFF", fontSize:12, fontWeight:800 }}>Take quiz →</p>
+                </div>
+              </div>
+              <p style={{ color:"rgba(167,139,250,.7)", fontSize:12, marginBottom:10 }}>
+                8 archetypes. 12 questions. Personalises your plan.
+              </p>
+              <div style={{ display:"flex", gap:7 }}>
+                {["🛡️","🌱","🚀","🧭","⚡","🏗️","🌊","💡"].map((e,i) => (
+                  <div key={i} style={{ width:32, height:32, borderRadius:8,
+                    background:"rgba(255,255,255,.06)", border:"1px solid rgba(255,255,255,.08)",
+                    display:"flex", alignItems:"center", justifyContent:"center", fontSize:14 }}>{e}</div>
+                ))}
               </div>
             </div>
           </button>
         )}
         {quizResult && arch && (
-          <button onClick={()=>setShowResult(true)}
-            style={{ width:"100%",background:`${arch.color}10`,border:`1.5px solid ${arch.color}30`,borderRadius:20,padding:"16px 20px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",marginBottom:20,display:"flex",alignItems:"center",gap:14,boxShadow:`0 4px 20px ${arch.color}15` }}>
-            <div style={{ width:48,height:48,borderRadius:14,background:`${arch.color}20`,border:`1.5px solid ${arch.color}50`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0 }}>{arch.emoji}</div>
-            <div style={{ flex:1 }}>
-              <p style={{ color:arch.color,fontWeight:700,fontSize:11,letterSpacing:.5,textTransform:"uppercase",marginBottom:3 }}>Your money personality</p>
-              <p style={{ color:T.white,fontWeight:800,fontSize:15,marginBottom:2 }}>{arch.name}</p>
-              <p style={{ color:"#8FA3BE",fontSize:12 }}>{arch.headline}</p>
+          <button onClick={() => setShowResult(true)}
+            style={{ width:"100%", background:`${arch.color}10`, border:`1.5px solid ${arch.color}30`,
+              borderRadius:22, padding:"18px 20px", cursor:"pointer", fontFamily:"inherit",
+              textAlign:"left", display:"flex", alignItems:"center", gap:14, marginBottom:20 }}>
+            <div style={{ width:48, height:48, borderRadius:14, background:`${arch.color}20`,
+              border:`1.5px solid ${arch.color}40`, display:"flex", alignItems:"center",
+              justifyContent:"center", fontSize:24, flexShrink:0 }}>{arch.emoji}</div>
+            <div style={{ flex:1, minWidth:0 }}>
+              <p style={{ color:arch.color, fontWeight:700, fontSize:10, letterSpacing:.5,
+                textTransform:"uppercase", marginBottom:2 }}>Your money personality</p>
+              <p style={{ color:T.white, fontWeight:800, fontSize:15, marginBottom:2 }}>{arch.name}</p>
+              <p style={{ color:"#8FA3BE", fontSize:12 }}>{arch.headline}</p>
             </div>
-            <span style={{ color:arch.color,fontSize:12,fontWeight:700 }}>View →</span>
+            <span style={{ color:arch.color, fontSize:12, fontWeight:700, flexShrink:0 }}>View →</span>
           </button>
         )}
 
-        {/* ── Live snapshot: Assets + Debts line items ─────────────── */}
-        <div style={{ marginBottom:20 }}>
-          <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12 }}>
-            <p style={{ color:"#6B8CB8",fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase" }}>Your money right now</p>
-            <button onClick={()=>setTab(2)} style={{ background:"none",border:"none",cursor:"pointer",color:T.teal,fontSize:12,fontWeight:700,fontFamily:"inherit" }}>Update →</button>
-          </div>
-
-          <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:18,overflow:"hidden" }}>
-            {/* Assets */}
-            <div style={{ padding:"14px 16px",borderBottom:`1px solid ${T.border}` }}>
-              <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:assetRows.length?10:0 }}>
-                <p style={{ color:T.green,fontWeight:800,fontSize:13 }}>Assets</p>
-                <p style={{ color:T.green,fontWeight:900,fontSize:15 }}>{fmtK(totalAssets)}</p>
-              </div>
-              {assetRows.length > 0 ? assetRows.map((r,i)=>(
-                <div key={i} style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"5px 0",borderTop:i>0?`1px solid ${T.border}`:undefined }}>
-                  <div style={{ display:"flex",alignItems:"center",gap:8 }}>
-                    <div style={{ width:8,height:8,borderRadius:"50%",background:r.color,flexShrink:0 }}/>
-                    <p style={{ color:"#E2EAF6",fontSize:13 }}>{r.label}</p>
-                  </div>
-                  <p style={{ color:T.white,fontWeight:700,fontSize:13 }}>{fmtK(r.value)}</p>
-                </div>
-              )) : (
-                <button onClick={()=>setTab(2)} style={{ background:"none",border:`1px dashed ${T.border}`,borderRadius:8,padding:"10px",width:"100%",cursor:"pointer",color:T.muted,fontSize:12,fontFamily:"inherit" }}>
-                  + Add your first asset in Analytics
-                </button>
-              )}
-            </div>
-
-            {/* Debts */}
-            <div style={{ padding:"14px 16px" }}>
-              <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:debtRows.length?10:0 }}>
-                <p style={{ color:totalDebts>0?T.red:T.muted,fontWeight:800,fontSize:13 }}>Debts</p>
-                <p style={{ color:totalDebts>0?T.red:T.muted,fontWeight:900,fontSize:15 }}>{fmtK(totalDebts)}</p>
-              </div>
-              {debtRows.length > 0 ? debtRows.map((r,i)=>(
-                <div key={i} style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"5px 0",borderTop:i>0?`1px solid ${T.border}`:undefined }}>
-                  <div style={{ display:"flex",alignItems:"center",gap:8 }}>
-                    <div style={{ width:8,height:8,borderRadius:"50%",background:r.color,flexShrink:0 }}/>
-                    <p style={{ color:"#E2EAF6",fontSize:13 }}>{r.label}</p>
-                  </div>
-                  <p style={{ color:T.white,fontWeight:700,fontSize:13 }}>{fmtK(r.value)}</p>
-                </div>
-              )) : (
-                <p style={{ color:T.muted,fontSize:13 }}>No debts recorded.</p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* ── Key financial metrics ─────────────────────────────── */}
-        <div style={{ display:"flex",flexDirection:"column",gap:12,marginBottom:24 }}>
-          {/* Financial Freedom Number */}
-          <div style={{ background:`linear-gradient(145deg,${T.amberDim},rgba(245,158,11,.02))`,border:`1.5px solid ${T.amberBorder}`,borderRadius:20,padding:"20px 22px",position:"relative",overflow:"hidden" }}>
-            <div style={{ position:"absolute",top:-30,right:-30,width:100,height:100,borderRadius:"50%",background:"rgba(245,158,11,.06)",pointerEvents:"none" }}/>
-            <div style={{ display:"flex",alignItems:"center",gap:14,position:"relative" }}>
-              <div style={{ width:52,height:52,borderRadius:15,background:"rgba(245,158,11,.12)",border:`1px solid ${T.amberBorder}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,flexShrink:0 }}>🔥</div>
-              <div style={{ flex:1 }}>
-                <p style={{ color:"#C8D8EC",fontSize:14,fontWeight:700,marginBottom:6 }}>Financial Freedom Number</p>
-                <p style={{ color:T.amber,fontWeight:900,fontSize:28,lineHeight:1 }}>{fireNumber ? fmt(fireNumber) : "?"}</p>
-              </div>
-            </div>
-            <div style={{ background:"rgba(0,0,0,.2)",borderRadius:12,padding:"12px 14px",marginTop:14 }}>
-              <p style={{ color:"#C8D8EC",fontSize:13,lineHeight:1.5 }}>
-                {fireNumber
-                  ? `This is 25× your annual spending (${fmt(spending.monthly * 12)}/yr). Once you have ${fmt(fireNumber)} invested, your money can cover your lifestyle indefinitely.`
-                  : "Add your monthly spending to calculate this. It shows the total amount you would need invested to be financially independent."}
-              </p>
-            </div>
-          </div>
-
-          <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:12 }}>
-            {/* Safety Net */}
-            <div style={{ background:T.card,border:`1.5px solid ${T.tealBorder}`,borderRadius:20,padding:"18px" }}>
-              <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:10 }}>
-                <span style={{ fontSize:20 }}>🛡️</span>
-                <p style={{ color:"#C8D8EC",fontSize:13,fontWeight:700 }}>Safety Net</p>
-              </div>
-              <p style={{ color:T.teal,fontWeight:900,fontSize:26,lineHeight:1,marginBottom:6 }}>
-                {safetyMonths!=null ? `${safetyMonths} mo` : "?"}
-              </p>
-              <p style={{ color:T.muted,fontSize:12,lineHeight:1.4 }}>
-                {safetyMonths!=null
-                  ? safetyMonths >= 6 ? "Solid safety net. Well above the 3 month minimum."
-                    : safetyMonths >= 3 ? "Meets the minimum 3 month recommendation."
-                    : "Below the 3 month recommended minimum. Building this should be a priority."
-                  : "How many months your savings would cover your expenses."}
-              </p>
-            </div>
-
-            {/* Interest Drag */}
-            <div style={{ background:T.card,border:`1.5px solid ${drag>0?T.redBorder:T.border}`,borderRadius:20,padding:"18px" }}>
-              <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:10 }}>
-                <span style={{ fontSize:20 }}>💸</span>
-                <p style={{ color:"#C8D8EC",fontSize:13,fontWeight:700 }}>Interest Drag</p>
-              </div>
-              <p style={{ color:drag>0?T.red:T.green,fontWeight:900,fontSize:26,lineHeight:1,marginBottom:6 }}>
-                {drag>0 ? `${fmt(Math.round(drag))}/yr` : "£0"}
-              </p>
-              <p style={{ color:T.muted,fontSize:12,lineHeight:1.4 }}>
-                {drag>0
-                  ? `That is ${fmt(Math.round(drag/12))}/month leaving your wealth in interest payments.`
-                  : "No interest leaving your pocket. Any debt you have is interest free."}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* ── Financial Journey (9 levels) ──────────────────────────── */}
+        {/* ══════════════════════════════════════════════════════════════
+            SECTION 4 — LEARNING JOURNEY (tile grid)
+            ══════════════════════════════════════════════════════════════ */}
         {(() => {
           const completedLevels = state.completedLevels || []
-          const currentLvl = state.currentLevel || 1
-          const lvData = [
-            {n:1,phase:"Foundations",color:T.red,title:"Your Net Worth",hook:"The number that tells the truth"},
-            {n:2,phase:"Foundations",color:T.red,title:"Income and Spending",hook:"Without this, every decision is a guess"},
-            {n:3,phase:"Foundations",color:T.red,title:"Budgeting",hook:"Give every pound a job"},
-            {n:4,phase:"Foundations",color:T.red,title:"Payslip and Tax",hook:"Most people have never read theirs"},
-            {n:5,phase:"Stabilise",color:T.amber,title:"Kill High-Interest Debt",hook:"Stop letting your past control your present"},
-            {n:6,phase:"Stabilise",color:T.amber,title:"Savings Pots",hook:"An emergency fund is insurance, not savings"},
-            {n:7,phase:"Optimise",color:T.blue,title:"Capture Free Money",hook:"Your employer is offering money you are not taking"},
-            {n:8,phase:"Grow",color:T.green,title:"Open Your ISA",hook:"The tax-free wrapper most people ignore"},
-            {n:9,phase:"Grow",color:T.green,title:"Make Your First Investment",hook:"Start now, start small"},
-          ]
           const doneSet2 = new Set(completedLevels)
+          const lvData = [
+            {n:1,phase:"Foundations",color:T.red,   emoji:"📊", title:"Net Worth",           hook:"The only number that tells the truth"},
+            {n:2,phase:"Foundations",color:T.red,   emoji:"💼", title:"Income & Spending",    hook:"Find your monthly gap"},
+            {n:3,phase:"Foundations",color:T.red,   emoji:"🎯", title:"Budgeting",            hook:"Give every pound a job"},
+            {n:4,phase:"Foundations",color:T.red,   emoji:"📋", title:"Payslip & Tax",        hook:"Most people leave money here"},
+            {n:5,phase:"Stabilise",  color:T.amber, emoji:"⚔️", title:"Destroy Bad Debt",     hook:"Stop compounding against yourself"},
+            {n:6,phase:"Stabilise",  color:T.amber, emoji:"🛡️", title:"Savings Pots",         hook:"Your financial floor"},
+            {n:7,phase:"Optimise",   color:T.blue,  emoji:"💰", title:"Capture Free Money",   hook:"Your employer owes you this"},
+            {n:8,phase:"Grow",       color:T.green, emoji:"📦", title:"Open Your ISA",        hook:"Tax-free wealth building"},
+            {n:9,phase:"Grow",       color:T.green, emoji:"📈", title:"First Investment",      hook:"Let time do the work"},
+          ]
           const nextLv = lvData.find(l => !doneSet2.has(l.n)) || lvData[lvData.length-1]
           const pct = Math.round((completedLevels.length / 9) * 100)
+
           return (
-            <div style={{ marginBottom:20 }}>
-              <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14 }}>
-                <div>
-                  <p style={{ color:"#FFFFFF",fontWeight:800,fontSize:17 }}>Your financial journey</p>
-                  <p style={{ color:"#6B8CB8",fontSize:12 }}>{completedLevels.length} of 9 levels complete</p>
-                </div>
-                <button onClick={()=>setTab(1)} style={{ background:"rgba(167,139,250,.12)",border:"1px solid rgba(167,139,250,.3)",
-                  borderRadius:10,padding:"6px 12px",cursor:"pointer",fontFamily:"inherit" }}>
-                  <p style={{ color:T.purple,fontSize:12,fontWeight:700 }}>See all →</p>
+            <div style={{ marginBottom:24 }}>
+              {/* Header */}
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6 }}>
+                <p style={{ color:"#FFFFFF", fontWeight:800, fontSize:17 }}>Your learning path</p>
+                <button onClick={() => setTab(1)}
+                  style={{ background:"rgba(167,139,250,.12)", border:"1px solid rgba(167,139,250,.3)",
+                    borderRadius:10, padding:"5px 12px", cursor:"pointer", fontFamily:"inherit" }}>
+                  <p style={{ color:T.purple, fontSize:12, fontWeight:700 }}>See all →</p>
                 </button>
               </div>
 
+              {/* Motivating line */}
+              <p style={{ color:"#6B8CB8", fontSize:13, lineHeight:1.5, marginBottom:14 }}>
+                {completedLevels.length === 0
+                  ? "9 lessons stand between where you are and where you want to be. Each one changes something real."
+                  : completedLevels.length < 9
+                    ? `${completedLevels.length} of 9 complete. Every level builds on the last — keep going.`
+                    : "All 9 levels complete. You have done the work most people never do."
+                }
+              </p>
+
               {/* Progress bar */}
-              <div style={{ background:T.surface,borderRadius:99,height:4,overflow:"hidden",marginBottom:14 }}>
-                <div style={{ width:`${pct}%`,height:"100%",background:`linear-gradient(90deg,${T.teal},${T.purple})`,
-                  borderRadius:99,transition:"width .5s ease" }}/>
+              <div style={{ background:T.surface, borderRadius:99, height:3, overflow:"hidden", marginBottom:16 }}>
+                <div style={{ width:`${pct}%`, height:"100%",
+                  background:`linear-gradient(90deg,${T.teal},${T.purple})`,
+                  borderRadius:99, transition:"width .5s ease" }}/>
               </div>
 
-              {/* Current level hero card */}
-              <button onClick={()=>setTab(1)}
-                style={{ width:"100%",background:`linear-gradient(145deg,${nextLv.color}18,${nextLv.color}06)`,
-                  border:`1.5px solid ${nextLv.color}40`,borderRadius:22,padding:"20px",
-                  cursor:"pointer",fontFamily:"inherit",textAlign:"left",marginBottom:12,
-                  position:"relative",overflow:"hidden",
-                  boxShadow:`0 8px 32px ${nextLv.color}15` }}>
-                <div style={{ position:"absolute",top:-40,right:-40,width:140,height:140,borderRadius:"50%",
-                  background:`radial-gradient(circle,${nextLv.color}20 0%,transparent 70%)`,pointerEvents:"none" }}/>
-                <div style={{ position:"relative" }}>
-                  <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10 }}>
-                    <span style={{ background:`${nextLv.color}25`,color:nextLv.color,
-                      fontSize:10,fontWeight:800,padding:"3px 10px",borderRadius:99,
-                      letterSpacing:1,textTransform:"uppercase" }}>
-                      {doneSet2.has(nextLv.n) ? "Completed" : nextLv.n === 1 ? "Start here" : `Level ${nextLv.n} · ${nextLv.phase}`}
-                    </span>
-                    <div style={{ background:nextLv.color,borderRadius:10,padding:"7px 14px" }}>
-                      <p style={{ color:"#FFFFFF",fontSize:13,fontWeight:800 }}>
-                        {doneSet2.has(nextLv.n) ? "Review →" : "Continue →"}
+              {/* Tile grid — 3 columns */}
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:9, marginBottom:12 }}>
+                {lvData.map(lv => {
+                  const isDone = doneSet2.has(lv.n)
+                  const isCurrent = lv.n === nextLv.n && !isDone
+                  return (
+                    <button key={lv.n} onClick={() => setTab(1)}
+                      className="ls-card-lift"
+                      style={{
+                        background: isCurrent
+                          ? `linear-gradient(145deg,${lv.color}20,${lv.color}08)`
+                          : isDone ? `${T.green}06` : T.card,
+                        border:`1.5px solid ${isCurrent ? lv.color+"50" : isDone ? T.green+"20" : T.border}`,
+                        borderRadius:16, padding:"13px 11px",
+                        cursor:"pointer", fontFamily:"inherit", textAlign:"left",
+                        opacity: (!isCurrent && !isDone && lv.n > (nextLv.n||1)) ? 0.6 : 1,
+                        boxShadow: isCurrent ? `0 0 18px ${lv.color}20` : "none"
+                      }}>
+                      {/* Emoji + done badge */}
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8 }}>
+                        <div style={{ fontSize:20 }}>{isDone ? "✅" : lv.emoji}</div>
+                        <div style={{
+                          width:18, height:18, borderRadius:"50%", flexShrink:0,
+                          background: isDone ? T.green : isCurrent ? lv.color : T.faint,
+                          border:`2px solid ${isDone ? T.green : isCurrent ? lv.color : T.border}`,
+                          display:"flex", alignItems:"center", justifyContent:"center",
+                          fontSize:9, fontWeight:900,
+                          color: isDone ? "#070D1A" : isCurrent ? "#070D1A" : T.subtle
+                        }}>
+                          {isDone ? "✓" : lv.n}
+                        </div>
+                      </div>
+                      {/* Title */}
+                      <p style={{ color: isDone ? "#6A8098" : T.white,
+                        fontWeight:700, fontSize:11, lineHeight:1.3, marginBottom:3,
+                        textDecoration: isDone ? "line-through" : "none" }}>
+                        {lv.title}
                       </p>
-                    </div>
-                  </div>
-                  <p style={{ color:"#FFFFFF",fontWeight:800,fontSize:16,lineHeight:1.3,marginBottom:4 }}>{nextLv.title}</p>
-                  <p style={{ color:"#8FA3BE",fontSize:13,lineHeight:1.4 }}>{nextLv.hook}</p>
+                      {/* Hook */}
+                      <p style={{ color:lv.color, fontSize:9, fontWeight:700,
+                        lineHeight:1.3, opacity: isDone ? 0.5 : 1 }}>
+                        {lv.hook}
+                      </p>
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* CTA — next level */}
+              <button onClick={() => setTab(1)}
+                style={{ width:"100%", background:`linear-gradient(145deg,${nextLv.color}18,${nextLv.color}06)`,
+                  border:`1.5px solid ${nextLv.color}40`, borderRadius:16, padding:"14px 18px",
+                  cursor:"pointer", fontFamily:"inherit", textAlign:"left",
+                  display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                <div>
+                  <p style={{ color:nextLv.color, fontSize:10, fontWeight:700,
+                    letterSpacing:1, textTransform:"uppercase", marginBottom:3 }}>
+                    {doneSet2.has(nextLv.n) ? "All done" : `Up next · Level ${nextLv.n}`}
+                  </p>
+                  <p style={{ color:T.white, fontWeight:800, fontSize:14 }}>{nextLv.title}</p>
+                </div>
+                <div style={{ background:nextLv.color, borderRadius:10, padding:"8px 14px", flexShrink:0 }}>
+                  <p style={{ color:"#FFFFFF", fontSize:12, fontWeight:800 }}>
+                    {doneSet2.has(nextLv.n) ? "Review →" : "Start →"}
+                  </p>
                 </div>
               </button>
-
-              {/* Mini level dots */}
-              <div style={{ display:"flex",gap:6,justifyContent:"center",flexWrap:"wrap" }}>
-                {lvData.map(l => (
-                  <div key={l.n} style={{
-                    width:28,height:28,borderRadius:"50%",
-                    background: doneSet2.has(l.n) ? l.color : l.n === nextLv.n ? `${l.color}30` : T.faint,
-                    border:`2px solid ${doneSet2.has(l.n) ? l.color : l.n === nextLv.n ? l.color : T.border}`,
-                    display:"flex",alignItems:"center",justifyContent:"center",
-                    fontSize:10,fontWeight:900,
-                    color: doneSet2.has(l.n) ? "#070D1A" : l.n === nextLv.n ? l.color : T.muted
-                  }}>
-                    {doneSet2.has(l.n) ? "✓" : l.n}
-                  </div>
-                ))}
-              </div>
             </div>
           )
         })()}
 
-        {/* ── Goals (always visible, prominent) ───────────────────── */}
+        {/* ══════════════════════════════════════════════════════════════
+            SECTION 5 — GOALS
+            ══════════════════════════════════════════════════════════════ */}
         <DashboardGoals goals={goals} surplus={surplus} save={save} state={state} toast={toast} setTab={setTab}/>
 
-        {/* ── Priority goals ──────────────────────────────────────── */}
         {!hasPriorities && <GoalPickerSection state={state} save={save} toast={toast}/>}
         {hasPriorities && (
           <>
@@ -1814,6 +1892,7 @@ function HomeTab() {
     </div>
   )
 }
+
 
 /* ── Dashboard guidance + locked insights ────────────────────────── */
 function DashboardBuilder({ state, setTab }) {
