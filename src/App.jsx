@@ -1653,12 +1653,7 @@ function HomeTab() {
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
                   <p style={{ color:netWorth>=0?T.teal:T.red, fontSize:11, fontWeight:800,
                     letterSpacing:1.2, textTransform:"uppercase" }}>Net Worth</p>
-                  <div style={{ background:`${netWorth>=0?T.teal:T.red}20`, borderRadius:99,
-                    padding:"3px 8px", display:"flex", alignItems:"center", gap:4 }}>
-                    <span style={{ color:netWorth>=0?T.teal:T.red, fontSize:11, fontWeight:700 }}>
-                      {expandNW ? "▴ Close" : "▾ Expand"}
-                    </span>
-                  </div>
+  
                 </div>
                 <p style={{ color:netWorth>=0?T.teal:T.red, fontWeight:900,
                   fontSize:"clamp(24px,6vw,36px)", lineHeight:1, marginBottom:10,
@@ -1675,6 +1670,13 @@ function HomeTab() {
                     <p style={{ color:totalDebts>0?T.red:"#8FA3BE", fontWeight:800, fontSize:14 }}>{fmtK(totalDebts)}</p>
                     <p style={{ color:"#8FA3BE", fontSize:11 }}>you owe</p>
                   </div>
+                </div>
+                <div style={{ borderTop:`1px solid ${netWorth>=0?T.teal:T.red}30`, marginTop:12, paddingTop:10,
+                  display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
+                  <span style={{ color:netWorth>=0?T.teal:T.red, fontSize:13 }}>{expandNW ? "▴" : "▾"}</span>
+                  <p style={{ color:netWorth>=0?T.teal:T.red, fontSize:12, fontWeight:700 }}>
+                    {expandNW ? "Close" : "Tap to see breakdown"}
+                  </p>
                 </div>
               </button>
               {expandNW && (
@@ -1741,12 +1743,7 @@ function HomeTab() {
                     <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
                       <p style={{ color:T.amber, fontSize:11, fontWeight:800,
                         letterSpacing:1.2, textTransform:"uppercase" }}>By age 70</p>
-                      <div style={{ background:"rgba(245,158,11,.2)", borderRadius:99,
-                        padding:"3px 8px", display:"flex", alignItems:"center", gap:4 }}>
-                        <span style={{ color:T.amber, fontSize:11, fontWeight:700 }}>
-                          {expandProj ? "▴ Close" : "▾ Chart"}
-                        </span>
-                      </div>
+
                     </div>
                     {at70 ? (
                       <>
@@ -1992,49 +1989,27 @@ function HomeTab() {
           return (
             <div style={{ marginBottom:24 }}>
               {/* Header */}
-              {/* Strong action intro */}
-              <div style={{ background:"linear-gradient(135deg,rgba(15,191,184,.10),rgba(167,139,250,.08))",
-                border:"1.5px solid rgba(15,191,184,.20)", borderRadius:20, padding:"20px",
-                marginBottom:18 }}>
-                <p style={{ color:T.teal, fontSize:11, fontWeight:800, letterSpacing:1.2,
-                  textTransform:"uppercase", marginBottom:10 }}>Your path to financial freedom</p>
-                <p style={{ color:"#FFFFFF", fontWeight:800, fontSize:17, lineHeight:1.4, marginBottom:10 }}>
-                  Most people are never taught the basics of money — and spend years wishing they had been.
-                </p>
-                <p style={{ color:"#C8D8EC", fontSize:14, lineHeight:1.65, marginBottom:12 }}>
-                  These 9 levels are your guide. Work through them, implement the small changes they suggest, and your financial position will compound faster than you think.
-                </p>
-                <p style={{ color:"#C8D8EC", fontSize:14, lineHeight:1.65, marginBottom:12 }}>
-                  No one else can fix your finances until you take charge. It is easier than you think. And time matters more than what you have right now — so start today.
-                </p>
-                <div style={{ background:"rgba(255,255,255,.05)", borderRadius:14, padding:"14px 16px" }}>
-                  <p style={{ color:T.purple, fontWeight:800, fontSize:14, marginBottom:4 }}>
-                    Most people never complete this.
-                  </p>
-                  <p style={{ color:"#C8D8EC", fontSize:13, lineHeight:1.55 }}>
-                    If you do, you will be ahead of 90% of people financially. Start now.
-                  </p>
-                </div>
-              </div>
-
-              <div style={{ marginBottom:14 }}>
-                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
-                  <p style={{ color:T.white, fontWeight:900, fontSize:20 }}>Your financial guide</p>
+              {/* Learning header — condensed */}
+              <div style={{ marginBottom:16 }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
+                  <div>
+                    <p style={{ color:T.white, fontWeight:900, fontSize:20, marginBottom:3 }}>Your financial guide</p>
+                    <p style={{ color:"#8FA3BE", fontSize:13 }}>
+                      {completedLevels.length === 0
+                        ? "Most people were never taught this. You're about to change that."
+                        : completedLevels.length < 9
+                          ? `Step ${nextLv.n} of 9 — keep going. Every level is something real you can act on.`
+                          : "All 9 levels done. You are ahead of most people financially."
+                      }
+                    </p>
+                  </div>
                   <button onClick={() => setTab(1)}
                     style={{ background:"rgba(167,139,250,.15)", border:"1px solid rgba(167,139,250,.35)",
-                      borderRadius:10, padding:"6px 14px", cursor:"pointer", fontFamily:"inherit",
-                      color:T.purple, fontSize:13, fontWeight:700 }}>View all →</button>
+                      borderRadius:10, padding:"6px 12px", cursor:"pointer", fontFamily:"inherit",
+                      color:T.purple, fontSize:12, fontWeight:700, flexShrink:0, marginLeft:10 }}>All →</button>
                 </div>
-                <p style={{ color:"#C8D8EC", fontSize:14, lineHeight:1.6, marginBottom:12 }}>
-                  {completedLevels.length === 0
-                    ? "Nine steps to financial freedom. We walk you through each one — and by the end, your money works for you."
-                    : completedLevels.length < 9
-                      ? `Step ${nextLv.n} of 9. Every lesson is something concrete you can act on today.`
-                      : "Every step complete. You have done what most people never do."
-                  }
-                </p>
-                <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                  <div style={{ flex:1, background:T.surface, borderRadius:99, height:6, overflow:"hidden" }}>
+                <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                  <div style={{ flex:1, background:T.surface, borderRadius:99, height:5, overflow:"hidden" }}>
                     <div style={{ width:`${pct}%`, height:"100%",
                       background:`linear-gradient(90deg,${T.teal},${T.purple})`,
                       borderRadius:99, transition:"width .5s ease" }}/>
@@ -2043,6 +2018,17 @@ function HomeTab() {
                     {completedLevels.length}/9
                   </p>
                 </div>
+                {completedLevels.length === 0 && (
+                  <div style={{ background:"rgba(167,139,250,.08)", border:"1px solid rgba(167,139,250,.2)",
+                    borderRadius:14, padding:"12px 14px", marginTop:10,
+                    display:"flex", alignItems:"center", gap:10 }}>
+                    <span style={{ fontSize:18, flexShrink:0 }}>💡</span>
+                    <p style={{ color:"#C8D8EC", fontSize:13, lineHeight:1.5 }}>
+                      Complete these levels and you will be ahead of 90% of people financially.
+                      Time matters more than what you have — start today.
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* 2-column portrait tile grid */}
@@ -4442,15 +4428,12 @@ function LearnTab() {
     setActiveLevel(null)
   }
 
-  // Auto-open pending level from HomeTab
-  const { save: saveCtx } = useApp()
-  React.useEffect(() => {
-    const pending = state.pendingLearnLevel
-    if(pending && activeLevel === null) {
-      save({ ...state, pendingLearnLevel:null })
-      setActiveLevel(pending)
-    }
-  }, [])
+  // Auto-open pending level set from HomeTab
+  const pendingLevel = state.pendingLearnLevel
+  if(pendingLevel && activeLevel === null) {
+    save({ ...state, pendingLearnLevel:null })
+    setActiveLevel(pendingLevel)
+  }
 
   if(activeLevel !== null) {
     const lv = LEVELS.find(l => l.n === activeLevel)
