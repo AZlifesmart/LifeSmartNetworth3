@@ -2938,25 +2938,25 @@ function GoalsTab() {
 }
 
 
+
 function AnalyticsTab() {
   const { state, save, toast } = useApp()
-  const [sheet, setSheet]     = useState(null)
-  const [editItem, setEditItem]= useState(null)
+  const [sheet, setSheet] = useState(null)
+  const [editItem, setEditItem] = useState(null)
 
   const { totalAssets, totalDebts } = calcTotals(state.assets, state.debts)
   const netWorth = totalAssets - totalDebts
   const drag = totalInterestDrag(state.debts)
   const surplus = calcSurplus(state.income, state.assets, state.spending)
+  const age = state.profile?.age
+  const bench = ageBenchmark(age)
 
   function saveAsset({ cat, name, val, monthlyIncome, hasLoan, loanBal, annualReturn, existingId, existingLinkedDebtId }) {
-    let newAssets = [...state.assets]
-    let newDebts  = [...state.debts]
+    let newAssets = [...state.assets], newDebts = [...state.debts]
     const assetId = existingId || `a_${Date.now()}`
     const assetObj = { id:assetId, category:cat, name, value:val, monthlyIncome:monthlyIncome||0, linkedDebtId:existingLinkedDebtId||null, annualReturn:annualReturn||null }
-
     if(existingId) newAssets = newAssets.map(a=>a.id===existingId?assetObj:a)
-    else           newAssets.push(assetObj)
-
+    else newAssets.push(assetObj)
     if(hasLoan && loanBal>0) {
       const t = DEBT_TYPES.find(x=>["mortgage","car_loan"].includes(x.cat) && x.cat===cat) || DEBT_TYPES[0]
       const debtId = existingLinkedDebtId || `d_linked_${Date.now()}`
@@ -2965,17 +2965,13 @@ function AnalyticsTab() {
       if(existingLinkedDebtId) newDebts = newDebts.map(d=>d.id===existingLinkedDebtId?debtObj:d)
       else newDebts.push(debtObj)
     }
-
     save({ ...state, assets:newAssets, debts:newDebts })
-    toast(existingId?"✓ Asset updated":"✓ Asset added")
-    setSheet(null); setEditItem(null)
+    toast(existingId?"✓ Asset updated":"✓ Asset added"); setSheet(null); setEditItem(null)
   }
 
   function deleteAsset(a) {
     if(!window.confirm(`Remove "${a.name}"?`)) return
-    const newAssets = state.assets.filter(x=>x.id!==a.id)
-    const newDebts  = a.linkedDebtId ? state.debts.filter(d=>d.id!==a.linkedDebtId) : state.debts
-    save({ ...state, assets:newAssets, debts:newDebts })
+    save({ ...state, assets:state.assets.filter(x=>x.id!==a.id), debts:a.linkedDebtId?state.debts.filter(d=>d.id!==a.linkedDebtId):state.debts })
     toast("Asset removed")
   }
 
@@ -2983,309 +2979,282 @@ function AnalyticsTab() {
     const debtId = existingId || `d_${Date.now()}`
     const t = DEBT_TYPES.find(x=>x.cat===cat)
     const debtObj = { id:debtId, category:cat, name, balance:bal, interestRate:rate||t?.assumedRate||10, minPayment:minPayment||0, linkedAssetId:null, isAutoCreated:false }
-    const newDebts = existingId ? state.debts.map(d=>d.id===existingId?debtObj:d) : [...state.debts, debtObj]
-    save({ ...state, debts:newDebts })
-    toast(existingId?"✓ Debt updated":"✓ Debt added")
-    setSheet(null); setEditItem(null)
+    save({ ...state, debts:existingId?state.debts.map(d=>d.id===existingId?debtObj:d):[...state.debts, debtObj] })
+    toast(existingId?"✓ Debt updated":"✓ Debt added"); setSheet(null); setEditItem(null)
   }
 
   function deleteDebt(d) {
     if(d.isAutoCreated) { toast("Remove the linked asset to remove this debt"); return }
     if(!window.confirm(`Remove "${d.name}"?`)) return
-    save({ ...state, debts:state.debts.filter(x=>x.id!==d.id) })
-    toast("Debt removed")
+    save({ ...state, debts:state.debts.filter(x=>x.id!==d.id) }); toast("Debt removed")
   }
 
   function saveIncome(inc) { save({ ...state, income:inc }); toast("✓ Income updated") }
-  function saveSpending(sp){ save({ ...state, spending:sp }); toast("✓ Spending updated") }
+  function saveSpending(sp) { save({ ...state, spending:sp }); toast("✓ Spending updated") }
+
+  // Asset groups for breakdown
+  const assetGroups = [
+    { label:"Cash & Savings", icon:"💰", color:T.teal, value: state.assets.filter(a=>a.category==="savings").reduce((s,a)=>s+(a.value||0),0) },
+    { label:"Investments", icon:"📈", color:T.purple, value: state.assets.filter(a=>a.category==="investments").reduce((s,a)=>s+(a.value||0),0) },
+    { label:"Pension", icon:"🏛️", color:T.amber, value: state.assets.filter(a=>a.category==="pension").reduce((s,a)=>s+(a.value||0),0) },
+    { label:"Property", icon:"🏠", color:T.green, value: state.assets.filter(a=>["primary_residence","investment_property"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0) },
+    { label:"Other", icon:"📦", color:T.blue, value: state.assets.filter(a=>!["savings","investments","pension","primary_residence","investment_property"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0) },
+  ].filter(g=>g.value>0)
+
+  const totalIncome = calcIncome(state.income, state.assets)
+  const totalSpending = state.spending?.monthly || 0
+
+  const cardStyle = { background:T.card, border:`1px solid ${T.border}`, borderRadius:16, overflow:"hidden" }
+  const sectionTitle = (text, color=T.white) => <p style={{ color, fontWeight:800, fontSize:14, marginBottom:10 }}>{text}</p>
 
   return (
     <div style={{ flex:1, overflowY:"auto", paddingBottom:100 }}>
       {sheet==="asset" && <Sheet title={editItem?"Edit asset":"Add asset"} onClose={()=>{setSheet(null);setEditItem(null)}}><AssetSheet item={editItem} onClose={()=>{setSheet(null);setEditItem(null)}} onSave={saveAsset}/></Sheet>}
-      {sheet==="debt"  && <Sheet title={editItem?"Edit debt":"Add debt"}   onClose={()=>{setSheet(null);setEditItem(null)}}><DebtSheet  item={editItem} onClose={()=>{setSheet(null);setEditItem(null)}} onSave={saveDebt}/></Sheet>}
+      {sheet==="debt"  && <Sheet title={editItem?"Edit debt":"Add debt"} onClose={()=>{setSheet(null);setEditItem(null)}}><DebtSheet item={editItem} onClose={()=>{setSheet(null);setEditItem(null)}} onSave={saveDebt}/></Sheet>}
 
-      {/* HEADER */}
-      <div style={{ padding:"20px 20px 16px", borderBottom:"1px solid rgba(255,255,255,.06)",
-        background:"linear-gradient(180deg,rgba(15,191,184,.08) 0%,transparent 100%)" }}>
-        <div style={{ maxWidth:600, margin:"0 auto" }}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:14 }}>
+      {/* ═══ HEADER ═══ */}
+      <div style={{ padding:"22px 20px 18px", borderBottom:"1px solid rgba(255,255,255,.06)",
+        background:"linear-gradient(180deg,rgba(15,191,184,.06) 0%,transparent 100%)" }}>
+        <div style={{ maxWidth:900, margin:"0 auto" }}>
+          <p style={{ color:T.teal, fontSize:10, fontWeight:800, letterSpacing:2, textTransform:"uppercase", marginBottom:6 }}>Mission Control</p>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-end", marginBottom:16 }}>
             <div>
-              <p style={{ color:T.teal, fontSize:11, fontWeight:800, letterSpacing:1.5,
-                textTransform:"uppercase", marginBottom:4 }}>Financial snapshot</p>
-              <h2 style={{ color:T.white, fontWeight:900, fontSize:22, letterSpacing:-.3 }}>Track and Grow</h2>
+              <p style={{ color:"#6B8CB8", fontSize:12, marginBottom:2 }}>Net Worth</p>
+              <p style={{ color:netWorth>=0?T.teal:T.red, fontWeight:900, fontSize:"clamp(32px,6vw,42px)", lineHeight:1,
+                textShadow:netWorth>=0?`0 0 30px ${T.teal}30`:`0 0 30px ${T.red}30` }}>{fmt(netWorth)}</p>
             </div>
-            <div style={{ textAlign:"right" }}>
-              <p style={{ color:netWorth>=0?T.teal:T.red, fontWeight:900, fontSize:28,
-                textShadow:netWorth>=0?`0 0 20px ${T.teal}40`:`0 0 20px ${T.red}40` }}>{fmt(netWorth)}</p>
-              <p style={{ color:"#8FA3BE", fontSize:11 }}>net worth</p>
+            <div style={{ display:"flex", gap:16 }}>
+              {[
+                { label:"Assets", val:fmtK(totalAssets), color:T.green },
+                { label:"Debts", val:fmtK(totalDebts), color:totalDebts>0?T.red:"#6B8CB8" },
+                { label:"Surplus", val:`${fmtK(Math.abs(surplus))}/mo`, color:surplus>=0?T.teal:T.red },
+              ].map((s,i) => (
+                <div key={i} style={{ textAlign:"right" }}>
+                  <p style={{ color:s.color, fontWeight:800, fontSize:16 }}>{s.val}</p>
+                  <p style={{ color:"#4A6080", fontSize:10 }}>{s.label}</p>
+                </div>
+              ))}
             </div>
           </div>
-
-          {/* Summary row */}
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8, marginBottom:12 }}>
-            {[
-              { label:"Assets", val:fmt(totalAssets), color:T.green },
-              { label:"Debts",  val:fmt(totalDebts),  color:totalDebts>0?T.red:"#8FA3BE" },
-              { label:"Surplus",val:`${fmtK(Math.abs(surplus))}/mo`, color:surplus>=0?T.teal:T.red },
-            ].map((s,i) => (
-              <div key={i} style={{ background:T.card, border:`1px solid ${T.border}`,
-                borderRadius:12, padding:"10px 12px", textAlign:"center" }}>
-                <p style={{ color:s.color, fontWeight:800, fontSize:15 }}>{s.val}</p>
-                <p style={{ color:"#6B8CB8", fontSize:11, marginTop:2 }}>{s.label}</p>
-              </div>
-            ))}
-          </div>
-
-          <p style={{ color:"#8FA3BE", fontSize:12, lineHeight:1.6, marginBottom:4 }}>
-            You cannot improve what you do not track. Come back regularly — accurate numbers lead to better decisions.
-          </p>
         </div>
       </div>
 
-      <div style={{ maxWidth:600, margin:"0 auto", padding:"16px 18px" }}>
+      {/* ═══ DASHBOARD GRID ═══ */}
+      <div style={{ maxWidth:900, margin:"0 auto", padding:"18px" }}>
 
-        {/* ASSETS */}
-        <div style={{ marginBottom:18 }}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
-            <p style={{ color:"#FFFFFF", fontWeight:800, fontSize:16 }}>
-              Assets <span style={{ color:T.green, fontWeight:700, fontSize:14, marginLeft:8 }}>{fmt(totalAssets)}</span>
-            </p>
-            <button onClick={() => { setEditItem(null); setSheet("asset") }}
-              style={{ background:T.tealDim, border:`1px solid ${T.tealBorder}`, borderRadius:10,
-                padding:"7px 14px", color:T.teal, fontWeight:700, fontSize:13,
-                cursor:"pointer", fontFamily:"inherit" }}>+ Add</button>
-          </div>
-          {state.assets.length === 0 ? (
-            <button onClick={() => { setEditItem(null); setSheet("asset") }}
-              style={{ width:"100%", background:T.faint, border:`1px dashed ${T.border}`, borderRadius:14,
-                padding:"20px", textAlign:"center", cursor:"pointer", fontFamily:"inherit" }}>
-              <p style={{ color:"#6B8CB8", fontSize:14 }}>+ Add your first asset</p>
-              <p style={{ color:"#4A6080", fontSize:12, marginTop:4 }}>Savings, pension, property and more</p>
-            </button>
-          ) : (
-            <div style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:16, overflow:"hidden" }}>
-              {state.assets.map((a, idx) => (
-                <div key={a.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"11px 14px",
-                  borderBottom: idx < state.assets.length-1 ? `1px solid ${T.border}` : "none" }}>
-                  <span style={{ fontSize:18, flexShrink:0 }}>
-                    {ASSET_TYPES.find(t=>t.cat===a.category||t.id===a.category)?.icon || "📦"}
-                  </span>
+        {/* Row 1: Assets + Debts side by side */}
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:14 }}>
+
+          {/* LEFT: Assets */}
+          <div>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
+              <p style={{ color:T.green, fontWeight:800, fontSize:13 }}>Assets · {fmtK(totalAssets)}</p>
+              <button onClick={()=>{setEditItem(null);setSheet("asset")}}
+                style={{ background:T.tealDim, border:`1px solid ${T.tealBorder}`, borderRadius:8,
+                  padding:"4px 10px", color:T.teal, fontWeight:700, fontSize:11, cursor:"pointer", fontFamily:"inherit" }}>+ Add</button>
+            </div>
+            <div style={{...cardStyle}}>
+              {state.assets.length===0 ? (
+                <button onClick={()=>{setEditItem(null);setSheet("asset")}} style={{ width:"100%", background:"transparent", border:"none", padding:"20px", textAlign:"center", cursor:"pointer", fontFamily:"inherit" }}>
+                  <p style={{ color:"#4A6080", fontSize:12 }}>+ Add your first asset</p>
+                </button>
+              ) : state.assets.map((a,idx)=>(
+                <div key={a.id} style={{ display:"flex", alignItems:"center", gap:8, padding:"10px 12px",
+                  borderBottom:idx<state.assets.length-1?`1px solid ${T.border}`:"none" }}>
+                  <span style={{ fontSize:15, flexShrink:0 }}>{ASSET_TYPES.find(t=>t.cat===a.category||t.id===a.category)?.icon||"📦"}</span>
                   <div style={{ flex:1, minWidth:0 }}>
-                    <p style={{ color:"#FFFFFF", fontWeight:700, fontSize:13 }}>{a.name}</p>
-                    {a.monthlyIncome > 0 && <p style={{ color:T.teal, fontSize:11 }}>+{fmt(a.monthlyIncome)}/mo</p>}
+                    <p style={{ color:"#E2EAF6", fontWeight:600, fontSize:12, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{a.name}</p>
                   </div>
-                  <p style={{ color:T.green, fontWeight:800, fontSize:14, marginRight:8 }}>{fmt(a.value)}</p>
-                  <button onClick={() => { setEditItem(a); setSheet("asset") }}
-                    style={{ background:"rgba(255,255,255,.06)", border:"none", borderRadius:8,
-                      padding:"5px 9px", color:"#8FA3BE", fontSize:11, cursor:"pointer", fontFamily:"inherit" }}>✎</button>
-                  <button onClick={() => deleteAsset(a)}
-                    style={{ background:"rgba(248,113,113,.10)", border:"none", borderRadius:8,
-                      padding:"5px 9px", color:T.red, fontSize:11, cursor:"pointer", fontFamily:"inherit" }}>✕</button>
+                  <p style={{ color:T.green, fontWeight:800, fontSize:12, flexShrink:0 }}>{fmtK(a.value)}</p>
+                  <button onClick={()=>{setEditItem(a);setSheet("asset")}} style={{ background:"none", border:"none", color:"#4A6080", cursor:"pointer", padding:2, fontSize:10 }}>✎</button>
                 </div>
               ))}
             </div>
-          )}
-        </div>
 
-        {/* DEBTS */}
-        <div style={{ marginBottom:18 }}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
-            <p style={{ color:"#FFFFFF", fontWeight:800, fontSize:16 }}>
-              Debts <span style={{ color:totalDebts>0?T.red:"#8FA3BE", fontWeight:700, fontSize:14, marginLeft:8 }}>{fmt(totalDebts)}</span>
-            </p>
-            <button onClick={() => { setEditItem(null); setSheet("debt") }}
-              style={{ background:T.redDim, border:`1px solid ${T.redBorder}`, borderRadius:10,
-                padding:"7px 14px", color:T.red, fontWeight:700, fontSize:13,
-                cursor:"pointer", fontFamily:"inherit" }}>+ Add</button>
-          </div>
-          {state.debts.length === 0 ? (
-            <div style={{ background:T.faint, border:`1px dashed ${T.border}`, borderRadius:14,
-              padding:"16px", textAlign:"center" }}>
-              <p style={{ color:"#6B8CB8", fontSize:14 }}>No debts recorded</p>
-            </div>
-          ) : (
-            <div style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:16, overflow:"hidden" }}>
-              {state.debts.map((d, idx) => (
-                <div key={d.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"11px 14px",
-                  borderBottom: idx < state.debts.length-1 ? `1px solid ${T.border}` : "none",
-                  background: d.interestRate>15 ? "rgba(248,113,113,.04)" : "transparent" }}>
-                  <span style={{ fontSize:18, flexShrink:0 }}>
-                    {DEBT_TYPES.find(t=>t.cat===d.category||t.id===d.category)?.icon || "💳"}
-                  </span>
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <p style={{ color:"#FFFFFF", fontWeight:700, fontSize:13 }}>{d.name}</p>
-                    <p style={{ color:d.interestRate>15?T.red:"#8FA3BE", fontSize:11 }}>
-                      {d.interestRate}% APR{d.interestRate>15?" · high interest":""}
-                    </p>
+            {/* Asset Breakdown Chart under assets */}
+            {assetGroups.length>0 && (
+              <div style={{ marginTop:10, background:T.card, border:`1px solid ${T.border}`, borderRadius:14, padding:"14px" }}>
+                <p style={{ color:"#6B8CB8", fontSize:10, fontWeight:700, letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>Breakdown</p>
+                {assetGroups.map((g,i) => (
+                  <div key={i} style={{ display:"flex", alignItems:"center", gap:8, marginBottom:i<assetGroups.length-1?8:0 }}>
+                    <span style={{ fontSize:13 }}>{g.icon}</span>
+                    <div style={{ flex:1 }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", marginBottom:3 }}>
+                        <p style={{ color:"#C8D8EC", fontSize:11 }}>{g.label}</p>
+                        <p style={{ color:g.color, fontWeight:700, fontSize:11 }}>{fmtK(g.value)}</p>
+                      </div>
+                      <div style={{ background:T.surface, borderRadius:99, height:4, overflow:"hidden" }}>
+                        <div style={{ width:`${totalAssets>0?Math.round(g.value/totalAssets*100):0}%`, height:"100%", background:g.color, borderRadius:99 }}/>
+                      </div>
+                    </div>
                   </div>
-                  <p style={{ color:T.red, fontWeight:800, fontSize:14, marginRight:8 }}>{fmt(d.balance)}</p>
-                  <button onClick={() => { setEditItem(d); setSheet("debt") }}
-                    style={{ background:"rgba(255,255,255,.06)", border:"none", borderRadius:8,
-                      padding:"5px 9px", color:"#8FA3BE", fontSize:11, cursor:"pointer", fontFamily:"inherit" }}>✎</button>
-                  {!d.isAutoCreated && <button onClick={() => deleteDebt(d)}
-                    style={{ background:"rgba(248,113,113,.10)", border:"none", borderRadius:8,
-                      padding:"5px 9px", color:T.red, fontSize:11, cursor:"pointer", fontFamily:"inherit" }}>✕</button>}
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* RIGHT: Debts */}
+          <div>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
+              <p style={{ color:totalDebts>0?T.red:"#6B8CB8", fontWeight:800, fontSize:13 }}>Debts · {fmtK(totalDebts)}</p>
+              <button onClick={()=>{setEditItem(null);setSheet("debt")}}
+                style={{ background:T.redDim, border:`1px solid ${T.redBorder}`, borderRadius:8,
+                  padding:"4px 10px", color:T.red, fontWeight:700, fontSize:11, cursor:"pointer", fontFamily:"inherit" }}>+ Add</button>
+            </div>
+            <div style={{...cardStyle}}>
+              {state.debts.length===0 ? (
+                <div style={{ padding:"20px", textAlign:"center" }}>
+                  <p style={{ color:"#4A6080", fontSize:12 }}>No debts recorded ✓</p>
+                </div>
+              ) : state.debts.map((d,idx)=>(
+                <div key={d.id} style={{ display:"flex", alignItems:"center", gap:8, padding:"10px 12px",
+                  borderBottom:idx<state.debts.length-1?`1px solid ${T.border}`:"none",
+                  background:d.interestRate>15?"rgba(248,113,113,.03)":"transparent" }}>
+                  <span style={{ fontSize:15, flexShrink:0 }}>{DEBT_TYPES.find(t=>t.cat===d.category||t.id===d.category)?.icon||"💳"}</span>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <p style={{ color:"#E2EAF6", fontWeight:600, fontSize:12 }}>{d.name}</p>
+                    <p style={{ color:d.interestRate>15?T.red:"#4A6080", fontSize:10 }}>{d.interestRate}% APR</p>
+                  </div>
+                  <p style={{ color:T.red, fontWeight:800, fontSize:12, flexShrink:0 }}>{fmtK(d.balance)}</p>
+                  <button onClick={()=>{setEditItem(d);setSheet("debt")}} style={{ background:"none", border:"none", color:"#4A6080", cursor:"pointer", padding:2, fontSize:10 }}>✎</button>
                 </div>
               ))}
             </div>
-          )}
+
+            {/* Interest drag card under debts */}
+            {drag>0 && (
+              <div style={{ marginTop:10, background:T.redDim, border:`1px solid ${T.redBorder}`, borderRadius:14, padding:"14px" }}>
+                <p style={{ color:T.red, fontWeight:800, fontSize:14 }}>💸 {fmt(Math.round(drag))}/yr</p>
+                <p style={{ color:"#C8D8EC", fontSize:11, marginTop:4 }}>Interest leaving your wealth annually. That is {fmt(Math.round(drag/12))}/month working against you.</p>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* INCOME */}
-        <div style={{ marginBottom:18 }}>
-          <p style={{ color:"#FFFFFF", fontWeight:800, fontSize:16, marginBottom:10 }}>Income</p>
-          <IncomeSection income={state.income} assets={state.assets} onSave={saveIncome}/>
+        {/* Row 2: Income + Spending side by side */}
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:14 }}>
+
+          {/* LEFT: Income */}
+          <div style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:16, padding:"16px" }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+              <p style={{ color:T.teal, fontWeight:800, fontSize:13 }}>💼 Income</p>
+              <p style={{ color:T.teal, fontWeight:900, fontSize:16 }}>{fmt(totalIncome)}<span style={{ color:"#4A6080", fontSize:10, fontWeight:500 }}>/mo</span></p>
+            </div>
+            {totalIncome>0 ? (
+              <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                {state.income?.primary>0 && <div style={{ display:"flex", justifyContent:"space-between" }}><p style={{ color:"#C8D8EC", fontSize:11 }}>Salary</p><p style={{ color:T.teal, fontSize:11, fontWeight:600 }}>{fmt(state.income.primary)}</p></div>}
+                {(state.income?.additional||[]).filter(a=>a.amount>0).map((a,i)=>
+                  <div key={i} style={{ display:"flex", justifyContent:"space-between" }}><p style={{ color:"#C8D8EC", fontSize:11 }}>{a.name||"Other"}</p><p style={{ color:T.teal, fontSize:11, fontWeight:600 }}>{fmt(a.amount)}</p></div>
+                )}
+              </div>
+            ) : <p style={{ color:"#4A6080", fontSize:12 }}>Add income in Level 2</p>}
+          </div>
+
+          {/* RIGHT: Spending */}
+          <div style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:16, padding:"16px" }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+              <p style={{ color:T.amber, fontWeight:800, fontSize:13 }}>🛒 Spending</p>
+              <p style={{ color:T.amber, fontWeight:900, fontSize:16 }}>{fmt(totalSpending)}<span style={{ color:"#4A6080", fontSize:10, fontWeight:500 }}>/mo</span></p>
+            </div>
+            {totalSpending>0 ? (
+              <div>
+                <div style={{ display:"flex", justifyContent:"space-between", marginBottom:8 }}>
+                  <p style={{ color:"#C8D8EC", fontSize:11 }}>Monthly total</p>
+                  <p style={{ color:T.amber, fontSize:11, fontWeight:600 }}>{fmt(totalSpending)}</p>
+                </div>
+                <div style={{ background:T.surface, borderRadius:99, height:4, overflow:"hidden", marginBottom:6 }}>
+                  <div style={{ width:`${totalIncome>0?Math.min(100,Math.round(totalSpending/totalIncome*100)):0}%`, height:"100%", background:T.amber, borderRadius:99 }}/>
+                </div>
+                <p style={{ color:"#4A6080", fontSize:10 }}>{totalIncome>0?Math.round(totalSpending/totalIncome*100):0}% of income</p>
+              </div>
+            ) : <p style={{ color:"#4A6080", fontSize:12 }}>Add spending in Level 2</p>}
+          </div>
         </div>
 
-        {/* CHARTS */}
-        <SpendingBreakdownChart state={state} save={saveSpending}/>
+        {/* Row 3: Charts side by side */}
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:14 }}>
+          {/* Spending breakdown */}
+          <div style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:16, padding:"16px" }}>
+            <p style={{ color:"#6B8CB8", fontSize:10, fontWeight:700, letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>Spending Split</p>
+            {totalSpending>0 && totalIncome>0 ? (
+              <div>
+                {[
+                  { label:"Needs (50%)", target:0.5, color:T.amber },
+                  { label:"Wants (30%)", target:0.3, color:T.purple },
+                  { label:"Savings (20%)", target:0.2, color:T.teal },
+                ].map((cat,i)=>{
+                  const actual = i===0 ? Math.min(totalSpending/totalIncome, 0.7) : i===1 ? Math.max(0,(totalSpending/totalIncome)-0.5)*0.6 : Math.max(0, 1-totalSpending/totalIncome)
+                  return (
+                    <div key={i} style={{ marginBottom:10 }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", marginBottom:3 }}>
+                        <p style={{ color:"#C8D8EC", fontSize:11 }}>{cat.label}</p>
+                        <p style={{ color:cat.color, fontSize:11, fontWeight:700 }}>{Math.round(actual*100)}%</p>
+                      </div>
+                      <div style={{ background:T.surface, borderRadius:99, height:4, overflow:"hidden" }}>
+                        <div style={{ width:`${Math.round(actual*100)}%`, height:"100%", background:cat.color, borderRadius:99 }}/>
+                      </div>
+                    </div>
+                  )
+                })}
+                <p style={{ color:"#4A6080", fontSize:10, marginTop:6 }}>Based on the 50/30/20 framework</p>
+              </div>
+            ) : (
+              <div style={{ textAlign:"center", padding:"16px 0" }}>
+                <div style={{ filter:"blur(4px)", opacity:.3, marginBottom:8 }}>
+                  <div style={{ height:4, background:T.amber, borderRadius:4, width:"70%", marginBottom:6 }}/>
+                  <div style={{ height:4, background:T.purple, borderRadius:4, width:"40%", marginBottom:6 }}/>
+                  <div style={{ height:4, background:T.teal, borderRadius:4, width:"25%" }}/>
+                </div>
+                <p style={{ color:"#4A6080", fontSize:11 }}>Add spending data to unlock</p>
+              </div>
+            )}
+          </div>
+
+          {/* Age comparison */}
+          <div style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:16, padding:"16px" }}>
+            <p style={{ color:"#6B8CB8", fontSize:10, fontWeight:700, letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>👥 Peer Comparison</p>
+            {bench && age ? (
+              <div>
+                <div style={{ display:"flex", justifyContent:"space-between", marginBottom:8 }}>
+                  <div>
+                    <p style={{ color:T.teal, fontWeight:900, fontSize:20 }}>{fmtK(netWorth)}</p>
+                    <p style={{ color:"#4A6080", fontSize:10 }}>Your net worth</p>
+                  </div>
+                  <div style={{ textAlign:"right" }}>
+                    <p style={{ color:T.muted, fontWeight:700, fontSize:20 }}>{fmtK(bench.median)}</p>
+                    <p style={{ color:"#4A6080", fontSize:10 }}>UK median (age {age})</p>
+                  </div>
+                </div>
+                <div style={{ background:T.surface, borderRadius:99, height:6, overflow:"hidden", position:"relative", marginBottom:8 }}>
+                  <div style={{ width:`${Math.min(100, bench.median>0 ? Math.round(netWorth/bench.median*50) : 50)}%`, height:"100%", background:netWorth>=bench.median?T.teal:T.amber, borderRadius:99 }}/>
+                  <div style={{ position:"absolute", left:"50%", top:0, bottom:0, width:2, background:"#6B8CB8" }}/>
+                </div>
+                <p style={{ color:"#C8D8EC", fontSize:11, lineHeight:1.4 }}>
+                  {netWorth>=bench.median ? "Above the UK median for your age group." : "Below the median, but tracking puts you on the path to close the gap."}
+                </p>
+              </div>
+            ) : (
+              <div style={{ textAlign:"center", padding:"16px 0" }}>
+                <div style={{ filter:"blur(4px)", opacity:.3, marginBottom:8 }}>
+                  <div style={{ display:"flex", justifyContent:"center", gap:20 }}>
+                    <div style={{ width:40, height:40, borderRadius:"50%", background:T.teal }}/>
+                    <div style={{ width:40, height:40, borderRadius:"50%", background:T.muted }}/>
+                  </div>
+                </div>
+                <p style={{ color:"#4A6080", fontSize:11 }}>Add your age to compare</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Row 4: Net worth momentum (full width) */}
         <NetWorthMomentumChart state={state}/>
-        <AssetBreakdownChart assets={state.assets} totalAssets={totalAssets} onConfirmAssets={()=>{}}/>
-
-        {/* COMPARISON */}
-        <NetWorthOverviewSection state={state} save={save} setSection={()=>{}} setSheet={setSheet} setEditItem={setEditItem}/>
-
-        {/* NARRATIVE */}
-        <div style={{ background:`linear-gradient(135deg,${T.tealDim},${T.purpleDim})`,
-          border:`1px solid ${T.tealBorder}`, borderRadius:18, padding:"18px", marginTop:16 }}>
-          <p style={{ color:T.teal, fontWeight:800, fontSize:14, marginBottom:8 }}>
-            Why this matters
-          </p>
-          <p style={{ color:"#C8D8EC", fontSize:13, lineHeight:1.7 }}>
-            Once this snapshot is accurate, every financial conversation changes — from how you budget to how you invest.
-            You can even share this with a financial advisor and walk in prepared.
-          </p>
-        </div>
 
       </div>
     </div>
   )
 }
 
-function NetWorthOverviewSection({ state, save, setSection, setSheet, setEditItem }) {
-  function saveFromOverview(newState){ save(newState) }
-  const { totalAssets, totalDebts } = calcTotals(state.assets, state.debts)
-  const netWorth = totalAssets - totalDebts
-  const surplus  = calcSurplus(state.income, state.assets, state.spending)
-  const drag     = totalInterestDrag(state.debts)
-
-  // Asset breakdown
-  const assetGroups = [
-    { label:"Savings & Cash", icon:"💰", color:T.teal,   value: state.assets.filter(a=>a.category==="savings").reduce((s,a)=>s+(a.value||0),0) },
-    { label:"Investments & ISA", icon:"📈", color:T.purple, value: state.assets.filter(a=>a.category==="investments").reduce((s,a)=>s+(a.value||0),0) },
-    { label:"Pension", icon:"🏛️", color:T.amber,  value: state.assets.filter(a=>a.category==="pension").reduce((s,a)=>s+(a.value||0),0) },
-    { label:"Property", icon:"🏠", color:T.green,  value: state.assets.filter(a=>["primary_residence","investment_property"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0) },
-    { label:"Other Assets", icon:"📦", color:T.blue,   value: state.assets.filter(a=>!["savings","investments","pension","primary_residence","investment_property"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0) },
-  ].filter(g=>g.value>0)
-
-  return (
-    <div>
-      {/* Big net worth number */}
-      <div className="ls-card-glass" style={{ border:`1.5px solid ${netWorth>=0?T.tealBorder:T.redBorder}`,borderRadius:22,padding:"22px",marginBottom:16,textAlign:"center",boxShadow:`0 8px 32px rgba(0,0,0,.3)` }}>
-        <p style={{ color:"#E2EAF6",fontSize:14,fontWeight:600,marginBottom:4 }}>Your net worth right now</p>
-        <p style={{ fontSize:"clamp(36px,8vw,56px)",fontWeight:900,color:netWorth>=0?T.teal:T.red,lineHeight:1,textShadow:`0 0 40px ${netWorth>=0?T.teal:T.red}40` }}>{fmt(netWorth)}</p>
-        <p style={{ color:"#8FA3BE",fontSize:12,marginTop:6 }}>Last updated: {new Date().toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}</p>
-        <div style={{ display:"flex",gap:12,justifyContent:"center",marginTop:14 }}>
-          <div style={{ textAlign:"center" }}>
-            <p style={{ color:T.green,fontWeight:800,fontSize:17 }}>{fmt(totalAssets)}</p>
-            <p style={{ color:"#8FA3BE",fontSize:11 }}>Assets</p>
-          </div>
-          <div style={{ width:1,background:T.border }}/>
-          <div style={{ textAlign:"center" }}>
-            <p style={{ color:totalDebts>0?T.red:T.muted,fontWeight:800,fontSize:17 }}>{fmt(totalDebts)}</p>
-            <p style={{ color:"#8FA3BE",fontSize:11 }}>Debts</p>
-          </div>
-          {surplus!==null && <><div style={{ width:1,background:T.border }}/><div style={{ textAlign:"center" }}>
-            <p style={{ color:surplus>=0?T.teal:T.red,fontWeight:800,fontSize:17 }}>{fmt(surplus)}/mo</p>
-            <p style={{ color:"#8FA3BE",fontSize:11 }}>Surplus</p>
-          </div></>}
-        </div>
-      </div>
-
-      {/* Accuracy prompt */}
-      <div style={{ background:T.amberDim,border:`1px solid ${T.amberBorder}`,borderRadius:14,padding:"14px 16px",marginBottom:20,display:"flex",gap:12,alignItems:"flex-start" }}>
-        <span style={{ fontSize:20,flexShrink:0 }}>🎯</span>
-        <div>
-          <p style={{ color:T.amber,fontWeight:700,fontSize:14,marginBottom:4 }}>Keep your figures accurate</p>
-          <p style={{ color:"#E2EAF6",fontSize:13,lineHeight:1.5 }}>Update your asset values and debt balances monthly, even a rough update takes 2 minutes and keeps your projections meaningful.</p>
-        </div>
-      </div>
-
-      {/* ── Analytics Charts ───────────────────────────────────────── */}
-      <p style={{ color:"#6B8CB8",fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:12 }}>Analytics</p>
-
-      <AssetBreakdownChart assets={state.assets} totalAssets={totalAssets} onConfirmAssets={()=>{}}/>
-      <SpendingBreakdownChart state={state} save={saveFromOverview}/>
-      <NetWorthMomentumChart state={state}/>
-
-      <div style={{ height:1,background:T.border,marginBottom:20 }}/>
-      <p style={{ color:"#6B8CB8",fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:14 }}>Your assets & liabilities</p>
-
-      {/* Asset breakdown */}
-      {assetGroups.length>0 && (
-        <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:18,padding:"18px 20px",marginBottom:14 }}>
-          <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14 }}>
-            <p style={{ color:T.white,fontWeight:700,fontSize:15 }}>Assets breakdown</p>
-            <button onClick={()=>setSection("assets")} style={{ background:"none",border:"none",color:T.teal,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>Edit →</button>
-          </div>
-          {assetGroups.map((g,i)=>(
-            <div key={i} style={{ display:"flex",alignItems:"center",gap:12,marginBottom:12 }}>
-              <span style={{ fontSize:18,width:26,textAlign:"center" }}>{g.icon}</span>
-              <div style={{ flex:1 }}>
-                <div style={{ display:"flex",justifyContent:"space-between",marginBottom:4 }}>
-                  <p style={{ color:"#E2EAF6",fontSize:13,fontWeight:600 }}>{g.label}</p>
-                  <p style={{ color:g.color,fontWeight:800,fontSize:13 }}>{fmt(g.value)}</p>
-                </div>
-                <div style={{ background:T.surface,borderRadius:99,height:6,overflow:"hidden" }}>
-                  <div style={{ width:`${totalAssets>0?Math.min(100,(g.value/totalAssets)*100):0}%`,height:"100%",background:g.color,borderRadius:99,transition:"width .6s ease" }}/>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Debt summary */}
-      {state.debts.length>0 && (
-        <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:18,padding:"18px 20px",marginBottom:14 }}>
-          <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14 }}>
-            <p style={{ color:T.white,fontWeight:700,fontSize:15 }}>Debts overview</p>
-            <button onClick={()=>setSection("debts")} style={{ background:"none",border:"none",color:T.red,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>Edit →</button>
-          </div>
-          {state.debts.map((d,i)=>{
-            const t = DEBT_TYPES.find(x=>x.cat===d.category)||DEBT_TYPES[DEBT_TYPES.length-1]
-            const interest = annualInterest(d)
-            return (
-              <div key={d.id} style={{ display:"flex",alignItems:"center",gap:12,marginBottom:i<state.debts.length-1?12:0,paddingBottom:i<state.debts.length-1?12:0,borderBottom:i<state.debts.length-1?`1px solid ${T.border}`:"none" }}>
-                <span style={{ fontSize:18 }}>{t?.icon||"💳"}</span>
-                <div style={{ flex:1 }}>
-                  <p style={{ color:"#E2EAF6",fontSize:13,fontWeight:600 }}>{d.name}</p>
-                  <p style={{ color:"#8FA3BE",fontSize:12 }}>{d.interestRate||t?.assumedRate}% APR {fmt(Math.round(interest/12))}/mo interest</p>
-                </div>
-                <p style={{ color:T.red,fontWeight:800,fontSize:14 }}>{fmt(d.balance)}</p>
-              </div>
-            )
-          })}
-          {drag>0 && <p style={{ color:T.red,fontSize:13,fontWeight:700,marginTop:12,paddingTop:12,borderTop:`1px solid ${T.border}` }}>💸 {fmt(Math.round(drag))}/yr leaving your net worth in interest</p>}
-        </div>
-      )}
-
-      {/* Quick add buttons */}
-      <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10 }}>
-        <button onClick={()=>{ setEditItem(null); setSection("assets"); setSheet("asset") }}
-          style={{ background:T.tealDim,border:`1.5px solid ${T.tealBorder}`,borderRadius:14,padding:"14px",cursor:"pointer",fontFamily:"inherit",textAlign:"center" }}>
-          <p style={{ fontSize:22,marginBottom:4 }}>💰</p>
-          <p style={{ color:T.teal,fontWeight:700,fontSize:13 }}>Add asset</p>
-        </button>
-        <button onClick={()=>{ setEditItem(null); setSection("debts"); setSheet("debt") }}
-          style={{ background:T.redDim,border:`1.5px solid ${T.redBorder}`,borderRadius:14,padding:"14px",cursor:"pointer",fontFamily:"inherit",textAlign:"center" }}>
-          <p style={{ fontSize:22,marginBottom:4 }}>💳</p>
-          <p style={{ color:T.red,fontWeight:700,fontSize:13 }}>Add debt</p>
-        </button>
-      </div>
-    </div>
-  )
-}
 
 
 /* ════════════════════════════════════════════════════════════════════
