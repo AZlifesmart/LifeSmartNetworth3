@@ -4683,7 +4683,6 @@ function LearnTab() {
   )
 }
 
-}
 
 /* ════════════════════════════════════════════════════════════════════
    LEVEL PLAYER — teaches and tracks completion
