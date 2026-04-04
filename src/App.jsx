@@ -3179,6 +3179,7 @@ function AnalyticsTab() {
             <div style={{marginTop:8}}>
               <AssetBreakdownChart assets={state.assets} totalAssets={totalAssets} onConfirmAssets={()=>{}}/>
             </div>
+          </div>
           {/* Debts */}
           <div>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
