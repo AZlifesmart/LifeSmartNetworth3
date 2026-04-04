@@ -2943,319 +2943,347 @@ function AnalyticsTab() {
   const { state, save, toast } = useApp()
   const [sheet, setSheet] = useState(null)
   const [editItem, setEditItem] = useState(null)
+  const [showHealthQ, setShowHealthQ] = useState(false)
+  const [whatIfExtra, setWhatIfExtra] = useState(0)
 
   const { totalAssets, totalDebts } = calcTotals(state.assets, state.debts)
   const netWorth = totalAssets - totalDebts
   const drag = totalInterestDrag(state.debts)
-  const surplus = calcSurplus(state.income, state.assets, state.spending)
-  const age = state.profile?.age
+  const totalIncome = calcIncome(state.income||{}, state.assets||[])
+  const totalSpending = state.spending?.monthly || 0
+  const surplus = totalIncome - totalSpending
+  const age = state.profile?.age || 30
   const bench = ageBenchmark(age)
+  const hq = state.healthAnswers || {}
 
-  function saveAsset({ cat, name, val, monthlyIncome, hasLoan, loanBal, annualReturn, existingId, existingLinkedDebtId }) {
-    let newAssets = [...state.assets], newDebts = [...state.debts]
-    const assetId = existingId || `a_${Date.now()}`
-    const assetObj = { id:assetId, category:cat, name, value:val, monthlyIncome:monthlyIncome||0, linkedDebtId:existingLinkedDebtId||null, annualReturn:annualReturn||null }
-    if(existingId) newAssets = newAssets.map(a=>a.id===existingId?assetObj:a)
-    else newAssets.push(assetObj)
-    if(hasLoan && loanBal>0) {
-      const t = DEBT_TYPES.find(x=>["mortgage","car_loan"].includes(x.cat) && x.cat===cat) || DEBT_TYPES[0]
-      const debtId = existingLinkedDebtId || `d_linked_${Date.now()}`
-      const debtObj = { id:debtId, category:cat==="primary_residence"?"mortgage":cat, name:`${name} loan`, balance:loanBal, interestRate:t?.assumedRate||4.5, linkedAssetId:assetId, isAutoCreated:true }
-      newAssets = newAssets.map(a=>a.id===assetId?{...a,linkedDebtId:debtId}:a)
-      if(existingLinkedDebtId) newDebts = newDebts.map(d=>d.id===existingLinkedDebtId?debtObj:d)
-      else newDebts.push(debtObj)
+  // Financial Health Score
+  function calcHealthScore() {
+    let score = 0, max = 0, answered = 0
+    max += 15; if (netWorth > 0) score += 15
+    max += 10; if (totalDebts === 0) score += 10; else if (!state.debts.some(d => d.interestRate > 15)) score += 5
+    max += 10; if (surplus > 0) score += Math.min(10, Math.round(surplus / Math.max(totalIncome,1) * 20))
+    max += 5; if (totalAssets > 0) score += 5
+    if (hq.emergencyFund !== undefined) { answered++; max += 15; if (hq.emergencyFund === "yes") score += 15; else if (hq.emergencyFund === "partial") score += 8 }
+    if (hq.pensionMatch !== undefined) { answered++; max += 12; if (hq.pensionMatch === "yes") score += 12; else if (hq.pensionMatch === "partial") score += 6 }
+    if (hq.investsMonthly !== undefined) { answered++; max += 12; if (hq.investsMonthly === "yes") score += 12 }
+    if (hq.hasBudget !== undefined) { answered++; max += 8; if (hq.hasBudget === "yes") score += 8 }
+    if (hq.hasWill !== undefined) { answered++; max += 6; if (hq.hasWill === "yes") score += 6 }
+    if (hq.hasProtection !== undefined) { answered++; max += 6; if (hq.hasProtection === "yes") score += 6 }
+    return { score: max > 0 ? Math.round((score / max) * 100) : 0, isPartial: answered < 6, answered, total: 6 }
+  }
+  const health = calcHealthScore()
+  const healthColor = health.score >= 80 ? T.teal : health.score >= 60 ? T.green : health.score >= 35 ? T.amber : T.red
+
+  // Daily Pulse
+  function getDailyInsight() {
+    const day = new Date().getDate()
+    const ins = []
+    if (drag > 0) ins.push({ icon: "💸", text: `Your debt costs you ${fmt(Math.round(drag / 365))}/day in interest. That is ${fmt(Math.round(drag))}/year leaving your wealth.`, color: T.red })
+    if (surplus > 0) ins.push({ icon: "🌱", text: `Your surplus of ${fmt(surplus)}/month becomes ${fmt(surplus * 12)}/year. Invested at 7% for 20 years, that could grow to roughly ${fmtK(Math.round(surplus * 12 * ((Math.pow(1.07, 20) - 1) / 0.07)))}.`, color: T.teal })
+    if (bench && netWorth > bench.median) ins.push({ icon: "🏆", text: `You are ${fmtK(netWorth - bench.median)} above the UK median net worth for your age. Keep tracking to stay ahead.`, color: T.green })
+    if (bench && netWorth < bench.median && netWorth !== 0) ins.push({ icon: "📈", text: `You are ${fmtK(bench.median - netWorth)} below the UK median for age ${age}. Completing your learning levels will help close this gap.`, color: T.amber })
+    if (totalSpending > 0 && totalIncome > 0) { const pct = Math.round(totalSpending / totalIncome * 100); ins.push({ icon: "📊", text: `You spend ${pct}% of your income. ${pct > 80 ? "Aim to bring this below 80% to build savings faster." : "You are within a healthy range."}`, color: pct > 80 ? T.amber : T.teal }) }
+    if (ins.length === 0) ins.push({ icon: "🚀", text: "Add your assets and income to unlock personalised insights about your financial health.", color: T.teal })
+    return ins[day % ins.length]
+  }
+  const pulse = getDailyInsight()
+
+  // Streak
+  const lastVisit = state.lastDashboardVisit || null
+  const today = new Date().toDateString()
+  const streak = state.dashboardStreak || 0
+  useEffect(() => {
+    if (lastVisit !== today) {
+      const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1)
+      const newStreak = lastVisit === yesterday.toDateString() ? streak + 1 : 1
+      save({ ...state, lastDashboardVisit: today, dashboardStreak: newStreak })
     }
-    save({ ...state, assets:newAssets, debts:newDebts })
-    toast(existingId?"✓ Asset updated":"✓ Asset added"); setSheet(null); setEditItem(null)
+  }, [])
+  const currentStreak = lastVisit === today ? streak : 1
+
+  // Asset/Debt CRUD
+  function saveAsset({ cat, name, val, monthlyIncome, hasLoan, loanBal, annualReturn, existingId, existingLinkedDebtId }) {
+    let nA = [...state.assets], nD = [...state.debts]
+    const aid = existingId || `a_${Date.now()}`
+    const ao = { id:aid, category:cat, name, value:val, monthlyIncome:monthlyIncome||0, linkedDebtId:existingLinkedDebtId||null, annualReturn:annualReturn||null }
+    if(existingId) nA = nA.map(a=>a.id===existingId?ao:a); else nA.push(ao)
+    if(hasLoan && loanBal>0) {
+      const t = DEBT_TYPES.find(x=>["mortgage","car_loan"].includes(x.cat)&&x.cat===cat)||DEBT_TYPES[0]
+      const did = existingLinkedDebtId||`d_linked_${Date.now()}`
+      const dobj = { id:did, category:cat==="primary_residence"?"mortgage":cat, name:`${name} loan`, balance:loanBal, interestRate:t?.assumedRate||4.5, linkedAssetId:aid, isAutoCreated:true }
+      nA = nA.map(a=>a.id===aid?{...a,linkedDebtId:did}:a)
+      if(existingLinkedDebtId) nD = nD.map(d=>d.id===existingLinkedDebtId?dobj:d); else nD.push(dobj)
+    }
+    const h=[...(state.history||[])]; const mk=new Date().toISOString().slice(0,7); const nw2=nA.reduce((s,a)=>s+(a.value||0),0)-nD.reduce((s,d)=>s+(d.balance||0),0)
+    const ex=h.findIndex(x=>x.month===mk); if(ex>=0)h[ex]={month:mk,netWorth:nw2}; else h.push({month:mk,netWorth:nw2})
+    save({...state,assets:nA,debts:nD,history:h}); toast(existingId?"✓ Updated":"✓ Added"); setSheet(null); setEditItem(null)
   }
-
-  function deleteAsset(a) {
-    if(!window.confirm(`Remove "${a.name}"?`)) return
-    save({ ...state, assets:state.assets.filter(x=>x.id!==a.id), debts:a.linkedDebtId?state.debts.filter(d=>d.id!==a.linkedDebtId):state.debts })
-    toast("Asset removed")
+  function deleteAsset(a){if(!window.confirm(`Remove "${a.name}"?`))return;save({...state,assets:state.assets.filter(x=>x.id!==a.id),debts:a.linkedDebtId?state.debts.filter(d=>d.id!==a.linkedDebtId):state.debts});toast("Removed")}
+  function saveDebt({cat,name,bal,rate,minPayment,existingId}){
+    const t=DEBT_TYPES.find(x=>x.cat===cat); const dobj={id:existingId||`d_${Date.now()}`,category:cat,name,balance:bal,interestRate:rate||t?.assumedRate||10,minPayment:minPayment||0,linkedAssetId:null,isAutoCreated:false}
+    save({...state,debts:existingId?state.debts.map(d=>d.id===existingId?dobj:d):[...state.debts,dobj]});toast(existingId?"✓ Updated":"✓ Added");setSheet(null);setEditItem(null)
   }
+  function deleteDebt(d){if(d.isAutoCreated){toast("Remove the linked asset instead");return};if(!window.confirm(`Remove "${d.name}"?`))return;save({...state,debts:state.debts.filter(x=>x.id!==d.id)});toast("Removed")}
 
-  function saveDebt({ cat, name, bal, rate, minPayment, existingId }) {
-    const debtId = existingId || `d_${Date.now()}`
-    const t = DEBT_TYPES.find(x=>x.cat===cat)
-    const debtObj = { id:debtId, category:cat, name, balance:bal, interestRate:rate||t?.assumedRate||10, minPayment:minPayment||0, linkedAssetId:null, isAutoCreated:false }
-    save({ ...state, debts:existingId?state.debts.map(d=>d.id===existingId?debtObj:d):[...state.debts, debtObj] })
-    toast(existingId?"✓ Debt updated":"✓ Debt added"); setSheet(null); setEditItem(null)
-  }
-
-  function deleteDebt(d) {
-    if(d.isAutoCreated) { toast("Remove the linked asset to remove this debt"); return }
-    if(!window.confirm(`Remove "${d.name}"?`)) return
-    save({ ...state, debts:state.debts.filter(x=>x.id!==d.id) }); toast("Debt removed")
-  }
-
-  function saveIncome(inc) { save({ ...state, income:inc }); toast("✓ Income updated") }
-  function saveSpending(sp) { save({ ...state, spending:sp }); toast("✓ Spending updated") }
-
-  // Asset groups for breakdown
+  // Asset groups
   const assetGroups = [
-    { label:"Cash & Savings", icon:"💰", color:T.teal, value: state.assets.filter(a=>a.category==="savings").reduce((s,a)=>s+(a.value||0),0) },
-    { label:"Investments", icon:"📈", color:T.purple, value: state.assets.filter(a=>a.category==="investments").reduce((s,a)=>s+(a.value||0),0) },
-    { label:"Pension", icon:"🏛️", color:T.amber, value: state.assets.filter(a=>a.category==="pension").reduce((s,a)=>s+(a.value||0),0) },
-    { label:"Property", icon:"🏠", color:T.green, value: state.assets.filter(a=>["primary_residence","investment_property"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0) },
-    { label:"Other", icon:"📦", color:T.blue, value: state.assets.filter(a=>!["savings","investments","pension","primary_residence","investment_property"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0) },
+    {label:"Cash & Savings",icon:"💰",color:T.teal,value:state.assets.filter(a=>a.category==="savings").reduce((s,a)=>s+(a.value||0),0)},
+    {label:"Investments",icon:"📈",color:T.purple,value:state.assets.filter(a=>a.category==="investments").reduce((s,a)=>s+(a.value||0),0)},
+    {label:"Pension",icon:"🏛️",color:T.amber,value:state.assets.filter(a=>a.category==="pension").reduce((s,a)=>s+(a.value||0),0)},
+    {label:"Property",icon:"🏠",color:T.green,value:state.assets.filter(a=>["primary_residence","investment_property"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0)},
+    {label:"Other",icon:"📦",color:T.blue,value:state.assets.filter(a=>!["savings","investments","pension","primary_residence","investment_property"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0)},
   ].filter(g=>g.value>0)
 
-  const totalIncome = calcIncome(state.income, state.assets)
-  const totalSpending = state.spending?.monthly || 0
+  // What-if
+  const wiYears=[5,10,20,30]
+  const wiData=wiYears.map(y=>({year:y,gain:Math.round(whatIfExtra*12*((Math.pow(1.07,y)-1)/0.07))}))
 
-  const cardStyle = { background:T.card, border:`1px solid ${T.border}`, borderRadius:16, overflow:"hidden" }
-  const sectionTitle = (text, color=T.white) => <p style={{ color, fontWeight:800, fontSize:14, marginBottom:10 }}>{text}</p>
+  // Progress ring data
+  const emergencyTarget=totalSpending>0?totalSpending*3:3000
+  const savingsVal=state.assets.filter(a=>a.category==="savings").reduce((s,a)=>s+(a.value||0),0)
+  const emergencyPct=Math.min(100,Math.round(savingsVal/emergencyTarget*100))
+  const debtFreePct=totalDebts>0?Math.max(0,Math.round((1-totalDebts/Math.max(totalAssets,1))*100)):100
+  const investPct=hq.investsMonthly==="yes"?100:hq.investsMonthly===undefined?0:30
 
-  return (
-    <div style={{ flex:1, overflowY:"auto", paddingBottom:100 }}>
-      {sheet==="asset" && <Sheet title={editItem?"Edit asset":"Add asset"} onClose={()=>{setSheet(null);setEditItem(null)}}><AssetSheet item={editItem} onClose={()=>{setSheet(null);setEditItem(null)}} onSave={saveAsset}/></Sheet>}
-      {sheet==="debt"  && <Sheet title={editItem?"Edit debt":"Add debt"} onClose={()=>{setSheet(null);setEditItem(null)}}><DebtSheet item={editItem} onClose={()=>{setSheet(null);setEditItem(null)}} onSave={saveDebt}/></Sheet>}
+  // SVG components
+  function HealthArc({score,size=110}) {
+    const cx=size/2,cy=size/2,r=size*0.38,sw=size*0.09
+    const sa=-220,ea=40,ta=ea-sa,filled=ta*(score/100)
+    const toXY=a=>({x:cx+r*Math.cos(a*Math.PI/180),y:cy+r*Math.sin(a*Math.PI/180)})
+    const bs=toXY(sa),fe=toXY(sa+filled),be=toXY(ea)
+    return(<svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <path d={`M${bs.x},${bs.y} A${r},${r} 0 ${ta>180?1:0},1 ${be.x},${be.y}`} fill="none" stroke={T.border} strokeWidth={sw} strokeLinecap="round"/>
+      {score>0&&<path d={`M${bs.x},${bs.y} A${r},${r} 0 ${filled>180?1:0},1 ${fe.x},${fe.y}`} fill="none" stroke={healthColor} strokeWidth={sw} strokeLinecap="round" style={{filter:`drop-shadow(0 0 6px ${healthColor}40)`}}/>}
+      <text x={cx} y={cy-4} textAnchor="middle" fill={healthColor} fontSize={size*0.24} fontWeight="900" fontFamily="DM Sans">{score}</text>
+      <text x={cx} y={cy+12} textAnchor="middle" fill="#6B8CB8" fontSize={size*0.07} fontWeight="700" fontFamily="DM Sans">{health.isPartial?"PARTIAL":"/ 100"}</text>
+    </svg>)
+  }
 
-      {/* ═══ HEADER ═══ */}
-      <div style={{ padding:"22px 20px 18px", borderBottom:"1px solid rgba(255,255,255,.06)",
-        background:"linear-gradient(180deg,rgba(15,191,184,.06) 0%,transparent 100%)" }}>
-        <div style={{ maxWidth:900, margin:"0 auto" }}>
-          <p style={{ color:T.teal, fontSize:10, fontWeight:800, letterSpacing:2, textTransform:"uppercase", marginBottom:6 }}>Mission Control</p>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-end", marginBottom:16 }}>
+  function Ring({pct,size=46,color,icon,label}){
+    const r=17,sw=3.5,c=2*Math.PI*r,off=c*(1-Math.min(pct,100)/100)
+    return(<div style={{textAlign:"center"}}>
+      <svg width={size} height={size} viewBox="0 0 46 46">
+        <circle cx="23" cy="23" r={r} fill="none" stroke={T.border} strokeWidth={sw}/>
+        <circle cx="23" cy="23" r={r} fill="none" stroke={color} strokeWidth={sw} strokeDasharray={c} strokeDashoffset={off} strokeLinecap="round" transform="rotate(-90 23 23)" style={{transition:"stroke-dashoffset .8s"}}/>
+        <text x="23" y="25" textAnchor="middle" fill={color} fontSize="11" fontWeight="800">{icon}</text>
+      </svg>
+      <p style={{color:"#C8D8EC",fontSize:9,marginTop:1,fontWeight:600}}>{label}</p>
+      <p style={{color,fontSize:9,fontWeight:700}}>{pct}%</p>
+    </div>)
+  }
+
+  // Health Questions Sheet
+  function HQSheet() {
+    const [ans, setAns] = useState({...hq})
+    const QS=[
+      {id:"emergencyFund",q:"Do you have an emergency fund (3+ months expenses)?",opts:[{v:"yes",l:"Yes"},{v:"partial",l:"Building"},{v:"no",l:"Not yet"}]},
+      {id:"pensionMatch",q:"Employer pension match maximised?",opts:[{v:"yes",l:"Yes"},{v:"partial",l:"Partly"},{v:"no",l:"No / unsure"}]},
+      {id:"investsMonthly",q:"Do you invest monthly (ISA, index fund)?",opts:[{v:"yes",l:"Yes"},{v:"no",l:"Not yet"}]},
+      {id:"hasBudget",q:"Do you track spending or follow a budget?",opts:[{v:"yes",l:"Yes"},{v:"no",l:"Not really"}]},
+      {id:"hasWill",q:"Do you have a will?",opts:[{v:"yes",l:"Yes"},{v:"no",l:"No"}]},
+      {id:"hasProtection",q:"Income protection or life insurance?",opts:[{v:"yes",l:"Yes"},{v:"no",l:"No"}]},
+    ]
+    return(<Sheet title="Unlock your full health score" onClose={()=>setShowHealthQ(false)}>
+      <p style={{color:"#C8D8EC",fontSize:13,lineHeight:1.6,marginBottom:20}}>Six quick questions to complete your financial health picture. Under a minute.</p>
+      {QS.map((q,qi)=>(<div key={q.id} style={{marginBottom:16}}>
+        <p style={{color:T.white,fontWeight:700,fontSize:13,marginBottom:8}}>{qi+1}. {q.q}</p>
+        <div style={{display:"flex",gap:8}}>
+          {q.opts.map(o=>(<button key={o.v} onClick={()=>setAns(p=>({...p,[q.id]:o.v}))}
+            style={{flex:1,background:ans[q.id]===o.v?`${T.teal}15`:T.card,border:`2px solid ${ans[q.id]===o.v?T.teal:T.border}`,borderRadius:12,padding:"10px 6px",cursor:"pointer",fontFamily:"inherit",color:ans[q.id]===o.v?T.teal:"#C8D8EC",fontWeight:600,fontSize:12}}>
+            {o.l}</button>))}
+        </div>
+      </div>))}
+      <button onClick={()=>{save({...state,healthAnswers:ans});setShowHealthQ(false);toast("✓ Score updated")}}
+        style={{width:"100%",background:`linear-gradient(135deg,${T.teal},${T.tealMid})`,border:"none",borderRadius:14,padding:"16px",color:"#070D1A",fontWeight:800,fontSize:15,cursor:"pointer",fontFamily:"inherit"}}>Save & see my score</button>
+    </Sheet>)
+  }
+
+  return(
+    <div style={{flex:1,overflowY:"auto",paddingBottom:100}}>
+      {sheet==="asset"&&<Sheet title={editItem?"Edit asset":"Add asset"} onClose={()=>{setSheet(null);setEditItem(null)}}><AssetSheet item={editItem} onClose={()=>{setSheet(null);setEditItem(null)}} onSave={saveAsset}/></Sheet>}
+      {sheet==="debt"&&<Sheet title={editItem?"Edit debt":"Add debt"} onClose={()=>{setSheet(null);setEditItem(null)}}><DebtSheet item={editItem} onClose={()=>{setSheet(null);setEditItem(null)}} onSave={saveDebt}/></Sheet>}
+      {showHealthQ&&<HQSheet/>}
+
+      {/* HEADER */}
+      <div style={{padding:"20px 20px 0",background:"linear-gradient(180deg,rgba(15,191,184,.06) 0%,transparent 100%)"}}>
+        <div style={{maxWidth:900,margin:"0 auto"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
             <div>
-              <p style={{ color:"#6B8CB8", fontSize:12, marginBottom:2 }}>Net Worth</p>
-              <p style={{ color:netWorth>=0?T.teal:T.red, fontWeight:900, fontSize:"clamp(32px,6vw,42px)", lineHeight:1,
-                textShadow:netWorth>=0?`0 0 30px ${T.teal}30`:`0 0 30px ${T.red}30` }}>{fmt(netWorth)}</p>
+              <p style={{color:T.teal,fontSize:10,fontWeight:800,letterSpacing:2,textTransform:"uppercase",marginBottom:2}}>Mission Control</p>
+              <p style={{color:"#6B8CB8",fontSize:11}}>Updated {new Date().toLocaleDateString("en-GB",{day:"numeric",month:"short"})}</p>
             </div>
-            <div style={{ display:"flex", gap:16 }}>
-              {[
-                { label:"Assets", val:fmtK(totalAssets), color:T.green },
-                { label:"Debts", val:fmtK(totalDebts), color:totalDebts>0?T.red:"#6B8CB8" },
-                { label:"Surplus", val:`${fmtK(Math.abs(surplus))}/mo`, color:surplus>=0?T.teal:T.red },
-              ].map((s,i) => (
-                <div key={i} style={{ textAlign:"right" }}>
-                  <p style={{ color:s.color, fontWeight:800, fontSize:16 }}>{s.val}</p>
-                  <p style={{ color:"#4A6080", fontSize:10 }}>{s.label}</p>
-                </div>
-              ))}
-            </div>
+            {currentStreak>1&&<div style={{display:"flex",alignItems:"center",gap:5,background:T.amberDim,border:`1px solid ${T.amberBorder}`,borderRadius:99,padding:"4px 10px"}}>
+              <span style={{fontSize:12}}>🔥</span><p style={{color:T.amber,fontWeight:800,fontSize:11}}>{currentStreak} day streak</p>
+            </div>}
           </div>
         </div>
       </div>
 
-      {/* ═══ DASHBOARD GRID ═══ */}
-      <div style={{ maxWidth:900, margin:"0 auto", padding:"18px" }}>
+      <div style={{maxWidth:900,margin:"0 auto",padding:"10px 18px"}}>
 
-        {/* Row 1: Assets + Debts side by side */}
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:14 }}>
+        {/* ROW 1: Big Three */}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:12}}>
+          {/* Net Worth */}
+          <div style={{background:T.card,border:`1.5px solid ${netWorth>=0?T.tealBorder:T.redBorder}`,borderRadius:18,padding:"16px 14px",textAlign:"center"}}>
+            <p style={{color:"#6B8CB8",fontSize:9,fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:6}}>Net Worth</p>
+            <p style={{color:netWorth>=0?T.teal:T.red,fontWeight:900,fontSize:"clamp(20px,4vw,28px)",lineHeight:1,textShadow:`0 0 20px ${netWorth>=0?T.teal:T.red}25`}}>{fmtK(netWorth)}</p>
+            <div style={{display:"flex",justifyContent:"center",gap:10,marginTop:8}}>
+              <div><p style={{color:T.green,fontWeight:700,fontSize:11}}>{fmtK(totalAssets)}</p><p style={{color:"#4A6080",fontSize:8}}>assets</p></div>
+              <div style={{width:1,background:T.border}}/>
+              <div><p style={{color:totalDebts>0?T.red:"#6B8CB8",fontWeight:700,fontSize:11}}>{fmtK(totalDebts)}</p><p style={{color:"#4A6080",fontSize:8}}>debts</p></div>
+            </div>
+          </div>
+          {/* Surplus */}
+          <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:18,padding:"16px 14px",textAlign:"center"}}>
+            <p style={{color:"#6B8CB8",fontSize:9,fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:6}}>Monthly Surplus</p>
+            <p style={{color:surplus>=0?T.teal:T.red,fontWeight:900,fontSize:"clamp(20px,4vw,28px)",lineHeight:1}}>{fmtK(surplus)}</p>
+            <p style={{color:"#4A6080",fontSize:9,marginTop:6}}>per month</p>
+            {totalIncome>0&&<div style={{background:T.surface,borderRadius:99,height:3,marginTop:6,overflow:"hidden"}}><div style={{width:`${Math.min(100,Math.max(0,Math.round(surplus/totalIncome*100)))}%`,height:"100%",background:surplus>=0?T.teal:T.red,borderRadius:99}}/></div>}
+          </div>
+          {/* Health */}
+          <div onClick={()=>setShowHealthQ(true)} style={{background:T.card,border:`1.5px solid ${healthColor}25`,borderRadius:18,padding:"6px 6px 12px",textAlign:"center",cursor:"pointer"}}>
+            <HealthArc score={health.score} size={90}/>
+            {health.isPartial?
+              <button onClick={e=>{e.stopPropagation();setShowHealthQ(true)}} style={{background:`${healthColor}12`,border:`1px solid ${healthColor}25`,borderRadius:8,padding:"3px 8px",cursor:"pointer",fontFamily:"inherit",color:healthColor,fontWeight:700,fontSize:9}}>Unlock full score →</button>:
+              <p style={{color:"#4A6080",fontSize:8}}>Tap to update</p>}
+          </div>
+        </div>
 
-          {/* LEFT: Assets */}
+        {/* DAILY PULSE */}
+        <div style={{background:`${pulse.color}08`,border:`1px solid ${pulse.color}20`,borderRadius:14,padding:"12px 14px",marginBottom:12,display:"flex",alignItems:"flex-start",gap:10}}>
+          <span style={{fontSize:18,flexShrink:0}}>{pulse.icon}</span>
+          <div style={{flex:1}}>
+            <p style={{color:"#4A6080",fontSize:8,fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:3}}>Today's Insight</p>
+            <p style={{color:"#E2EAF6",fontSize:12,lineHeight:1.5}}>{pulse.text}</p>
+          </div>
+        </div>
+
+        {/* ROW 2: Assets + Debts */}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
+          {/* Assets */}
           <div>
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
-              <p style={{ color:T.green, fontWeight:800, fontSize:13 }}>Assets · {fmtK(totalAssets)}</p>
-              <button onClick={()=>{setEditItem(null);setSheet("asset")}}
-                style={{ background:T.tealDim, border:`1px solid ${T.tealBorder}`, borderRadius:8,
-                  padding:"4px 10px", color:T.teal, fontWeight:700, fontSize:11, cursor:"pointer", fontFamily:"inherit" }}>+ Add</button>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+              <p style={{color:T.green,fontWeight:800,fontSize:12}}>Assets · {fmtK(totalAssets)}</p>
+              <button onClick={()=>{setEditItem(null);setSheet("asset")}} style={{background:T.tealDim,border:`1px solid ${T.tealBorder}`,borderRadius:8,padding:"3px 8px",color:T.teal,fontWeight:700,fontSize:10,cursor:"pointer",fontFamily:"inherit"}}>+</button>
             </div>
-            <div style={{...cardStyle}}>
-              {state.assets.length===0 ? (
-                <button onClick={()=>{setEditItem(null);setSheet("asset")}} style={{ width:"100%", background:"transparent", border:"none", padding:"20px", textAlign:"center", cursor:"pointer", fontFamily:"inherit" }}>
-                  <p style={{ color:"#4A6080", fontSize:12 }}>+ Add your first asset</p>
-                </button>
-              ) : state.assets.map((a,idx)=>(
-                <div key={a.id} style={{ display:"flex", alignItems:"center", gap:8, padding:"10px 12px",
-                  borderBottom:idx<state.assets.length-1?`1px solid ${T.border}`:"none" }}>
-                  <span style={{ fontSize:15, flexShrink:0 }}>{ASSET_TYPES.find(t=>t.cat===a.category||t.id===a.category)?.icon||"📦"}</span>
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <p style={{ color:"#E2EAF6", fontWeight:600, fontSize:12, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{a.name}</p>
-                  </div>
-                  <p style={{ color:T.green, fontWeight:800, fontSize:12, flexShrink:0 }}>{fmtK(a.value)}</p>
-                  <button onClick={()=>{setEditItem(a);setSheet("asset")}} style={{ background:"none", border:"none", color:"#4A6080", cursor:"pointer", padding:2, fontSize:10 }}>✎</button>
-                </div>
-              ))}
-            </div>
-
-            {/* Asset Breakdown Chart under assets */}
-            {assetGroups.length>0 && (
-              <div style={{ marginTop:10, background:T.card, border:`1px solid ${T.border}`, borderRadius:14, padding:"14px" }}>
-                <p style={{ color:"#6B8CB8", fontSize:10, fontWeight:700, letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>Breakdown</p>
-                {assetGroups.map((g,i) => (
-                  <div key={i} style={{ display:"flex", alignItems:"center", gap:8, marginBottom:i<assetGroups.length-1?8:0 }}>
-                    <span style={{ fontSize:13 }}>{g.icon}</span>
-                    <div style={{ flex:1 }}>
-                      <div style={{ display:"flex", justifyContent:"space-between", marginBottom:3 }}>
-                        <p style={{ color:"#C8D8EC", fontSize:11 }}>{g.label}</p>
-                        <p style={{ color:g.color, fontWeight:700, fontSize:11 }}>{fmtK(g.value)}</p>
-                      </div>
-                      <div style={{ background:T.surface, borderRadius:99, height:4, overflow:"hidden" }}>
-                        <div style={{ width:`${totalAssets>0?Math.round(g.value/totalAssets*100):0}%`, height:"100%", background:g.color, borderRadius:99 }}/>
-                      </div>
-                    </div>
+            <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:14,overflow:"hidden",marginBottom:6}}>
+              {state.assets.length===0?
+                <button onClick={()=>{setEditItem(null);setSheet("asset")}} style={{width:"100%",background:"transparent",border:"none",padding:"16px",textAlign:"center",cursor:"pointer",fontFamily:"inherit"}}><p style={{color:"#4A6080",fontSize:11}}>+ Add first asset</p></button>:
+                state.assets.map((a,i)=>(
+                  <div key={a.id} onClick={()=>{setEditItem(a);setSheet("asset")}} style={{display:"flex",alignItems:"center",gap:6,padding:"8px 10px",borderBottom:i<state.assets.length-1?`1px solid ${T.border}`:"none",cursor:"pointer"}}>
+                    <span style={{fontSize:13}}>{ASSET_TYPES.find(t=>t.cat===a.category||t.id===a.category)?.icon||"📦"}</span>
+                    <p style={{color:"#E2EAF6",fontWeight:600,fontSize:11,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{a.name}</p>
+                    <p style={{color:T.green,fontWeight:800,fontSize:11}}>{fmtK(a.value)}</p>
                   </div>
                 ))}
-              </div>
-            )}
+            </div>
+            {assetGroups.length>0&&<div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"10px"}}>
+              {assetGroups.map((g,i)=><div key={i} style={{display:"flex",alignItems:"center",gap:6,marginBottom:i<assetGroups.length-1?5:0}}>
+                <span style={{fontSize:10}}>{g.icon}</span>
+                <div style={{flex:1}}>
+                  <div style={{display:"flex",justifyContent:"space-between"}}><p style={{color:"#C8D8EC",fontSize:9}}>{g.label}</p><p style={{color:g.color,fontWeight:700,fontSize:9}}>{fmtK(g.value)}</p></div>
+                  <div style={{background:T.surface,borderRadius:99,height:3,overflow:"hidden",marginTop:1}}><div style={{width:`${totalAssets>0?Math.round(g.value/totalAssets*100):0}%`,height:"100%",background:g.color,borderRadius:99}}/></div>
+                </div>
+              </div>)}
+            </div>}
           </div>
-
-          {/* RIGHT: Debts */}
+          {/* Debts */}
           <div>
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
-              <p style={{ color:totalDebts>0?T.red:"#6B8CB8", fontWeight:800, fontSize:13 }}>Debts · {fmtK(totalDebts)}</p>
-              <button onClick={()=>{setEditItem(null);setSheet("debt")}}
-                style={{ background:T.redDim, border:`1px solid ${T.redBorder}`, borderRadius:8,
-                  padding:"4px 10px", color:T.red, fontWeight:700, fontSize:11, cursor:"pointer", fontFamily:"inherit" }}>+ Add</button>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+              <p style={{color:totalDebts>0?T.red:"#6B8CB8",fontWeight:800,fontSize:12}}>Debts · {fmtK(totalDebts)}</p>
+              <button onClick={()=>{setEditItem(null);setSheet("debt")}} style={{background:T.redDim,border:`1px solid ${T.redBorder}`,borderRadius:8,padding:"3px 8px",color:T.red,fontWeight:700,fontSize:10,cursor:"pointer",fontFamily:"inherit"}}>+</button>
             </div>
-            <div style={{...cardStyle}}>
-              {state.debts.length===0 ? (
-                <div style={{ padding:"20px", textAlign:"center" }}>
-                  <p style={{ color:"#4A6080", fontSize:12 }}>No debts recorded ✓</p>
-                </div>
-              ) : state.debts.map((d,idx)=>(
-                <div key={d.id} style={{ display:"flex", alignItems:"center", gap:8, padding:"10px 12px",
-                  borderBottom:idx<state.debts.length-1?`1px solid ${T.border}`:"none",
-                  background:d.interestRate>15?"rgba(248,113,113,.03)":"transparent" }}>
-                  <span style={{ fontSize:15, flexShrink:0 }}>{DEBT_TYPES.find(t=>t.cat===d.category||t.id===d.category)?.icon||"💳"}</span>
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <p style={{ color:"#E2EAF6", fontWeight:600, fontSize:12 }}>{d.name}</p>
-                    <p style={{ color:d.interestRate>15?T.red:"#4A6080", fontSize:10 }}>{d.interestRate}% APR</p>
-                  </div>
-                  <p style={{ color:T.red, fontWeight:800, fontSize:12, flexShrink:0 }}>{fmtK(d.balance)}</p>
-                  <button onClick={()=>{setEditItem(d);setSheet("debt")}} style={{ background:"none", border:"none", color:"#4A6080", cursor:"pointer", padding:2, fontSize:10 }}>✎</button>
-                </div>
-              ))}
-            </div>
-
-            {/* Interest drag card under debts */}
-            {drag>0 && (
-              <div style={{ marginTop:10, background:T.redDim, border:`1px solid ${T.redBorder}`, borderRadius:14, padding:"14px" }}>
-                <p style={{ color:T.red, fontWeight:800, fontSize:14 }}>💸 {fmt(Math.round(drag))}/yr</p>
-                <p style={{ color:"#C8D8EC", fontSize:11, marginTop:4 }}>Interest leaving your wealth annually. That is {fmt(Math.round(drag/12))}/month working against you.</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Row 2: Income + Spending side by side */}
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:14 }}>
-
-          {/* LEFT: Income */}
-          <div style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:16, padding:"16px" }}>
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
-              <p style={{ color:T.teal, fontWeight:800, fontSize:13 }}>💼 Income</p>
-              <p style={{ color:T.teal, fontWeight:900, fontSize:16 }}>{fmt(totalIncome)}<span style={{ color:"#4A6080", fontSize:10, fontWeight:500 }}>/mo</span></p>
-            </div>
-            {totalIncome>0 ? (
-              <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
-                {state.income?.primary>0 && <div style={{ display:"flex", justifyContent:"space-between" }}><p style={{ color:"#C8D8EC", fontSize:11 }}>Salary</p><p style={{ color:T.teal, fontSize:11, fontWeight:600 }}>{fmt(state.income.primary)}</p></div>}
-                {(state.income?.additional||[]).filter(a=>a.amount>0).map((a,i)=>
-                  <div key={i} style={{ display:"flex", justifyContent:"space-between" }}><p style={{ color:"#C8D8EC", fontSize:11 }}>{a.name||"Other"}</p><p style={{ color:T.teal, fontSize:11, fontWeight:600 }}>{fmt(a.amount)}</p></div>
-                )}
-              </div>
-            ) : <p style={{ color:"#4A6080", fontSize:12 }}>Add income in Level 2</p>}
-          </div>
-
-          {/* RIGHT: Spending */}
-          <div style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:16, padding:"16px" }}>
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
-              <p style={{ color:T.amber, fontWeight:800, fontSize:13 }}>🛒 Spending</p>
-              <p style={{ color:T.amber, fontWeight:900, fontSize:16 }}>{fmt(totalSpending)}<span style={{ color:"#4A6080", fontSize:10, fontWeight:500 }}>/mo</span></p>
-            </div>
-            {totalSpending>0 ? (
-              <div>
-                <div style={{ display:"flex", justifyContent:"space-between", marginBottom:8 }}>
-                  <p style={{ color:"#C8D8EC", fontSize:11 }}>Monthly total</p>
-                  <p style={{ color:T.amber, fontSize:11, fontWeight:600 }}>{fmt(totalSpending)}</p>
-                </div>
-                <div style={{ background:T.surface, borderRadius:99, height:4, overflow:"hidden", marginBottom:6 }}>
-                  <div style={{ width:`${totalIncome>0?Math.min(100,Math.round(totalSpending/totalIncome*100)):0}%`, height:"100%", background:T.amber, borderRadius:99 }}/>
-                </div>
-                <p style={{ color:"#4A6080", fontSize:10 }}>{totalIncome>0?Math.round(totalSpending/totalIncome*100):0}% of income</p>
-              </div>
-            ) : <p style={{ color:"#4A6080", fontSize:12 }}>Add spending in Level 2</p>}
-          </div>
-        </div>
-
-        {/* Row 3: Charts side by side */}
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:14 }}>
-          {/* Spending breakdown */}
-          <div style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:16, padding:"16px" }}>
-            <p style={{ color:"#6B8CB8", fontSize:10, fontWeight:700, letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>Spending Split</p>
-            {totalSpending>0 && totalIncome>0 ? (
-              <div>
-                {[
-                  { label:"Needs (50%)", target:0.5, color:T.amber },
-                  { label:"Wants (30%)", target:0.3, color:T.purple },
-                  { label:"Savings (20%)", target:0.2, color:T.teal },
-                ].map((cat,i)=>{
-                  const actual = i===0 ? Math.min(totalSpending/totalIncome, 0.7) : i===1 ? Math.max(0,(totalSpending/totalIncome)-0.5)*0.6 : Math.max(0, 1-totalSpending/totalIncome)
-                  return (
-                    <div key={i} style={{ marginBottom:10 }}>
-                      <div style={{ display:"flex", justifyContent:"space-between", marginBottom:3 }}>
-                        <p style={{ color:"#C8D8EC", fontSize:11 }}>{cat.label}</p>
-                        <p style={{ color:cat.color, fontSize:11, fontWeight:700 }}>{Math.round(actual*100)}%</p>
-                      </div>
-                      <div style={{ background:T.surface, borderRadius:99, height:4, overflow:"hidden" }}>
-                        <div style={{ width:`${Math.round(actual*100)}%`, height:"100%", background:cat.color, borderRadius:99 }}/>
-                      </div>
+            <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:14,overflow:"hidden",marginBottom:6}}>
+              {state.debts.length===0?
+                <div style={{padding:"16px",textAlign:"center"}}><p style={{color:"#4A6080",fontSize:11}}>No debts ✓</p></div>:
+                state.debts.map((d,i)=>(
+                  <div key={d.id} onClick={()=>{setEditItem(d);setSheet("debt")}} style={{display:"flex",alignItems:"center",gap:6,padding:"8px 10px",borderBottom:i<state.debts.length-1?`1px solid ${T.border}`:"none",cursor:"pointer",background:d.interestRate>15?"rgba(248,113,113,.03)":"transparent"}}>
+                    <span style={{fontSize:13}}>{DEBT_TYPES.find(t=>t.cat===d.category||t.id===d.category)?.icon||"💳"}</span>
+                    <div style={{flex:1,minWidth:0}}>
+                      <p style={{color:"#E2EAF6",fontWeight:600,fontSize:11}}>{d.name}</p>
+                      <p style={{color:d.interestRate>15?T.red:"#4A6080",fontSize:9}}>{d.interestRate}% APR</p>
                     </div>
-                  )
-                })}
-                <p style={{ color:"#4A6080", fontSize:10, marginTop:6 }}>Based on the 50/30/20 framework</p>
-              </div>
-            ) : (
-              <div style={{ textAlign:"center", padding:"16px 0" }}>
-                <div style={{ filter:"blur(4px)", opacity:.3, marginBottom:8 }}>
-                  <div style={{ height:4, background:T.amber, borderRadius:4, width:"70%", marginBottom:6 }}/>
-                  <div style={{ height:4, background:T.purple, borderRadius:4, width:"40%", marginBottom:6 }}/>
-                  <div style={{ height:4, background:T.teal, borderRadius:4, width:"25%" }}/>
-                </div>
-                <p style={{ color:"#4A6080", fontSize:11 }}>Add spending data to unlock</p>
-              </div>
-            )}
-          </div>
-
-          {/* Age comparison */}
-          <div style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:16, padding:"16px" }}>
-            <p style={{ color:"#6B8CB8", fontSize:10, fontWeight:700, letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>👥 Peer Comparison</p>
-            {bench && age ? (
-              <div>
-                <div style={{ display:"flex", justifyContent:"space-between", marginBottom:8 }}>
-                  <div>
-                    <p style={{ color:T.teal, fontWeight:900, fontSize:20 }}>{fmtK(netWorth)}</p>
-                    <p style={{ color:"#4A6080", fontSize:10 }}>Your net worth</p>
+                    <p style={{color:T.red,fontWeight:800,fontSize:11}}>{fmtK(d.balance)}</p>
                   </div>
-                  <div style={{ textAlign:"right" }}>
-                    <p style={{ color:T.muted, fontWeight:700, fontSize:20 }}>{fmtK(bench.median)}</p>
-                    <p style={{ color:"#4A6080", fontSize:10 }}>UK median (age {age})</p>
-                  </div>
-                </div>
-                <div style={{ background:T.surface, borderRadius:99, height:6, overflow:"hidden", position:"relative", marginBottom:8 }}>
-                  <div style={{ width:`${Math.min(100, bench.median>0 ? Math.round(netWorth/bench.median*50) : 50)}%`, height:"100%", background:netWorth>=bench.median?T.teal:T.amber, borderRadius:99 }}/>
-                  <div style={{ position:"absolute", left:"50%", top:0, bottom:0, width:2, background:"#6B8CB8" }}/>
-                </div>
-                <p style={{ color:"#C8D8EC", fontSize:11, lineHeight:1.4 }}>
-                  {netWorth>=bench.median ? "Above the UK median for your age group." : "Below the median, but tracking puts you on the path to close the gap."}
-                </p>
-              </div>
-            ) : (
-              <div style={{ textAlign:"center", padding:"16px 0" }}>
-                <div style={{ filter:"blur(4px)", opacity:.3, marginBottom:8 }}>
-                  <div style={{ display:"flex", justifyContent:"center", gap:20 }}>
-                    <div style={{ width:40, height:40, borderRadius:"50%", background:T.teal }}/>
-                    <div style={{ width:40, height:40, borderRadius:"50%", background:T.muted }}/>
-                  </div>
-                </div>
-                <p style={{ color:"#4A6080", fontSize:11 }}>Add your age to compare</p>
-              </div>
-            )}
+                ))}
+            </div>
+            {drag>0&&<div style={{background:T.redDim,border:`1px solid ${T.redBorder}`,borderRadius:12,padding:"10px"}}>
+              <p style={{color:T.red,fontWeight:800,fontSize:12}}>💸 {fmt(Math.round(drag))}/yr in interest</p>
+              <p style={{color:"#C8D8EC",fontSize:9,marginTop:2}}>That is {fmt(Math.round(drag/12))}/month working against you</p>
+            </div>}
           </div>
         </div>
 
-        {/* Row 4: Net worth momentum (full width) */}
-        <NetWorthMomentumChart state={state}/>
+        {/* ROW 3: Cash Flow + Goals */}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
+          {/* Cash flow */}
+          <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:"14px"}}>
+            <p style={{color:"#6B8CB8",fontSize:9,fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:8}}>Cash Flow</p>
+            <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
+              <div><p style={{color:T.teal,fontWeight:800,fontSize:15}}>{fmtK(totalIncome)}</p><p style={{color:"#4A6080",fontSize:8}}>in/mo</p></div>
+              <div style={{textAlign:"right"}}><p style={{color:T.amber,fontWeight:800,fontSize:15}}>{fmtK(totalSpending)}</p><p style={{color:"#4A6080",fontSize:8}}>out/mo</p></div>
+            </div>
+            <div style={{position:"relative",height:16,background:T.surface,borderRadius:8,overflow:"hidden",marginBottom:6}}>
+              {totalIncome>0&&<>
+                <div style={{position:"absolute",left:0,top:0,bottom:0,width:`${Math.min(100,Math.round(totalSpending/totalIncome*100))}%`,background:`linear-gradient(90deg,${T.amber}60,${T.amber}30)`,borderRadius:8}}/>
+                {surplus>0&&<div style={{position:"absolute",right:0,top:0,bottom:0,width:`${Math.round(surplus/totalIncome*100)}%`,background:`linear-gradient(90deg,${T.teal}30,${T.teal}60)`,borderRadius:"0 8px 8px 0"}}/>}
+              </>}
+            </div>
+            <div style={{display:"flex",justifyContent:"space-between"}}>
+              <p style={{color:T.amber,fontSize:8}}>Spend {totalIncome>0?Math.round(totalSpending/totalIncome*100):0}%</p>
+              <p style={{color:T.teal,fontSize:8}}>Surplus {totalIncome>0?Math.max(0,Math.round(surplus/totalIncome*100)):0}%</p>
+            </div>
+          </div>
+          {/* Progress Rings */}
+          <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:"14px"}}>
+            <p style={{color:"#6B8CB8",fontSize:9,fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:8}}>Progress</p>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:2}}>
+              <Ring pct={emergencyPct} color={emergencyPct>=100?T.green:T.amber} label="Safety net" icon="🛡️"/>
+              <Ring pct={debtFreePct} color={totalDebts===0?T.green:T.red} label="Debt free" icon="⚡"/>
+              <Ring pct={investPct} color={investPct>=100?T.teal:T.purple} label="Investing" icon="📈"/>
+            </div>
+          </div>
+        </div>
 
+        {/* ROW 4: What If + Comparison */}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
+          {/* What if */}
+          <div style={{background:T.card,border:`1.5px solid ${T.tealBorder}`,borderRadius:16,padding:"14px"}}>
+            <p style={{color:T.teal,fontWeight:800,fontSize:12,marginBottom:3}}>🔮 What If?</p>
+            <p style={{color:"#6B8CB8",fontSize:9,marginBottom:8}}>Extra savings per month</p>
+            <input type="range" min="0" max="500" step="25" value={whatIfExtra} onChange={e=>setWhatIfExtra(Number(e.target.value))}
+              style={{width:"100%",accentColor:T.teal,marginBottom:4}}/>
+            <p style={{color:T.teal,fontWeight:900,fontSize:18,textAlign:"center"}}>+£{whatIfExtra}/mo</p>
+            {whatIfExtra>0&&<div style={{marginTop:8}}>
+              {wiData.map(d=><div key={d.year} style={{display:"flex",justifyContent:"space-between",marginBottom:3}}>
+                <p style={{color:"#6B8CB8",fontSize:9}}>{d.year}yr</p>
+                <p style={{color:T.teal,fontWeight:700,fontSize:9}}>+{fmtK(d.gain)}</p>
+              </div>)}
+            </div>}
+          </div>
+          {/* Comparison */}
+          <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:"14px"}}>
+            <p style={{color:"#6B8CB8",fontSize:9,fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:8}}>👥 How You Compare</p>
+            {bench?<div>
+              <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
+                <div><p style={{color:T.teal,fontWeight:900,fontSize:16}}>{fmtK(netWorth)}</p><p style={{color:"#4A6080",fontSize:8}}>You</p></div>
+                <div style={{textAlign:"right"}}><p style={{color:T.muted,fontWeight:700,fontSize:16}}>{fmtK(bench.median)}</p><p style={{color:"#4A6080",fontSize:8}}>UK ({age})</p></div>
+              </div>
+              <div style={{background:T.surface,borderRadius:99,height:6,overflow:"hidden",position:"relative",marginBottom:6}}>
+                <div style={{width:`${Math.min(100,bench.median>0?Math.round(Math.min(netWorth,bench.median*2)/(bench.median*2)*100):50)}%`,height:"100%",background:netWorth>=bench.median?T.teal:T.amber,borderRadius:99}}/>
+                <div style={{position:"absolute",left:"50%",top:-1,bottom:-1,width:2,background:"#6B8CB8"}}/>
+              </div>
+              <p style={{color:"#C8D8EC",fontSize:10,lineHeight:1.3}}>{netWorth>=bench.median?`${fmtK(netWorth-bench.median)} above median.`:`${fmtK(bench.median-netWorth)} below. Tracking helps close the gap.`}</p>
+            </div>:<p style={{color:"#4A6080",fontSize:10,textAlign:"center",padding:"12px 0"}}>Set age in profile to compare</p>}
+          </div>
+        </div>
+
+        {/* ROW 5: Momentum */}
+        <NetWorthMomentumChart state={state}/>
       </div>
     </div>
   )
 }
-
-
 
 /* ════════════════════════════════════════════════════════════════════
    ANALYTICS CHARTS, Asset Breakdown, Spending Breakdown, NW Momentum
