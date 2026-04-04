@@ -652,7 +652,7 @@ function AppProvider({ children }) {
   }
 
   return (
-    <AppCtx.Provider value={{ state, save, reset, tab, setTab, toast }}>
+    <AppCtx.Provider value={{ state, save, reset, tab, setTab, toast, globalSheet, setGlobalSheet }}>
       <style>{G}</style>
       {children}
       {toastMsg && (
@@ -2940,7 +2940,7 @@ function GoalsTab() {
 
 
 function AnalyticsTab() {
-  const { state, save, toast } = useApp()
+  const { state, save, toast, setGlobalSheet } = useApp()
   const [sheet, setSheet] = useState(null)
   const [editItem, setEditItem] = useState(null)
   const [showHealthQ, setShowHealthQ] = useState(false)
@@ -3100,8 +3100,6 @@ function AnalyticsTab() {
 
   return(
     <div style={{flex:1,overflowY:"auto",paddingBottom:100}}>
-      {sheet==="asset"&&<Sheet title={editItem?"Edit asset":"Add asset"} onClose={()=>{setSheet(null);setEditItem(null)}}><AssetSheet item={editItem} onClose={()=>{setSheet(null);setEditItem(null)}} onSave={saveAsset}/></Sheet>}
-      {sheet==="debt"&&<Sheet title={editItem?"Edit debt":"Add debt"} onClose={()=>{setSheet(null);setEditItem(null)}}><DebtSheet item={editItem} onClose={()=>{setSheet(null);setEditItem(null)}} onSave={saveDebt}/></Sheet>}
       {showHealthQ&&<HQSheet/>}
 
       {/* HEADER */}
@@ -3164,40 +3162,33 @@ function AnalyticsTab() {
           <div>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
               <p style={{color:T.green,fontWeight:800,fontSize:12}}>Assets · {fmtK(totalAssets)}</p>
-              <button onClick={()=>{setEditItem(null);setSheet("asset")}} style={{background:T.tealDim,border:`1px solid ${T.tealBorder}`,borderRadius:8,padding:"3px 8px",color:T.teal,fontWeight:700,fontSize:10,cursor:"pointer",fontFamily:"inherit"}}>+</button>
+              <button onClick={()=>setGlobalSheet({type:"asset",item:null})} style={{background:T.tealDim,border:`1px solid ${T.tealBorder}`,borderRadius:8,padding:"3px 8px",color:T.teal,fontWeight:700,fontSize:10,cursor:"pointer",fontFamily:"inherit"}}>+</button>
             </div>
             <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:14,overflow:"hidden",marginBottom:6}}>
               {state.assets.length===0?
                 <button onClick={()=>{setEditItem(null);setSheet("asset")}} style={{width:"100%",background:"transparent",border:"none",padding:"16px",textAlign:"center",cursor:"pointer",fontFamily:"inherit"}}><p style={{color:"#4A6080",fontSize:11}}>+ Add first asset</p></button>:
                 state.assets.map((a,i)=>(
-                  <div key={a.id} onClick={()=>{setEditItem(a);setSheet("asset")}} style={{display:"flex",alignItems:"center",gap:6,padding:"8px 10px",borderBottom:i<state.assets.length-1?`1px solid ${T.border}`:"none",cursor:"pointer"}}>
+                  <div key={a.id} onClick={()=>setGlobalSheet({type:"asset",item:a})} style={{display:"flex",alignItems:"center",gap:6,padding:"8px 10px",borderBottom:i<state.assets.length-1?`1px solid ${T.border}`:"none",cursor:"pointer"}}>
                     <span style={{fontSize:13}}>{ASSET_TYPES.find(t=>t.cat===a.category||t.id===a.category)?.icon||"📦"}</span>
                     <p style={{color:"#E2EAF6",fontWeight:600,fontSize:11,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{a.name}</p>
                     <p style={{color:T.green,fontWeight:800,fontSize:11}}>{fmtK(a.value)}</p>
                   </div>
                 ))}
             </div>
-            {assetGroups.length>0&&<div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"10px"}}>
-              {assetGroups.map((g,i)=><div key={i} style={{display:"flex",alignItems:"center",gap:6,marginBottom:i<assetGroups.length-1?5:0}}>
-                <span style={{fontSize:10}}>{g.icon}</span>
-                <div style={{flex:1}}>
-                  <div style={{display:"flex",justifyContent:"space-between"}}><p style={{color:"#C8D8EC",fontSize:9}}>{g.label}</p><p style={{color:g.color,fontWeight:700,fontSize:9}}>{fmtK(g.value)}</p></div>
-                  <div style={{background:T.surface,borderRadius:99,height:3,overflow:"hidden",marginTop:1}}><div style={{width:`${totalAssets>0?Math.round(g.value/totalAssets*100):0}%`,height:"100%",background:g.color,borderRadius:99}}/></div>
-                </div>
-              </div>)}
-            </div>}
-          </div>
+            <div style={{marginTop:8}}>
+              <AssetBreakdownChart assets={state.assets} totalAssets={totalAssets} onConfirmAssets={()=>{}}/>
+            </div>
           {/* Debts */}
           <div>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
               <p style={{color:totalDebts>0?T.red:"#6B8CB8",fontWeight:800,fontSize:12}}>Debts · {fmtK(totalDebts)}</p>
-              <button onClick={()=>{setEditItem(null);setSheet("debt")}} style={{background:T.redDim,border:`1px solid ${T.redBorder}`,borderRadius:8,padding:"3px 8px",color:T.red,fontWeight:700,fontSize:10,cursor:"pointer",fontFamily:"inherit"}}>+</button>
+              <button onClick={()=>setGlobalSheet({type:"debt",item:null})} style={{background:T.redDim,border:`1px solid ${T.redBorder}`,borderRadius:8,padding:"3px 8px",color:T.red,fontWeight:700,fontSize:10,cursor:"pointer",fontFamily:"inherit"}}>+</button>
             </div>
             <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:14,overflow:"hidden",marginBottom:6}}>
               {state.debts.length===0?
                 <div style={{padding:"16px",textAlign:"center"}}><p style={{color:"#4A6080",fontSize:11}}>No debts ✓</p></div>:
                 state.debts.map((d,i)=>(
-                  <div key={d.id} onClick={()=>{setEditItem(d);setSheet("debt")}} style={{display:"flex",alignItems:"center",gap:6,padding:"8px 10px",borderBottom:i<state.debts.length-1?`1px solid ${T.border}`:"none",cursor:"pointer",background:d.interestRate>15?"rgba(248,113,113,.03)":"transparent"}}>
+                  <div key={d.id} onClick={()=>setGlobalSheet({type:"debt",item:d})} style={{display:"flex",alignItems:"center",gap:6,padding:"8px 10px",borderBottom:i<state.debts.length-1?`1px solid ${T.border}`:"none",cursor:"pointer",background:d.interestRate>15?"rgba(248,113,113,.03)":"transparent"}}>
                     <span style={{fontSize:13}}>{DEBT_TYPES.find(t=>t.cat===d.category||t.id===d.category)?.icon||"💳"}</span>
                     <div style={{flex:1,minWidth:0}}>
                       <p style={{color:"#E2EAF6",fontWeight:600,fontSize:11}}>{d.name}</p>
@@ -5292,7 +5283,7 @@ function AppShell() {
   const CONTENT = [<HomeTab/>, <LearnTab/>, <AnalyticsTab/>, <MeTab/>]
 
   return (
-    <div style={{ height:"100dvh",display:"flex",flexDirection:"column",background:T.bg,overflow:"clip" }}>
+    <div style={{ height:"100dvh",display:"flex",flexDirection:"column",background:T.bg }}>
       {/* Top bar */}
       <header style={{ background:"rgba(11,20,36,.95)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderBottom:"1px solid rgba(255,255,255,.05)",padding:"0 20px",height:50,display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0,position:"relative",zIndex:10,boxShadow:"0 4px 24px rgba(0,0,0,.25)" }}>
         <div style={{ display:"flex",alignItems:"center",gap:8 }}>
@@ -5305,13 +5296,57 @@ function AppShell() {
       </header>
 
       {/* Tab content */}
-      <div style={{ flex:1,overflow:"clip",display:"flex",flexDirection:"column",minHeight:0 }}>
+      <div style={{ flex:1,overflow:"hidden",display:"flex",flexDirection:"column",minHeight:0 }}>
         {CONTENT[tab]}
       </div>
 
       <BottomNav/>
+      <GlobalSheetPortal/>
     </div>
   )
+}
+
+function GlobalSheetPortal() {
+  const { state, save, toast, globalSheet, setGlobalSheet } = useApp()
+  if(!globalSheet) return null
+  const close = () => setGlobalSheet(null)
+
+  function saveAsset(data) {
+    const { cat, name, val, monthlyIncome, annualReturn, existingId, existingLinkedDebtId, hasLoan, loanBal } = data
+    let nA = [...state.assets], nD = [...state.debts]
+    const assetId = existingId || `a_${Date.now()}`
+    const assetObj = { id:assetId, category:cat, name, value:val, monthlyIncome:monthlyIncome||0, linkedDebtId:existingLinkedDebtId||null, annualReturn:annualReturn||null }
+    if(existingId) nA = nA.map(a=>a.id===existingId?assetObj:a); else nA.push(assetObj)
+    if(hasLoan && loanBal>0) {
+      const t = DEBT_TYPES.find(x=>["mortgage","car_loan"].includes(x.cat)&&x.cat===cat)||DEBT_TYPES[0]
+      const debtId = existingLinkedDebtId||`d_linked_${Date.now()}`
+      const debtObj = { id:debtId, category:cat==="primary_residence"?"mortgage":cat, name:`${name} loan`, balance:loanBal, interestRate:t.assumedRate, linkedAssetId:assetId, isAutoCreated:true }
+      nA = nA.map(a=>a.id===assetId?{...a,linkedDebtId:debtId}:a)
+      if(existingLinkedDebtId) nD = nD.map(d=>d.id===existingLinkedDebtId?debtObj:d); else nD.push(debtObj)
+    }
+    save({...state,assets:nA,debts:nD}); toast(existingId?"✓ Asset updated":"✓ Asset added"); close()
+  }
+
+  function saveDebt(data) {
+    const { cat, name, bal, rate, minPayment, existingId } = data
+    const t = DEBT_TYPES.find(x=>x.cat===cat)
+    const debtId = existingId||`d_${Date.now()}`
+    const debtObj = { id:debtId, category:cat, name, balance:bal, interestRate:rate||t?.assumedRate||10, minPayment:minPayment||0 }
+    const nD = existingId ? state.debts.map(d=>d.id===existingId?debtObj:d) : [...state.debts, debtObj]
+    save({...state,debts:nD}); toast(existingId?"✓ Debt updated":"✓ Debt added"); close()
+  }
+
+  if(globalSheet.type==="asset") return (
+    <Sheet title={globalSheet.item?"Edit asset":"Add an asset"} onClose={close}>
+      <AssetSheet item={globalSheet.item} onClose={close} onSave={saveAsset}/>
+    </Sheet>
+  )
+  if(globalSheet.type==="debt") return (
+    <Sheet title={globalSheet.item?"Edit debt":"Add a debt"} onClose={close}>
+      <DebtSheet item={globalSheet.item} onClose={close} onSave={saveDebt}/>
+    </Sheet>
+  )
+  return null
 }
 
 function XPBadge() {
