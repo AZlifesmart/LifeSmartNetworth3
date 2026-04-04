@@ -730,14 +730,14 @@ function Tag({ children, color="teal" }) {
 
 function Sheet({ title, onClose, children }) {
   return (
-    <div className="ls-fadein" style={{ position:"fixed",inset:0,background:"rgba(7,13,26,.75)",backdropFilter:"blur(6px)",zIndex:1000,display:"flex",alignItems:"flex-end",justifyContent:"center" }}
+    <div className="ls-fadein" style={{ position:"fixed",inset:0,background:"rgba(7,13,26,.85)",backdropFilter:"blur(8px)",zIndex:9999,display:"flex",alignItems:"flex-end",justifyContent:"center" }}
       onClick={e=>{ if(e.target===e.currentTarget) onClose() }}>
-      <div className="ls-fadein" style={{ background:T.surface,borderRadius:"20px 20px 0 0",width:"100%",maxWidth:600,maxHeight:"92vh",overflow:"hidden",display:"flex",flexDirection:"column" }}>
-        <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"18px 20px",borderBottom:`1px solid ${T.border}`,flexShrink:0 }}>
-          <p style={{ color:T.white,fontWeight:800,fontSize:16 }}>{title}</p>
-          <button onClick={onClose} style={{ background:"none",border:"none",color:T.muted,cursor:"pointer",padding:4 }}><X size={20}/></button>
+      <div className="ls-fadein" style={{ background:"#0B1424",borderRadius:"24px 24px 0 0",width:"100%",maxWidth:600,maxHeight:"90dvh",overflow:"hidden",display:"flex",flexDirection:"column",boxShadow:"0 -8px 40px rgba(0,0,0,.6)" }}>
+        <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"18px 20px 16px",borderBottom:`1px solid ${T.border}`,flexShrink:0,background:"#0F1D32" }}>
+          <p style={{ color:T.white,fontWeight:800,fontSize:17 }}>{title}</p>
+          <button onClick={onClose} style={{ background:"rgba(255,255,255,.08)",border:"none",borderRadius:99,width:30,height:30,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",color:T.muted }}><X size={16}/></button>
         </div>
-        <div style={{ flex:1,overflowY:"auto",padding:"20px" }}>{children}</div>
+        <div style={{ flex:1,overflowY:"auto",padding:"20px",WebkitOverflowScrolling:"touch" }}>{children}</div>
       </div>
     </div>
   )
@@ -3220,8 +3220,8 @@ function AnalyticsTab() {
           <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:"14px"}}>
             <p style={{color:"#6B8CB8",fontSize:9,fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:8}}>Cash Flow</p>
             <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
-              <div><p style={{color:T.teal,fontWeight:800,fontSize:15}}>{fmtK(totalIncome)}</p><p style={{color:"#4A6080",fontSize:8}}>in/mo</p></div>
-              <div style={{textAlign:"right"}}><p style={{color:T.amber,fontWeight:800,fontSize:15}}>{fmtK(totalSpending)}</p><p style={{color:"#4A6080",fontSize:8}}>out/mo</p></div>
+              <div><p style={{color:T.teal,fontWeight:800,fontSize:15}}>{fmt(totalIncome)}</p><p style={{color:"#4A6080",fontSize:8}}>in/mo</p></div>
+              <div style={{textAlign:"right"}}><p style={{color:T.amber,fontWeight:800,fontSize:15}}>{fmt(totalSpending)}</p><p style={{color:"#4A6080",fontSize:8}}>out/mo</p></div>
             </div>
             <div style={{position:"relative",height:16,background:T.surface,borderRadius:8,overflow:"hidden",marginBottom:6}}>
               {totalIncome>0&&<>
@@ -3321,173 +3321,122 @@ function polarToXY(cx,cy,r,angleDeg){
 /* ── 1. Asset Breakdown Chart ─────────────────────────────────────── */
 function AssetBreakdownChart({ assets, totalAssets, onConfirmAssets }) {
   const [confirmed, setConfirmed] = useState(false)
-  const [showConfirm, setShowConfirm] = useState(false)
 
-  const productive = assets.filter(a=>["savings","investments","pension"].includes(a.category))
-    .reduce((s,a)=>s+(a.value||0),0)
-  const lifestyle  = assets.filter(a=>["primary_residence","investment_property","vehicle","other"].includes(a.category)||
-    !["savings","investments","pension"].includes(a.category))
-    .reduce((s,a)=>s+(a.value||0),0)
+  const liquid     = assets.filter(a=>["savings","cash"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0)
+  const productive = assets.filter(a=>["investments","stocks","pension","investment_property","rental","business"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0)
+  const lifestyle  = assets.filter(a=>["primary_residence","vehicle","other"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0)
 
   const segments = [
-    { label:"Productive assets", value:productive, color:T.teal,   desc:"Cash, investments, pension, grows over time" },
-    { label:"Lifestyle assets",  value:lifestyle,  color:T.amber,  desc:"Property, vehicles, valuable but tied up" },
+    { label:"Liquid",      value:liquid,      color:T.teal,   desc:"Cash and savings — your accessible money" },
+    { label:"Productive",  value:productive,  color:T.green,  desc:"Investments, pension, property that earns — grows over time" },
+    { label:"Lifestyle",   value:lifestyle,   color:T.amber,  desc:"Home, car, other — has value but doesn't grow predictably" },
   ].filter(s=>s.value>0)
 
   const hasData = assets.length>0 && totalAssets>0
 
+  const demoSegs = [
+    { label:"Liquid", value:20, color:T.teal },
+    { label:"Productive", value:50, color:T.green },
+    { label:"Lifestyle", value:30, color:T.amber },
+  ]
+
   return (
-    <div style={{ background:T.card,border:`1.5px solid ${hasData&&confirmed?T.tealBorder:T.border}`,borderRadius:20,marginBottom:14,overflow:"hidden" }}>
-      {/* Header */}
-      <div style={{ padding:"18px 20px",cursor:hasData&&!confirmed?"pointer":"default" }}
-        onClick={()=>{ if(hasData&&!confirmed) setShowConfirm(true) }}>
-        <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4 }}>
-          <div style={{ display:"flex",alignItems:"center",gap:10 }}>
-            <div style={{ width:36,height:36,borderRadius:10,background:T.tealDim,border:`1px solid ${T.tealBorder}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18 }}>📊</div>
-            <div>
-              <p style={{ color:T.white,fontWeight:800,fontSize:14 }}>Asset breakdown</p>
-              <p style={{ color:T.muted,fontSize:11 }}>Productive vs lifestyle assets</p>
-            </div>
+    <div style={{ background:T.card,border:`1.5px solid ${confirmed?T.tealBorder:T.border}`,borderRadius:20,overflow:"hidden",marginBottom:12 }}>
+      <div style={{ padding:"16px 18px",borderBottom:`1px solid ${T.border}` }}>
+        <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
+          <div>
+            <p style={{ color:T.white,fontWeight:800,fontSize:14 }}>Asset breakdown</p>
+            <p style={{ color:T.muted,fontSize:11 }}>Liquid · Productive · Lifestyle</p>
           </div>
-          {!hasData && <span style={{ background:T.surface,color:T.muted,fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:99,border:`1px solid ${T.border}` }}>Add assets first</span>}
-          {hasData && !confirmed && <span style={{ background:T.tealDim,color:T.teal,fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:99,border:`1px solid ${T.tealBorder}` }}>Tap to unlock</span>}
+          {hasData && !confirmed && (
+            <button onClick={()=>setConfirmed(true)}
+              style={{ background:T.tealDim,border:`1px solid ${T.tealBorder}`,borderRadius:10,
+                padding:"6px 12px",color:T.teal,fontWeight:700,fontSize:12,cursor:"pointer",fontFamily:"inherit" }}>
+              Confirm →
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Blurred preview when not confirmed */}
-      {!confirmed && (
-        <div style={{ padding:"0 20px 18px",position:"relative" }}>
-          <div style={{ filter:"blur(6px)",opacity:.5,pointerEvents:"none",userSelect:"none" }}>
-            <div style={{ display:"flex",alignItems:"center",gap:20 }}>
-              <div style={{ position:"relative",width:100,height:100 }}>
-                <DonutChart segments={[{value:60,color:T.teal},{value:40,color:T.amber}]} size={100}/>
-                <div style={{ position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center" }}>
-                  <p style={{ color:T.white,fontWeight:900,fontSize:12,textAlign:"center" }}>£, </p>
-                </div>
-              </div>
+      <div style={{ padding:"16px 18px",position:"relative" }}>
+        {!confirmed && (
+          <div style={{ filter:"blur(5px)",opacity:.45,pointerEvents:"none",userSelect:"none" }}>
+            <div style={{ display:"flex",gap:18,alignItems:"center" }}>
+              <DonutChart segments={demoSegs} size={90}/>
               <div style={{ flex:1 }}>
-                {[{label:"Productive",color:T.teal,pct:60},{label:"Lifestyle",color:T.amber,pct:40}].map(s=>(
-                  <div key={s.label} style={{ marginBottom:10 }}>
-                    <div style={{ display:"flex",justifyContent:"space-between",marginBottom:4 }}>
-                      <div style={{ display:"flex",alignItems:"center",gap:6 }}>
-                        <div style={{ width:8,height:8,borderRadius:"50%",background:s.color }}/>
-                        <p style={{ color:"#E2EAF6",fontSize:12 }}>{s.label}</p>
-                      </div>
-                      <p style={{ color:s.color,fontWeight:700,fontSize:12 }}>{s.pct}%</p>
+                {demoSegs.map(s=>(
+                  <div key={s.label} style={{ display:"flex",justifyContent:"space-between",marginBottom:6 }}>
+                    <div style={{ display:"flex",alignItems:"center",gap:6 }}>
+                      <div style={{ width:7,height:7,borderRadius:"50%",background:s.color }}/>
+                      <p style={{ color:"#E2EAF6",fontSize:12 }}>{s.label}</p>
                     </div>
-                    <div style={{ background:T.surface,borderRadius:99,height:6 }}>
-                      <div style={{ width:`${s.pct}%`,height:"100%",background:s.color,borderRadius:99 }}/>
-                    </div>
+                    <p style={{ color:s.color,fontWeight:700,fontSize:12 }}>{s.value}%</p>
                   </div>
                 ))}
               </div>
             </div>
           </div>
-          {hasData && (
-            <div style={{ position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:10 }}>
-              <button onClick={()=>setShowConfirm(true)}
-                style={{ background:T.teal,border:"none",borderRadius:12,padding:"10px 22px",color:T.bg,fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit" }}>
-                Confirm assets to unlock →
-              </button>
-            </div>
-          )}
-        </div>
-      )}
+        )}
+        {!confirmed && hasData && (
+          <div style={{ position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:8 }}>
+            <p style={{ color:T.white,fontWeight:700,fontSize:13,textAlign:"center" }}>Confirm your assets to unlock</p>
+            <button onClick={()=>setConfirmed(true)}
+              style={{ background:T.teal,border:"none",borderRadius:12,padding:"10px 22px",color:T.bg,fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit" }}>
+              Confirm assets →
+            </button>
+          </div>
+        )}
+        {!confirmed && !hasData && (
+          <p style={{ color:T.muted,fontSize:13,textAlign:"center",padding:"12px 0" }}>Add assets to unlock</p>
+        )}
 
-      {/* Confirmed, show real chart */}
-      {confirmed && segments.length>0 && (
-        <div style={{ padding:"0 20px 20px" }}>
-          <div style={{ display:"flex",alignItems:"center",gap:20 }}>
-            <div style={{ position:"relative",width:110,height:110,flexShrink:0 }}>
-              <DonutChart segments={segments} size={110}/>
-              <div style={{ position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center" }}>
-                <p style={{ color:T.white,fontWeight:900,fontSize:11,textAlign:"center",lineHeight:1.2 }}>
-                  {totalAssets>=1e6?`£${(totalAssets/1e6).toFixed(1)}M`:totalAssets>=1000?`£${Math.round(totalAssets/1000)}k`:fmt(totalAssets)}
-                </p>
-                <p style={{ color:T.muted,fontSize:9 }}>total</p>
+        {confirmed && segments.length>0 && (
+          <div>
+            <div style={{ display:"flex",gap:18,alignItems:"center",marginBottom:16 }}>
+              <div style={{ position:"relative",flexShrink:0 }}>
+                <DonutChart segments={segments} size={100}/>
+                <div style={{ position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center" }}>
+                  <p style={{ color:T.white,fontWeight:900,fontSize:11,textAlign:"center" }}>{segments.length}<br/>types</p>
+                </div>
+              </div>
+              <div style={{ flex:1 }}>
+                {segments.map(s=>{
+                  const pct = totalAssets>0 ? Math.round((s.value/totalAssets)*100) : 0
+                  return (
+                    <div key={s.label} style={{ marginBottom:10 }}>
+                      <div style={{ display:"flex",justifyContent:"space-between",marginBottom:4 }}>
+                        <div style={{ display:"flex",alignItems:"center",gap:6 }}>
+                          <div style={{ width:7,height:7,borderRadius:"50%",background:s.color }}/>
+                          <p style={{ color:"#E2EAF6",fontSize:12 }}>{s.label}</p>
+                        </div>
+                        <div style={{ display:"flex",gap:8 }}>
+                          <p style={{ color:"#8FA3BE",fontSize:11 }}>{fmt(s.value)}</p>
+                          <p style={{ color:s.color,fontWeight:700,fontSize:12 }}>{pct}%</p>
+                        </div>
+                      </div>
+                      <div style={{ background:"rgba(255,255,255,.06)",borderRadius:99,height:5 }}>
+                        <div style={{ width:`${pct}%`,height:"100%",background:s.color,borderRadius:99,transition:"width .5s" }}/>
+                      </div>
+                      <p style={{ color:"#4A6080",fontSize:10,marginTop:3,lineHeight:1.4 }}>{s.desc}</p>
+                    </div>
+                  )
+                })}
               </div>
             </div>
-            <div style={{ flex:1 }}>
-              {segments.map(s=>(
-                <div key={s.label} style={{ marginBottom:10 }}>
-                  <div style={{ display:"flex",justifyContent:"space-between",marginBottom:4 }}>
-                    <div style={{ display:"flex",alignItems:"center",gap:6 }}>
-                      <div style={{ width:8,height:8,borderRadius:"50%",background:s.color,flexShrink:0 }}/>
-                      <p style={{ color:"#E2EAF6",fontSize:12 }}>{s.label}</p>
-                    </div>
-                    <p style={{ color:s.color,fontWeight:800,fontSize:12 }}>{Math.round(s.value/totalAssets*100)}%</p>
-                  </div>
-                  <div style={{ background:T.surface,borderRadius:99,height:6,overflow:"hidden" }}>
-                    <div style={{ width:`${Math.round(s.value/totalAssets*100)}%`,height:"100%",background:s.color,borderRadius:99,transition:"width .6s" }}/>
-                  </div>
-                  <p style={{ color:T.muted,fontSize:11,marginTop:2 }}>{s.desc}</p>
-                </div>
-              ))}
-            </div>
+            {productive < lifestyle && (
+              <div style={{ background:"rgba(245,158,11,.08)",border:"1px solid rgba(245,158,11,.2)",borderRadius:12,padding:"10px 12px" }}>
+                <p style={{ color:T.amber,fontSize:12,fontWeight:700,marginBottom:2 }}>Lifestyle heavy</p>
+                <p style={{ color:"#C8D8EC",fontSize:11,lineHeight:1.5 }}>
+                  More of your wealth is in lifestyle assets than productive ones. Over time, shift more into investments, pension and ISA.
+                </p>
+              </div>
+            )}
           </div>
-          {productive>0 && lifestyle>0 && (
-            <div style={{ background:T.surface,borderRadius:12,padding:"10px 14px",marginTop:12 }}>
-              <p style={{ color:"#E2EAF6",fontSize:12,lineHeight:1.5 }}>
-                <strong style={{ color:T.teal }}>{Math.round(productive/totalAssets*100)}%</strong> of your wealth is actively working for you.{" "}
-                {productive/totalAssets<0.4
-                  ? <span>Building your productive assets, savings, investments, pension, is the fastest route to financial freedom.</span>
-                  : <span>A healthy balance. Keep growing the productive side through regular contributions.</span>
-                }
-              </p>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Confirmation modal */}
-      {showConfirm && (
-        <div style={{ position:"fixed",inset:0,background:"rgba(7,13,26,.85)",zIndex:200,display:"flex",alignItems:"flex-end",padding:20 }}>
-          <div className="ls-fadein" style={{ background:T.surface,border:`1px solid ${T.border}`,borderRadius:20,padding:"24px 20px",width:"100%",maxWidth:480,margin:"0 auto" }}>
-            <p style={{ color:T.white,fontWeight:900,fontSize:17,marginBottom:6 }}>Confirm your assets are correct</p>
-            <p style={{ color:"#D8E8F8",fontSize:14,lineHeight:1.65,marginBottom:16 }}>
-              This breakdown is most useful when your figures are up to date. Are your current asset values roughly accurate?
-            </p>
-            <div style={{ display:"flex",flexDirection:"column",gap:8,marginBottom:18 }}>
-              {assets.map(a=>(
-                <div key={a.id} style={{ display:"flex",justifyContent:"space-between",padding:"8px 12px",background:T.card,borderRadius:10 }}>
-                  <p style={{ color:"#E2EAF6",fontSize:13 }}>{a.name}</p>
-                  <p style={{ color:T.teal,fontWeight:700,fontSize:13 }}>{fmt(a.value)}</p>
-                </div>
-              ))}
-            </div>
-            <div style={{ display:"flex",gap:10 }}>
-              <button onClick={()=>{setShowConfirm(false); onConfirmAssets && onConfirmAssets(); setConfirmed(true)}}
-                style={{ flex:1,background:T.teal,border:"none",borderRadius:12,padding:"12px",color:T.bg,fontWeight:800,fontSize:14,cursor:"pointer",fontFamily:"inherit" }}>
-                Yes, these look right
-              </button>
-              <button onClick={()=>setShowConfirm(false)}
-                style={{ background:"none",border:`1px solid ${T.border}`,borderRadius:12,padding:"12px 16px",color:T.muted,fontWeight:700,fontSize:14,cursor:"pointer",fontFamily:"inherit" }}>
-                Edit first
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }
-
-/* ── 2. Spending Breakdown Chart ──────────────────────────────────── */
-const SPEND_CATS = [
-  { id:"housing",   label:"Housing",         icon:"🏠", bucket:"needs" },
-  { id:"food",      label:"Food & groceries", icon:"🛒", bucket:"needs" },
-  { id:"transport", label:"Transport",        icon:"🚗", bucket:"needs" },
-  { id:"bills",     label:"Bills & utilities",icon:"⚡", bucket:"needs" },
-  { id:"health",    label:"Health",           icon:"💊", bucket:"needs" },
-  { id:"eating_out",label:"Eating out",       icon:"🍽️", bucket:"wants" },
-  { id:"subs",      label:"Subscriptions",    icon:"📺", bucket:"wants" },
-  { id:"shopping",  label:"Shopping",         icon:"🛍️", bucket:"wants" },
-  { id:"leisure",   label:"Leisure & hobbies",icon:"🎮", bucket:"wants" },
-  { id:"savings_invest",label:"Savings & investing",icon:"📈", bucket:"savings" },
-  { id:"other",     label:"Other",            icon:"📦", bucket:"wants" },
-]
-const BUCKET_COLORS = { needs:T.amber, wants:T.purple, savings:T.teal }
-const BUCKET_LABELS = { needs:"Needs", wants:"Wants", savings:"Savings & Investment" }
 
 function SpendingBreakdownChart({ state, save }) {
   const [phase, setPhase] = useState("locked") // locked | demo | input | chart
@@ -5343,7 +5292,7 @@ function AppShell() {
   const CONTENT = [<HomeTab/>, <LearnTab/>, <AnalyticsTab/>, <MeTab/>]
 
   return (
-    <div style={{ height:"100dvh",display:"flex",flexDirection:"column",background:T.bg,overflow:"hidden" }}>
+    <div style={{ height:"100dvh",display:"flex",flexDirection:"column",background:T.bg,overflow:"clip" }}>
       {/* Top bar */}
       <header style={{ background:"rgba(11,20,36,.95)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderBottom:"1px solid rgba(255,255,255,.05)",padding:"0 20px",height:50,display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0,position:"relative",zIndex:10,boxShadow:"0 4px 24px rgba(0,0,0,.25)" }}>
         <div style={{ display:"flex",alignItems:"center",gap:8 }}>
@@ -5356,7 +5305,7 @@ function AppShell() {
       </header>
 
       {/* Tab content */}
-      <div style={{ flex:1,overflow:"hidden",display:"flex",flexDirection:"column",minHeight:0 }}>
+      <div style={{ flex:1,overflow:"clip",display:"flex",flexDirection:"column",minHeight:0 }}>
         {CONTENT[tab]}
       </div>
 
