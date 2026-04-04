@@ -634,6 +634,7 @@ function AppProvider({ children }) {
   const [state, setState] = useState(load)
   const [tab, setTab] = useState(0)
   const [toastMsg, setToastMsg] = useState(null)
+  const [globalSheet, setGlobalSheet] = useState(null)
 
   function save(ns) {
     const merged = { ...DEFAULTS, ...ns }
