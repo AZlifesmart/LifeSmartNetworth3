@@ -1561,10 +1561,10 @@ function NorthStarSelector({ onSelect, onClose }) {
         </div>
 
         <div style={{ display:"flex",flexDirection:"column",gap:8,marginBottom:24 }}>
-          {NORTH_STAR_OPTIONS.map(ns => {
+          {NORTH_STAR_OPTIONS.filter(opt => !selected || selected === opt.id).map(ns => {
             const sel = selected === ns.id
             return (
-              <button key={ns.id} onClick={() => setSelected(ns.id)}
+              <button key={ns.id} onClick={() => setSelected(sel ? null : ns.id)}
                 style={{ background:sel ? `${ns.color}12` : T.card, border:`2px solid ${sel ? ns.color : T.border}`,
                   borderRadius:16, padding:"16px 18px", cursor:"pointer", fontFamily:"inherit",
                   display:"flex", alignItems:"center", gap:14, textAlign:"left", transition:"all .15s" }}>
@@ -1573,9 +1573,7 @@ function NorthStarSelector({ onSelect, onClose }) {
                   <p style={{ color:sel ? T.white : "#E2EAF6", fontWeight:800, fontSize:15 }}>{ns.label}</p>
                   <p style={{ color:sel ? "#C8D8EC" : "#6B8CB8", fontSize:12, lineHeight:1.4, marginTop:2 }}>{ns.sub}</p>
                 </div>
-                {sel && <div style={{ width:22,height:22,borderRadius:"50%",background:ns.color,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
-                  <Check size={13} color={T.bg}/>
-                </div>}
+                {sel && <p style={{ color:ns.color,fontSize:11,fontWeight:700,flexShrink:0 }}>Change</p>}
               </button>
             )
           })}
@@ -1746,7 +1744,7 @@ function HomeTab() {
       <div onClick={() => setActiveTooltip(null)} style={{
         position:"fixed", inset:0, zIndex:500,
         background:"rgba(7,13,26,.85)", backdropFilter:"blur(6px)",
-        display:"flex", alignItems:"flex-end", justifyContent:"center", padding:"0 0 20px"
+        display:"flex", alignItems:"center", justifyContent:"center", padding:"20px"
       }}>
         <div onClick={e => e.stopPropagation()} className="ls-fadein" style={{
           background:T.card, border:`1px solid ${T.borderLight}`,
@@ -1837,13 +1835,13 @@ function HomeTab() {
                   boxShadow:`0 0 20px ${netWorth>=0?T.teal:T.red}25` }}>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
                   <p style={{ color:netWorth>=0?T.teal:T.red, fontSize:11, fontWeight:800,
-                    letterSpacing:1.2, textTransform:"uppercase" }}>Net Worth</p>
+                    letterSpacing:1.2, textTransform:"uppercase" }}>Net Worth Now</p>
   
                 </div>
                 <p style={{ color:netWorth>=0?T.teal:T.red, fontWeight:900,
                   fontSize:"clamp(24px,6vw,36px)", lineHeight:1, marginBottom:10,
                   textShadow:netWorth>=0?`0 0 30px ${T.teal}60`:`0 0 30px ${T.red}50` }}>
-                  {fmt(netWorth)}
+                  {fmtK(netWorth)}
                 </p>
                 <div style={{ display:"flex", gap:14 }}>
                   <div>
@@ -1927,7 +1925,7 @@ function HomeTab() {
                       boxShadow:`0 0 20px ${T.amber}25` }}>
                     <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
                       <p style={{ color:T.amber, fontSize:11, fontWeight:800,
-                        letterSpacing:1.2, textTransform:"uppercase" }}>By age 70</p>
+                        letterSpacing:1.2, textTransform:"uppercase" }}>Net Worth at 70</p>
 
                     </div>
                     {at70 ? (
@@ -2023,11 +2021,12 @@ function HomeTab() {
             const needleR = 36
             const nx = cx - needleR * Math.cos(f * Math.PI)
             const ny = cy - needleR * Math.sin(f * Math.PI)
-            const p1x = cx - r * Math.cos(1/3 * Math.PI)
-            const p1y = cy - r * Math.sin(1/3 * Math.PI)
-            const p2x = cx - r * Math.cos(2/3 * Math.PI)
-            const p2y = cy - r * Math.sin(2/3 * Math.PI)
-            const dialColor = months >= 5 ? T.green : months >= 3 ? T.teal : months >= 1 ? T.amber : T.red
+            // Boundaries: 0-1 red, 1-3 amber, 3-6 green (so 1/6 and 3/6 of arc)
+            const p1x = cx - r * Math.cos(1/6 * Math.PI)
+            const p1y = cy - r * Math.sin(1/6 * Math.PI)
+            const p2x = cx - r * Math.cos(3/6 * Math.PI)
+            const p2y = cy - r * Math.sin(3/6 * Math.PI)
+            const dialColor = months >= 3 ? T.green : months >= 1 ? T.amber : T.red
             return (
               <button onClick={() => setActiveTooltip("safety")}
                 style={{ background:`linear-gradient(160deg,${dialColor}10,${T.card})`,
@@ -3406,8 +3405,8 @@ function AnalyticsTab() {
       </div>
 
       {/* ═══ MODALS — NO DOUBLE WRAPPING ═══ */}
-      {sheet==="asset"&&<AssetSheet item={editItem} onClose={()=>{setSheet(null);setEditItem(null)}} onSave={saveAsset}/>}
-      {sheet==="debt"&&<DebtSheet item={editItem} onClose={()=>{setSheet(null);setEditItem(null)}} onSave={saveDebt}/>}
+      {sheet==="asset"&&<AssetSheet item={editItem} onClose={()=>{setSheet(null);setEditItem(null)}} onSave={saveAsset} onDelete={editItem?()=>{deleteAsset(editItem);setSheet(null);setEditItem(null)}:null}/>}
+      {sheet==="debt"&&<DebtSheet item={editItem} onClose={()=>{setSheet(null);setEditItem(null)}} onSave={saveDebt} onDelete={editItem?()=>{deleteDebt(editItem);setSheet(null);setEditItem(null)}:null}/>}
       {showHealthQ&&<HQSheet/>}
       {showConfirmModal&&<div style={{position:"fixed",inset:0,background:"rgba(7,13,26,.88)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
         <div className="ls-fadein" style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:20,padding:"24px 20px",width:"100%",maxWidth:440,maxHeight:"80vh",overflowY:"auto"}}>
@@ -3521,25 +3520,24 @@ function AnalyticsMomentum({state}){
 }
 
 /* ── Asset Sheet detailed ───────────────────────────────────── */
-function AssetSheet({ item, onClose, onSave }) {
+function AssetSheet({ item, onClose, onSave, onDelete }) {
   const editing = !!item
   const [cat,     setCat]     = useState(item?.category||null)
   const [name,    setName]    = useState(item?.name||"")
   const [val,     setVal]     = useState(item?.value||0)
   const [income,  setIncome]  = useState(item?.monthlyIncome||0)
-  const [ret,     setRet]     = useState(item?.annualReturn||"")
   const [hasLoan, setHasLoan] = useState(false)
   const [loanBal, setLoanBal] = useState(0)
   const [err,     setErr]     = useState("")
 
   const t = ASSET_TYPES.find(x=>x.cat===cat)
-  const canHaveLoan = ["primary_residence","investment_property","vehicle"].includes(cat)
+  const canHaveLoan = ["investment_property","vehicle"].includes(cat)
 
   function go() {
     if(!cat)   { setErr("Select an asset type."); return }
     if(val<=0) { setErr("Enter a value greater than zero."); return }
     setErr("")
-    onSave({ cat, name:name||(t?.label||"Asset"), val, monthlyIncome:income, annualReturn:ret?parseFloat(ret):null, hasLoan, loanBal, existingId:item?.id, existingLinkedDebtId:item?.linkedDebtId })
+    onSave({ cat, name:name||(t?.label||"Asset"), val, monthlyIncome:income, annualReturn:null, hasLoan, loanBal, existingId:item?.id, existingLinkedDebtId:item?.linkedDebtId })
   }
 
   return (
@@ -3561,16 +3559,6 @@ function AssetSheet({ item, onClose, onSave }) {
       <div style={{ display:"flex",flexDirection:"column",gap:12,marginBottom:14 }}>
         <Input label="Name / label" value={name} onChange={setName} placeholder={t?.label||"e.g. Vanguard ISA"}/>
         <CurrencyInput label="Current value" value={val} onChange={setVal}/>
-        <div>
-          <p style={{ color:"#E2EAF6",fontSize:13,fontWeight:600,marginBottom:6 }}>Annual return / interest rate (optional)</p>
-          <div style={{ display:"flex",alignItems:"center",background:T.card,border:`1px solid ${T.border}`,borderRadius:12,overflow:"hidden" }}>
-            <input type="number" min="0" max="30" step="0.1" value={ret} onChange={e=>setRet(e.target.value)}
-              placeholder="e.g. 7"
-              style={{ flex:1,background:"transparent",border:"none",outline:"none",color:T.white,fontSize:15,fontWeight:600,padding:"14px 16px",fontFamily:"inherit" }}/>
-            <span style={{ padding:"0 16px",color:"#8FA3BE",fontWeight:700 }}>%/yr</span>
-          </div>
-          <p style={{ color:"#8FA3BE",fontSize:12,marginTop:4 }}>Helps unlock better growth projections</p>
-        </div>
         {["investment_property","rental"].includes(cat) && (
           <CurrencyInput label="Monthly rental income" value={income} onChange={setIncome}/>
         )}
@@ -3578,7 +3566,7 @@ function AssetSheet({ item, onClose, onSave }) {
           <div>
             <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:hasLoan?10:0 }}>
               <Toggle value={hasLoan} onChange={setHasLoan}/>
-              <p style={{ color:"#E2EAF6",fontSize:14,fontWeight:600 }}>Has a mortgage / loan</p>
+              <p style={{ color:"#E2EAF6",fontSize:14,fontWeight:600 }}>Has a loan against it</p>
             </div>
             {hasLoan && <CurrencyInput label="Outstanding loan balance" value={loanBal} onChange={setLoanBal}/>}
           </div>
@@ -3586,12 +3574,17 @@ function AssetSheet({ item, onClose, onSave }) {
       </div>
       {err&&<p style={{ color:T.red,fontSize:13,marginBottom:10 }}>{err}</p>}
       <Btn onClick={go}>{editing?"Save changes":"Add asset"}</Btn>
+      {editing && onDelete && (
+        <button onClick={onDelete} style={{ width:"100%",background:"none",border:`1px solid ${T.redBorder}`,borderRadius:12,padding:"12px",color:T.red,fontWeight:700,fontSize:14,cursor:"pointer",fontFamily:"inherit",marginTop:10 }}>
+          Delete this asset
+        </button>
+      )}
     </Sheet>
   )
 }
 
 /* ── Debt Sheet detailed ────────────────────────────────────── */
-function DebtSheet({ item, onClose, onSave }) {
+function DebtSheet({ item, onClose, onSave, onDelete }) {
   const editing = !!item
   const [cat,   setCat]   = useState(item?.category||null)
   const [name,  setName]  = useState(item?.name||"")
@@ -3641,6 +3634,11 @@ function DebtSheet({ item, onClose, onSave }) {
       </div>
       {err&&<p style={{ color:T.red,fontSize:13,marginBottom:10 }}>{err}</p>}
       <Btn onClick={go}>{editing?"Save changes":"Add debt"}</Btn>
+      {editing && onDelete && (
+        <button onClick={onDelete} style={{ width:"100%",background:"none",border:`1px solid ${T.redBorder}`,borderRadius:12,padding:"12px",color:T.red,fontWeight:700,fontSize:14,cursor:"pointer",fontFamily:"inherit",marginTop:10 }}>
+          Delete this debt
+        </button>
+      )}
     </Sheet>
   )
 }
