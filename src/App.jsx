@@ -166,158 +166,154 @@ const PERSONALITY_LOCKED = [
 
 /* ════════════════════════════════════════════════════════════════════
    FINANCIAL PERSONALITY QUIZ
-   12 scenario questions · 6 dimensions · 8 archetypes
+   12 scenario questions · 7 dimensions · 10 archetypes
    ════════════════════════════════════════════════════════════════════ */
 const PERSONALITY_QUIZ = [
   {
-    id:"q1", dimension:"security_growth",
-    headline:"You receive an unexpected £5,000.",
-    sub:"What feels most natural?",
+    id:"q1",
+    headline:"You receive an unexpected bonus at work.",
+    sub:"What is your very first thought?",
     options:[
-      { label:"Add it straight to savings for security",             scores:{ security_growth:10, present_future:30, abundance_scarcity:30 } },
-      { label:"Split it: half saved, half invested",                 scores:{ security_growth:45, present_future:60, abundance_scarcity:60 } },
-      { label:"Invest most of it for long-term growth",             scores:{ security_growth:80, present_future:80, abundance_scarcity:80 } },
-      { label:"Use it for something I've been putting off",         scores:{ security_growth:40, present_future:10, abundance_scarcity:70 } },
+      { label:"That is going straight into savings", scores:{ security_growth:15, present_future:55, planned_spontaneous:20 } },
+      { label:"I have been wanting something for a while, now I can get it", scores:{ present_future:15, abundance_scarcity:75, planned_spontaneous:70 } },
+      { label:"Let me figure out the smartest thing to do with it", scores:{ security_growth:60, emotional_analytical:80, planned_spontaneous:10 } },
+      { label:"I will enjoy some of it now and put the rest to good use", scores:{ security_growth:55, abundance_scarcity:70, present_future:50 } },
     ]
   },
   {
-    id:"q2", dimension:"security_growth",
-    headline:"Your investments drop 28% in three months.",
-    sub:"What do you actually do?",
+    id:"q2",
+    headline:"A friend tells you about an investment that doubled their money.",
+    sub:"What is your gut reaction?",
     options:[
-      { label:"Sell some to limit further losses",                   scores:{ security_growth:10, emotional_risk:15 } },
-      { label:"Do nothing and wait it out",                          scores:{ security_growth:55, emotional_risk:55 } },
-      { label:"Buy more while prices are lower",                     scores:{ security_growth:90, emotional_risk:90 } },
-      { label:"Check obsessively but don't act",                    scores:{ security_growth:35, emotional_risk:30 } },
+      { label:"Good for them but that sounds too risky for me", scores:{ security_growth:10, planned_spontaneous:25, abundance_scarcity:45 } },
+      { label:"I want to understand exactly what it was and how it worked", scores:{ security_growth:60, emotional_analytical:80, independent_social:40 } },
+      { label:"Tell me more, I want in", scores:{ security_growth:90, planned_spontaneous:75, abundance_scarcity:80 } },
+      { label:"I would check with a few other people I trust before doing anything", scores:{ security_growth:45, independent_social:80, emotional_analytical:40 } },
     ]
   },
   {
-    id:"q3", dimension:"present_future",
-    headline:"You could either...",
-    sub:"Which feels right for you?",
+    id:"q3",
+    headline:"You could have an extra £500 a month.",
+    sub:"Which would you choose?",
     options:[
-      { label:"Have £500/month more to enjoy life now",              scores:{ present_future:10 } },
-      { label:"Have £500/month more going into your pension",        scores:{ present_future:90 } },
-      { label:"Pay off debts faster each month",                     scores:{ present_future:50, security_growth:30 } },
-      { label:"Invest it in a Stocks and Shares ISA",               scores:{ present_future:75, security_growth:75 } },
+      { label:"More money to enjoy life right now", scores:{ present_future:10, abundance_scarcity:65, planned_spontaneous:60 } },
+      { label:"More going toward my future and retirement", scores:{ present_future:90, security_growth:40, planned_spontaneous:25 } },
+      { label:"Pay off debts or bills faster", scores:{ present_future:50, security_growth:20, abundance_scarcity:35 } },
+      { label:"Invest it so it grows over time", scores:{ present_future:75, security_growth:75, emotional_analytical:60 } },
     ]
   },
   {
-    id:"q4", dimension:"present_future",
-    headline:"Pension contributions.",
-    sub:"Which is closest to how you think about yours?",
-    options:[
-      { label:"I contribute the minimum, retirement feels far away", scores:{ present_future:15 } },
-      { label:"I contribute what I can but don't maximise",          scores:{ present_future:50 } },
-      { label:"I maximise contributions, it is a real priority",    scores:{ present_future:90 } },
-      { label:"I have not set one up yet",                           scores:{ present_future:10, abundance_scarcity:25 } },
-    ]
-  },
-  {
-    id:"q5", dimension:"systematic_intuitive",
+    id:"q4",
     headline:"How do you make big financial decisions?",
-    sub:"Like buying a car, switching mortgage, or making an investment.",
+    sub:"Things like a major purchase, switching provider, or choosing where to put your money.",
     options:[
-      { label:"Research thoroughly, compare options, then decide",   scores:{ systematic_intuitive:10, simplicity_complexity:80 } },
-      { label:"Get a gut feel for it and commit fairly quickly",     scores:{ systematic_intuitive:85, simplicity_complexity:30 } },
-      { label:"Ask someone I trust first",                           scores:{ systematic_intuitive:40, independent_collaborative:20 } },
-      { label:"Delay until I feel completely certain",               scores:{ systematic_intuitive:25, abundance_scarcity:25 } },
+      { label:"Research everything, compare all the options, then decide", scores:{ planned_spontaneous:5, emotional_analytical:85, independent_social:20 } },
+      { label:"Go with my gut and commit fairly quickly", scores:{ planned_spontaneous:80, emotional_analytical:20, independent_social:25 } },
+      { label:"Ask someone I trust for their opinion first", scores:{ planned_spontaneous:40, independent_social:85, emotional_analytical:35 } },
+      { label:"Put it off until I feel completely sure", scores:{ planned_spontaneous:25, emotional_analytical:45, abundance_scarcity:25 } },
     ]
   },
   {
-    id:"q6", dimension:"systematic_intuitive",
-    headline:"Your relationship with budgeting.",
-    sub:"Be honest, which is actually true?",
+    id:"q5",
+    headline:"How often do you check your bank balance?",
+    sub:"Pick whichever is closest to reality.",
     options:[
-      { label:"I have a clear budget and I follow it",               scores:{ systematic_intuitive:10 } },
-      { label:"I have a rough idea and check in occasionally",       scores:{ systematic_intuitive:45 } },
-      { label:"I track spending after the fact, loosely",            scores:{ systematic_intuitive:65 } },
-      { label:"I do not track, I just know if I am okay",          scores:{ systematic_intuitive:90 } },
+      { label:"Most days, I like knowing exactly where things stand", scores:{ planned_spontaneous:10, abundance_scarcity:35, emotional_analytical:75 } },
+      { label:"Once a week or so, just to keep a rough eye on things", scores:{ planned_spontaneous:55, abundance_scarcity:55, emotional_analytical:50 } },
+      { label:"Honestly I avoid it, it makes me anxious", scores:{ planned_spontaneous:80, abundance_scarcity:10, emotional_analytical:20 } },
+      { label:"Only after spending a lot, just to make sure everything is fine", scores:{ planned_spontaneous:40, abundance_scarcity:50, emotional_analytical:60 } },
     ]
   },
   {
-    id:"q7", dimension:"independent_collaborative",
-    headline:"When it comes to financial advice.",
-    sub:"What feels most true?",
-    options:[
-      { label:"I research everything myself and decide alone",        scores:{ independent_collaborative:10 } },
-      { label:"I like a sounding board but make my own calls",       scores:{ independent_collaborative:45 } },
-      { label:"I would value a trusted adviser to guide me",         scores:{ independent_collaborative:80 } },
-      { label:"I discuss money openly with my partner or close friends", scores:{ independent_collaborative:65 } },
-    ]
-  },
-  {
-    id:"q8", dimension:"abundance_scarcity",
+    id:"q6",
     headline:"When you spend money on yourself.",
-    sub:"A meal out, a holiday, something you want.",
+    sub:"A nice meal, a holiday, something you have wanted for a while.",
     options:[
-      { label:"I feel good, I work hard for this",                 scores:{ abundance_scarcity:90 } },
-      { label:"Fine, but I am conscious of the cost",               scores:{ abundance_scarcity:60 } },
-      { label:"I often feel slightly guilty afterwards",             scores:{ abundance_scarcity:30 } },
-      { label:"I find it genuinely difficult to justify",            scores:{ abundance_scarcity:10 } },
+      { label:"I feel great, I have earned this", scores:{ abundance_scarcity:90, status_freedom:55, present_future:20 } },
+      { label:"I enjoy it but I am always aware of the cost", scores:{ abundance_scarcity:55, emotional_analytical:50, planned_spontaneous:30 } },
+      { label:"I often feel a bit guilty afterwards", scores:{ abundance_scarcity:25, status_freedom:50, emotional_analytical:30 } },
+      { label:"I find it genuinely hard to justify spending on myself", scores:{ abundance_scarcity:10, status_freedom:65, planned_spontaneous:15 } },
     ]
   },
   {
-    id:"q9", dimension:"abundance_scarcity",
+    id:"q7",
+    headline:"Someone your age mentions they are doing really well financially.",
+    sub:"What is your honest internal reaction?",
+    options:[
+      { label:"Good for them, I do not really compare myself to others on money", scores:{ status_freedom:85, abundance_scarcity:80, independent_social:20 } },
+      { label:"It makes me want to check my own situation and see where I stand", scores:{ status_freedom:40, abundance_scarcity:45, emotional_analytical:55 } },
+      { label:"I feel a bit behind and it bothers me more than I would admit", scores:{ status_freedom:20, abundance_scarcity:15, emotional_analytical:25 } },
+      { label:"I want to know what they are doing differently so I can learn", scores:{ status_freedom:65, abundance_scarcity:60, independent_social:70 } },
+    ]
+  },
+  {
+    id:"q8",
+    headline:"Your investments drop 30% in a market crash.",
+    sub:"A few months later they are still down. What do you actually do?",
+    options:[
+      { label:"I had already moved things to safety when it started dropping", scores:{ security_growth:10, emotional_analytical:60, planned_spontaneous:15 } },
+      { label:"I feel awful about it but I know I should not sell", scores:{ security_growth:40, emotional_analytical:25, abundance_scarcity:45 } },
+      { label:"I do not look, I set it up for the long term and I trust the process", scores:{ security_growth:65, emotional_analytical:55, present_future:80 } },
+      { label:"I see it as a buying opportunity while everything is cheap", scores:{ security_growth:90, emotional_analytical:70, abundance_scarcity:85 } },
+    ]
+  },
+  {
+    id:"q9",
     headline:"Do you feel financially behind?",
     sub:"Compared to where you think you should be at your age.",
     options:[
-      { label:"Rarely, I feel broadly on track",                   scores:{ abundance_scarcity:85 } },
-      { label:"Sometimes, depending on my mood",                    scores:{ abundance_scarcity:55 } },
-      { label:"Often, I worry I have not done enough",             scores:{ abundance_scarcity:30 } },
-      { label:"Almost always, it is a persistent anxiety",         scores:{ abundance_scarcity:10 } },
+      { label:"Rarely, I feel broadly on track", scores:{ abundance_scarcity:85, status_freedom:65 } },
+      { label:"Sometimes, depending on my mood", scores:{ abundance_scarcity:55, status_freedom:45 } },
+      { label:"Quite often, I worry I have not done enough", scores:{ abundance_scarcity:25, status_freedom:30 } },
+      { label:"Almost always, it is a persistent background feeling", scores:{ abundance_scarcity:10, status_freedom:25 } },
     ]
   },
   {
-    id:"q10", dimension:"simplicity_complexity",
-    headline:"Your ideal financial setup.",
-    sub:"If you could design it from scratch.",
+    id:"q10",
+    headline:"Someone close to you wants to start a business together.",
+    sub:"The idea is genuinely good and they need you to put in £15,000.",
     options:[
-      { label:"One account, one fund, one simple plan",             scores:{ simplicity_complexity:10 } },
-      { label:"A few accounts, clearly organised",                  scores:{ simplicity_complexity:40 } },
-      { label:"Multiple accounts optimised for different purposes", scores:{ simplicity_complexity:75 } },
-      { label:"A fully detailed portfolio I manage actively",        scores:{ simplicity_complexity:95 } },
+      { label:"I would need a proper plan and written agreement before anything", scores:{ planned_spontaneous:5, emotional_analytical:85, security_growth:45 } },
+      { label:"If I believe in the person and the idea then I am in", scores:{ planned_spontaneous:80, emotional_analytical:15, security_growth:70, independent_social:65 } },
+      { label:"I would want to but that is too much to risk on something uncertain", scores:{ security_growth:20, abundance_scarcity:30, emotional_analytical:50 } },
+      { label:"I would suggest starting smaller first to test whether it works", scores:{ planned_spontaneous:30, emotional_analytical:65, security_growth:55 } },
     ]
   },
   {
-    id:"q11", dimension:"emotional_risk",
-    headline:"You have £20,000 to invest for 15 years.",
-    sub:"Which option would you actually choose?",
+    id:"q11",
+    headline:"When you think about retirement, what comes to mind first?",
+    sub:"Pick whichever feels most true.",
     options:[
-      { label:"Guaranteed 3.5% per year in a cash ISA",            scores:{ emotional_risk:10, security_growth:10 } },
-      { label:"A cautious fund: expected 5%, could drop 15%",      scores:{ emotional_risk:35, security_growth:35 } },
-      { label:"A balanced fund: expected 7%, could drop 30%",      scores:{ emotional_risk:65, security_growth:65 } },
-      { label:"An adventurous fund: expected 9%, could drop 45%",  scores:{ emotional_risk:90, security_growth:90 } },
+      { label:"I worry I will not have saved enough no matter what I do", scores:{ security_growth:15, abundance_scarcity:20, present_future:75 } },
+      { label:"It totally depends on the lifestyle I want, there is no fixed number", scores:{ emotional_analytical:70, abundance_scarcity:55, status_freedom:60 } },
+      { label:"I do not need much, a simple life with no money stress sounds perfect", scores:{ abundance_scarcity:70, status_freedom:80, present_future:45 } },
+      { label:"I have got plenty of time to grow my money before then", scores:{ security_growth:80, present_future:65, emotional_analytical:60 } },
     ]
   },
   {
-    id:"q12", dimension:"security_growth",
+    id:"q12",
     headline:"Your honest relationship with money.",
     sub:"Which comes closest to how you actually feel?",
     options:[
-      { label:"Money is safety, having enough lets me stop worrying",  scores:{ security_growth:15, abundance_scarcity:25 } },
-      { label:"Money is a tool, I want it working efficiently",        scores:{ security_growth:55, systematic_intuitive:30 } },
-      { label:"Money is opportunity, I want to grow it aggressively",  scores:{ security_growth:85, abundance_scarcity:80 } },
-      { label:"Money is complicated, I wish I understood it better",   scores:{ abundance_scarcity:30, security_growth:40 } },
+      { label:"Money is safety, having enough means I can stop worrying", scores:{ security_growth:15, abundance_scarcity:25, status_freedom:55 } },
+      { label:"Money is a tool, I want it working hard and growing", scores:{ security_growth:65, emotional_analytical:55, status_freedom:60 } },
+      { label:"Money is freedom, I want enough to live life on my own terms", scores:{ security_growth:50, abundance_scarcity:65, status_freedom:90 } },
+      { label:"Money is complicated, I wish I felt more confident with it", scores:{ abundance_scarcity:30, security_growth:35, independent_social:60 } },
     ]
   },
 ]
 
-// Dimension score ranges 0=fully first pole, 100=fully second pole
-// security_growth:    0=security   100=growth
-// present_future:     0=present    100=future
-// systematic_intuitive: 0=systematic 100=intuitive
-// independent_collaborative: 0=independent 100=collaborative
-// abundance_scarcity: 0=scarcity   100=abundance
-// simplicity_complexity: 0=simplicity 100=complexity
-// emotional_risk:     0=cautious   100=adventurous
+// Dimensions: 0-100 scale
+// security_growth:      0=security-first    100=growth-seeking
+// present_future:       0=present-focused   100=future-focused
+// planned_spontaneous:  0=methodical        100=spontaneous
+// independent_social:   0=self-reliant      100=socially-oriented
+// abundance_scarcity:   0=scarcity-minded   100=abundance-minded
+// emotional_analytical: 0=emotion-led       100=data-led
+// status_freedom:       0=status-driven     100=freedom-driven
 
 function calcQuizPersonality(answers, state) {
-  // answers = { q1: optionIndex, q2: optionIndex, ... }
-  const scores = {
-    security_growth:0, present_future:0, systematic_intuitive:0,
-    independent_collaborative:0, abundance_scarcity:0, simplicity_complexity:0, emotional_risk:0
-  }
+  const scores = { security_growth:0, present_future:0, planned_spontaneous:0, independent_social:0, abundance_scarcity:0, emotional_analytical:0, status_freedom:0 }
   const counts = { ...scores }
 
   PERSONALITY_QUIZ.forEach(q => {
@@ -331,115 +327,142 @@ function calcQuizPersonality(answers, state) {
     })
   })
 
-  // Normalise to 0-100
   const norm = {}
-  Object.keys(scores).forEach(dim => {
-    norm[dim] = counts[dim] > 0 ? Math.round(scores[dim] / counts[dim]) : 50
-  })
+  Object.keys(scores).forEach(dim => { norm[dim] = counts[dim] > 0 ? Math.round(scores[dim] / counts[dim]) : 50 })
 
-  // Overlay behavioural data from actual assets/debts
-  const assets  = state.assets||[]
-  const totalA  = assets.reduce((s,a)=>s+(a.value||0),0)
-  const savings = assets.filter(a=>["savings","cash"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0)
-  const invested= assets.filter(a=>["investment","stocks"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0)
+  // Blend with behavioural data (30% weight)
+  const assets = state.assets||[], debts = state.debts||[]
+  const totalA = assets.reduce((s,a)=>s+(a.value||0),0)
+  const invested = assets.filter(a=>["investments","stocks"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0)
   const pension = assets.filter(a=>a.category==="pension").reduce((s,a)=>s+(a.value||0),0)
-  const debts   = state.debts||[]
-  const highRateDebt = debts.filter(d=>(d.interestRate||0)>15).reduce((s,d)=>s+(d.balance||0),0)
-
-  // Blend quiz score with behavioural signal (70% quiz, 30% behaviour)
   if(totalA > 0) {
     const investRatio = (invested+pension)/totalA
-    const behaviouralGrowth = Math.round(investRatio*100)
-    norm.security_growth = Math.round(norm.security_growth*0.7 + behaviouralGrowth*0.3)
+    norm.security_growth = Math.round(norm.security_growth*0.7 + (investRatio*100)*0.3)
   }
-  if(assets.length >= 3) {
-    // Many accounts → complexity leaning
-    norm.simplicity_complexity = Math.min(100, norm.simplicity_complexity + 10)
-  }
+  if(assets.length >= 4) norm.planned_spontaneous = Math.max(0, norm.planned_spontaneous - 8)
 
-  // Classify each dimension
-  const sg  = norm.security_growth > 55 ? "growth" : norm.security_growth < 45 ? "security" : "balanced"
-  const pf  = norm.present_future  > 55 ? "future" : norm.present_future  < 45 ? "present"  : "balanced"
-  const si  = norm.systematic_intuitive > 55 ? "intuitive" : norm.systematic_intuitive < 45 ? "systematic" : "balanced"
-  const ic  = norm.independent_collaborative > 55 ? "collaborative" : "independent"
-  const as  = norm.abundance_scarcity > 55 ? "abundance" : norm.abundance_scarcity < 45 ? "scarcity" : "balanced"
-  const sc  = norm.simplicity_complexity > 55 ? "complexity" : "simplicity"
-  const er  = norm.emotional_risk > 65 ? "adventurous" : norm.emotional_risk < 40 ? "cautious" : "balanced"
+  // Classify
+  const sg = norm.security_growth > 58 ? "growth" : norm.security_growth < 42 ? "security" : "balanced"
+  const pf = norm.present_future > 58 ? "future" : norm.present_future < 42 ? "present" : "balanced"
+  const ps = norm.planned_spontaneous > 58 ? "spontaneous" : norm.planned_spontaneous < 42 ? "planned" : "balanced"
+  const is_ = norm.independent_social > 55 ? "social" : "independent"
+  const as_ = norm.abundance_scarcity > 58 ? "abundance" : norm.abundance_scarcity < 42 ? "scarcity" : "balanced"
+  const ea = norm.emotional_analytical > 58 ? "analytical" : norm.emotional_analytical < 42 ? "emotional" : "balanced"
+  const sf = norm.status_freedom > 58 ? "freedom" : norm.status_freedom < 42 ? "status" : "balanced"
 
-  // Derive archetype from primary 3 dimensions
+  // 10 archetypes from primary 3 dimensions
   const ARCHETYPES = {
-    "security-present-systematic":   { id:"guardian",     name:"The Guardian",     emoji:"🛡️", color:"#34D399",
-      headline:"Protection first. Always.",
-      summary:"Your core belief is that financial security is freedom. You sleep better when the safety net is full, the bills are covered, and there are no nasty surprises waiting. You are methodical, careful, and consistent, which means you build slowly but you build durably.",
-      traits:["Values certainty over upside","Fully funds emergency reserves before investing","Prefers guaranteed returns to market exposure","Tracks spending carefully","Finds financial surprises deeply uncomfortable"],
-      scenarios:["You are very likely to keep 6+ months of expenses in cash savings","You probably feel anxious when your bank balance drops below a mental threshold","An IFA offering a cautious managed portfolio would suit you well","The 50/30/20 budgeting rule would feel natural and reassuring to follow","You would choose a lower fixed-rate mortgage over a cheaper variable rate"],
-      blind_spot:"Your caution protects you but may cost you significantly in long-term returns. The risk of being too safe is real.",
-      next_step:"Consider putting anything above 6 months emergency fund into a low-cost global index fund." },
+    "security-planned": { id:"sentinel", name:"The Sentinel", emoji:"🛡️", color:T.green,
+      headline:"Careful, consistent, always prepared.",
+      summary:"You build financial security methodically. Emergency funds, insurance, fixed rates \u2014 you want certainty before growth. This discipline is rare and genuinely valuable. The risk is that excessive caution costs you significant returns over decades.",
+      traits:["Maintains a well-funded emergency reserve","Prefers guaranteed returns over uncertain gains","Researches thoroughly before any financial commitment","Uncomfortable with debt of any kind","Strong financial discipline and consistency"],
+      scenarios:["You have a mental number your bank balance must never drop below","When someone suggests something risky your first instinct is to think about what could go wrong","You find it hard to spend freely on yourself even when you can clearly afford it","You feel a sense of unease when you do not have a clear financial plan","You would rather miss an opportunity than make a mistake"],
+      advice:["Your biggest risk is actually not taking enough risk. Inflation quietly eats away at cash savings every year.","Consider separating your money into safety money and growth money. The safety portion gives you peace of mind while the growth portion works harder.","Try to distinguish between genuine financial danger and discomfort with uncertainty. They feel the same but they are very different."],
+      blind_spot:"Your caution may be your most expensive financial habit. Over 30 years, the difference between 2% savings and 7% investment growth on \u00A3500/month is over \u00A3300,000. Safety has a price.",
+      next_step:"Try moving a small amount beyond your safety net into something with higher growth potential. Start small enough that it does not keep you up at night." },
 
-    "security-future-systematic":    { id:"cultivator",   name:"The Cultivator",   emoji:"🌱", color:"#0FBFB8",
-      headline:"Building carefully, for the long run.",
-      summary:"You have patience and discipline, a rare combination. You think ahead, contribute consistently, and feel most secure when you know the future is being taken care of. You may not be the most adventurous investor but you are one of the most reliable.",
-      traits:["Consistent long-term saver and investor","Prioritises pension and future security","Prefers structured plans over gut feel","Values financial stability deeply","Methodical, you follow through on financial commitments"],
-      scenarios:["You are likely already contributing regularly to a pension or ISA","A financial adviser who provides a clear structured long-term plan would suit you","You would benefit from automated contributions so you never have to decide each month","You probably use a spreadsheet or budgeting app","You are uncomfortable with debt and likely pay more than the minimum"],
-      blind_spot:"Your focus on security can mean you under-invest in growth assets. Your future self would likely be fine with more equity exposure.",
-      next_step:"Review whether your pension contribution rate is genuinely maximising your employer match." },
+    "security-spontaneous": { id:"guardian", name:"The Guardian", emoji:"🏠", color:"#60A5FA",
+      headline:"Protective instincts, flexible approach.",
+      summary:"You want security but you do not overthink the path to get there. You trust your instincts more than spreadsheets and value feeling safe over optimising returns. Money is primarily about protection for yourself and the people you care about.",
+      traits:["Prioritises financial safety for family and loved ones","Makes decisions based on gut feel rather than data","Values owning things you can see and touch","Generous with money when people need help","Less interested in tracking performance numbers"],
+      scenarios:["You would lend money to someone you care about without needing a written agreement","You trust how a decision feels more than what a spreadsheet says","You are probably the person others come to when they need financial help","You have a general sense your finances are fine without knowing the exact details","You value peace of mind over maximum returns"],
+      advice:["Your generosity is a strength but make sure your own foundations are solid before helping others.","Write down roughly how much you have saved for retirement and compare it to a basic target for your age. The answer might surprise you.","Consider whether the financial decisions you are avoiding out of discomfort are actually the most important ones to make."],
+      blind_spot:"Generosity without structure can leave you exposed. Helping others financially before securing your own foundation is a pattern worth examining.",
+      next_step:"Check what percentage of your income is going toward your future. If you are not sure, that is the first thing to find out." },
 
-    "growth-future-intuitive":       { id:"accelerator",  name:"The Accelerator",  emoji:"🚀", color:"#0FBFB8",
-      headline:"Long game. High conviction.",
-      summary:"You think in decades. Short-term noise does not worry you, you see market drops as opportunities and compound growth as the most powerful force in finance. You move decisively and back yourself. Your risk is moving fast without building proper foundations underneath.",
-      traits:["Comfortable with investment volatility","Thinks in long timeframes","Makes financial decisions with confidence","Attracted to growth assets and investment opportunities","Less focused on day-to-day spending tracking"],
-      scenarios:["You have or are actively considering a Stocks and Shares ISA or self-invested pension","You would consider individual stocks or thematic ETFs as well as index funds","You are unlikely to want a financial adviser telling you what to do, but a good one as a sounding board could add real value","During market crashes you either hold firm or buy more","You find detailed budgeting constraining but probably have a strong income-to-investment ratio"],
-      blind_spot:"Your conviction is a strength but can lead to concentrated positions or skipping fundamentals like wills, insurance, or an adequate emergency fund.",
-      next_step:"Check your emergency fund is 3 months covered before adding more to investments." },
+    "growth-planned": { id:"navigator", name:"The Navigator", emoji:"🧭", color:T.purple,
+      headline:"Strategic, research-driven, building with intention.",
+      summary:"You combine growth ambition with genuine discipline, the most effective financial personality in research. You research before you act, build structured plans, and follow through. The danger is analysis paralysis. The cost of delayed action often exceeds the cost of an imperfect decision.",
+      traits:["Research-led decision maker who compares options thoroughly","Clear financial goals with timelines attached","Comfortable with calculated risk","Tracks progress and metrics regularly","Balances present lifestyle with long-term wealth building"],
+      scenarios:["You probably have multiple tabs open right now comparing options for something","You find this kind of quiz genuinely interesting rather than annoying","You have a clear picture of where you want to be financially in 5 to 10 years","You enjoy optimising things and finding the best strategy","You have probably spent longer researching a decision than it would take to just try it"],
+      advice:["Set yourself a research deadline for any financial decision. Two weeks of research is enough for almost anything.","Your tendency to optimise is powerful but remember that a good decision made now beats a perfect decision made in six months.","You are probably further ahead than you think. Make sure you take time to appreciate the progress you have already made."],
+      blind_spot:"You can research indefinitely when taking a reasonable action six months ago would have been better. The perfect plan started late loses to the good one started now.",
+      next_step:"Identify the financial decision you have been sitting on the longest and commit to it this week." },
 
-    "growth-future-systematic":      { id:"navigator",    name:"The Navigator",    emoji:"🧭", color:"#A78BFA",
-      headline:"Methodical. Growth-focused. In control.",
-      summary:"You have the rare combination of growth ambition and systematic discipline. You research before you act, build structured plans, and then actually follow through. This makes you one of the most effective personal finance profiles, the main risk is over-engineering at the expense of action.",
-      traits:["Research-led investor","Clear financial goals with plans attached","Comfortable with risk when it is well understood","Tracks net worth and financial metrics regularly","Balances short-term structure with long-term growth thinking"],
-      scenarios:["You probably compare ISA platforms before switching and have read about index funds vs active management","You would get real value from a detailed financial plan produced by an IFA","You are the type of person who finds this quiz interesting rather than annoying","You likely already track your net worth or are attracted to doing so","You balance lifestyle spending with serious long-term saving"],
-      blind_spot:"Analysis paralysis is your main risk. You can research indefinitely when taking a reasonable action earlier would have been better.",
-      next_step:"Pick one financial goal and set an automated monthly contribution towards it this week." },
+    "growth-spontaneous": { id:"accelerator", name:"The Accelerator", emoji:"🚀", color:T.teal,
+      headline:"Bold moves, high conviction, long game.",
+      summary:"You think big and move fast. Market drops do not scare you, they excite you. You back your own judgement and are comfortable with significant financial risk. Your confidence is genuinely an asset but without proper foundations, a single bad decision can set you back years.",
+      traits:["Comfortable with volatility and uncertainty","Makes financial decisions with speed and conviction","Attracted to growth opportunities","Less interested in detailed budgeting or tracking","High financial confidence, sometimes overconfidence"],
+      scenarios:["When things go wrong financially your instinct is opportunity rather than panic","You have probably made at least one financial move that others thought was too bold","Detailed budgeting feels pointless to you because you would rather earn more than cut back","You back your own judgement over most advice you receive","You are comfortable with levels of financial uncertainty that would keep other people awake at night"],
+      advice:["Your confidence is an asset but make sure you have a proper safety net before making bold moves. Foundations let you take bigger risks.","Ask yourself whether you are genuinely diversified or just feel diversified. Concentrated bets feel exciting but they are the most common way confident people lose big.","Consider finding one person whose financial judgement you respect and using them as a sounding board."],
+      blind_spot:"Confidence without diversification is gambling dressed up as strategy. Check whether you have adequate insurance, an emergency fund, and a will.",
+      next_step:"Verify your foundations: 3 months emergency fund, no single asset over 20% of your wealth, and basic protection in place." },
 
-    "growth-present-intuitive":      { id:"grower",       name:"The Grower",       emoji:"⚡", color:"#F59E0B",
-      headline:"Momentum, instinct, opportunity.",
-      summary:"You are entrepreneurial with money. You back yourself, spot opportunities, and are not afraid to act. You live well now and want to grow your wealth too. The tension in your profile is between enjoying the present and building for the future, you are working on getting the balance right.",
-      traits:["Acts on financial instinct rather than lengthy research","Enjoys the present while also thinking about growth","Comfortable with risk and uncertainty","Attracted to investment opportunities and new financial tools","Less likely to follow rigid budgets, prefers to earn more"],
-      scenarios:["You are likely interested in or already have exposure to a range of investments including possibly crypto or individual stocks","You probably spend generously on experiences and lifestyle and feel broadly fine about it","A financial coach rather than a traditional IFA might suit you better","You would benefit from automating your savings so they happen before you can spend","You may have several financial accounts across different apps and platforms"],
-      blind_spot:"Without structure, income can disappear into lifestyle even at high earning levels. Automating savings removes this risk.",
-      next_step:"Set up an automated transfer to a Stocks and Shares ISA on payday before spending decisions happen." },
+    "balanced-planned": { id:"architect", name:"The Architect", emoji:"🏗️", color:"#60A5FA",
+      headline:"Foundations first, then build upward.",
+      summary:"You take a balanced, methodical approach to money. Neither reckless nor overly cautious, you want to understand things properly before committing. You probably have solid foundations but may be leaving returns on the table by staying too middle of the road.",
+      traits:["Balanced risk tolerance, neither aggressive nor very conservative","Methodical decision-making process","Good financial foundations already in place","Values understanding before acting","Comfortable with mainstream approaches to money"],
+      scenarios:["You probably have savings, a pension, and a general sense that things are in order","A balanced approach feels more natural to you than anything extreme","You would happily use professional advice if you found someone you genuinely trusted","You are more likely to increase existing contributions than to try something completely new","You tend to read the details before signing up to anything financial"],
+      advice:["Being balanced is safe but ask yourself whether your current approach genuinely matches your time horizon or just your comfort zone.","If you are under 45, you can almost certainly afford to take more growth risk than you currently are. Time is on your side.","Consider setting one ambitious financial goal that pushes you slightly outside your comfort zone. Growth happens at the edges."],
+      blind_spot:"Being balanced everywhere can mean being exceptional nowhere. Your allocation may reflect your comfort zone rather than your actual time horizon.",
+      next_step:"Review whether your current approach is appropriate for your age and goals. If you are young, more growth exposure is almost always worth considering." },
 
-    "security-future-intuitive":     { id:"architect",    name:"The Architect",    emoji:"🏗️", color:"#60A5FA",
-      headline:"Strong foundations. Deep knowledge.",
-      summary:"You have done the reading. You understand pensions, tax wrappers, compound interest, and the mechanics of personal finance, often better than people earning far more than you. Your challenge is that knowledge does not always translate into action. You can over-analyse or wait for the perfect moment.",
-      traits:["High financial literacy","Security-focused but intellectually curious about growth","Likely researches financial products in depth before choosing","Understands the importance of the long game","Can be slowed by a desire for certainty before acting"],
-      scenarios:["You have probably compared multiple ISA providers or pension platforms","You know what a SIPP is and have considered one","You would find real value in a financial adviser but would interrogate their recommendations rigorously","You are drawn to detailed financial models and projections","You understand the tax efficiency of pensions better than most"],
-      blind_spot:"Knowledge without action is just expensive inaction. The perfect plan started late loses to the good plan started now.",
-      next_step:"Identify the one financial decision you have been researching for more than 3 months and make it this month." },
+    "balanced-spontaneous": { id:"freestyler", name:"The Freestyler", emoji:"🌊", color:T.amber,
+      headline:"Adaptable, instinctive, opportunity-aware.",
+      summary:"You are financially adaptable. You do not follow rigid plans but you are not reckless either. You trust your instincts, adjust as life changes, and generally land on your feet. The risk is that without structure, money quietly leaks through lifestyle inflation.",
+      traits:["Financially adaptable and comfortable with uncertainty","Trusts intuition over detailed financial analysis","Does not follow rigid budgets but generally manages fine","Responds to opportunities as they arise","Comfortable talking about money with people close to you"],
+      scenarios:["You do not have a detailed budget but have a rough sense of your finances","You probably have money sitting somewhere earning almost nothing because you have not got around to sorting it","You deal with financial admin in bursts rather than consistently","You are more likely to say yes to a spontaneous plan than check your budget first","You generally land on your feet financially but could not explain exactly how"],
+      advice:["The single most powerful thing you can do is automate your savings. Set up a transfer on payday before the money hits your spending account.","You are probably losing more to inaction than to bad decisions. Spending 30 minutes moving idle cash could be worth thousands over time.","Your flexibility is a genuine strength. Combine it with just one or two automated habits and you will be in a very strong position."],
+      blind_spot:"Without automation, your financial future depends entirely on willpower, and willpower is unreliable. Automate the important things and your natural adaptability handles the rest.",
+      next_step:"Set up one automated transfer on payday. Even 10% of your income moved automatically will transform your finances over time." },
 
-    "freedom-present-intuitive":     { id:"opportunist",  name:"The Opportunist",  emoji:"🌊", color:"#F59E0B",
-      headline:"Bold. Fast-moving. Opportunity-first.",
-      summary:"You see financial freedom as the goal and you are willing to move decisively to get there. You are not especially interested in rules or conventional wisdom, you back your own judgement. The risk is that ambition without foundation can leave gaps that become expensive later.",
-      traits:["High confidence in financial decision-making","Moves quickly when an opportunity feels right","Less attached to conventional financial planning","Values financial independence and optionality","Can underestimate the importance of boring fundamentals"],
-      scenarios:["You have likely made at least one significant financial move others would consider bold","You are attracted to investments with high upside potential","You find traditional financial planning advice cautious to the point of being unhelpful","You would benefit most from a financial adviser who challenges you rather than validates you","Your emergency fund may not be fully funded because the money feels better deployed elsewhere"],
-      blind_spot:"A single bad financial decision without adequate foundations underneath can undo years of bold gains. Foundations are not boring, they are leverage.",
-      next_step:"Check: do you have 3 months expenses in accessible cash? If not, build that first." },
+    "scarcity-any": { id:"steward", name:"The Steward", emoji:"⚖️", color:T.amber,
+      headline:"Watchful, careful, deeply aware of money.",
+      summary:"Money carries significant emotional weight for you. You think about it more than most people and that vigilance has likely kept you out of trouble. But it may also be holding you back from enjoying what you have earned, from investing for growth, or from feeling at peace even when your numbers are actually fine.",
+      traits:["Highly aware of your financial position at all times","Tends to save rather than spend or invest","Feels genuine anxiety about money even when things are stable","May feel behind peers regardless of actual position","Strong aversion to financial risk and debt"],
+      scenarios:["You probably know your bank balance within a small margin right now","Spending on yourself triggers guilt more often than enjoyment","You check prices on things even when the purchase is well within your means","You would always choose certainty over a better expected outcome","The thought of not having savings set aside causes you real discomfort"],
+      advice:["Write down the specific fear you have about money. Then look at your actual numbers and check whether that fear is supported by reality.","Give yourself a guilt-free spending budget, a specific amount each month that you are allowed to enjoy without justifying it.","Being too cautious carries its own risk. Keeping everything in cash means inflation is quietly reducing your purchasing power every year."],
+      blind_spot:"Your vigilance protects you from risks that may not be real while exposing you to the very real risk of under-growing your wealth. Inflation is the silent tax on caution.",
+      next_step:"Write down your specific money worry. Then check whether your actual numbers support it. Seeing the gap between fear and reality is the first step to financial peace." },
 
-    "freedom-present-systematic":    { id:"learner",      name:"The Learner",      emoji:"💡", color:"#A78BFA",
-      headline:"Curious. Growing. Getting started.",
-      summary:"You are building your financial foundations and you are doing it with self-awareness, which puts you ahead of most people who never examine their money relationship at all. You are at the most important stage, the habits you build now will compound for decades.",
-      traits:["Open to learning and improving financial knowledge","May feel behind peers financially, though often this is not true","Values simplicity and clear guidance over complexity","Wants a plan but is not sure where to start","Responds well to encouragement and small wins"],
-      scenarios:["This app and a book like The Psychology of Money would genuinely shift your thinking","You would benefit enormously from a basic financial plan even a simple one","A financial adviser who specialises in early-stage financial planning would be valuable","Automating savings even £50 per month would build a habit that compounds significantly","Understanding ISAs and pension basics is the single best use of your financial education time right now"],
-      blind_spot:"Waiting until you understand everything perfectly before acting. Starting small and imperfectly now beats a perfect plan started later.",
-      next_step:"Open a Stocks and Shares ISA this month, even with a small amount. The habit matters more than the amount right now." },
+    "status-growth": { id:"competitor", name:"The Competitor", emoji:"🏆", color:T.amber,
+      headline:"Driven, ambitious, measuring progress.",
+      summary:"You are motivated by financial progress and you benchmark yourself against others, whether you fully admit it or not. This competitive drive can fuel excellent outcomes. The risk is that enough never feels like enough and the goalpost keeps moving.",
+      traits:["Financially ambitious and goal-oriented","Benchmarks progress against peers or targets","Attracted to high-growth opportunities and advancement","Values financial success as proof of capability","May link self-worth to financial performance"],
+      scenarios:["You have a rough idea of what people in your field earn and where you sit","Hearing about someone else doing well financially makes you want to check your own position","You are the type to negotiate hard or push for more","Financial setbacks feel personal, not just practical","You feel a sense of achievement when you see your numbers go up"],
+      advice:["Define what enough actually means to you. Write down a specific number. Without it you are running a race with no finish line.","Try to separate your self-worth from your net worth. Financial progress is great but it should not be the only measure of a life well lived.","Channel your competitive energy into beating your own previous performance rather than comparing to others. That is a race you can actually win."],
+      blind_spot:"If your financial self-worth is tied to a number, no number will ever be enough. Success without a clear definition of enough becomes an endless race.",
+      next_step:"Define your personal enough number, the point at which you would feel genuinely secure. Write it down and build toward it with intention." },
+
+    "freedom-growth": { id:"pioneer", name:"The Pioneer", emoji:"⚡", color:T.teal,
+      headline:"Freedom-focused, growth-oriented, unconventional.",
+      summary:"Money means options to you. You are not interested in impressing anyone, you want the freedom to live on your own terms. You are willing to take financial risks to get there and you think long-term. Your independence is genuine and your instincts are often good.",
+      traits:["Motivated by financial independence above all else","Comfortable with unconventional strategies","Values time freedom over material status","Thinks long-term about wealth and compounding","Prefers self-directed learning to outside advice"],
+      scenarios:["You have thought seriously about what it would take to never need to work again","You would take a pay cut for significantly more freedom over your time","You question conventional financial wisdom rather than just following it","You spend less than you earn not because you are frugal but because status spending does not interest you","You prefer figuring things out yourself over paying someone else"],
+      advice:["Your independence is a strength but it can become isolation. Getting a second opinion does not mean giving up control.","Make sure your pursuit of freedom is not causing you to skip important foundations like insurance, a will, or proper tax planning.","The fastest path to freedom might involve temporarily accepting help from someone who has already achieved what you want."],
+      blind_spot:"Independence can become isolation. A good adviser is not someone who tells you what to do, they are a stress test for your own thinking.",
+      next_step:"Find one person whose financial judgement you respect and share your plan with them. Not to follow their advice, but to pressure-test your thinking." },
+
+    "freedom-planned": { id:"cultivator", name:"The Cultivator", emoji:"🌱", color:T.green,
+      headline:"Patient, purposeful, quietly building.",
+      summary:"You are building financial freedom methodically and patiently. No flashy moves, no panic decisions, just consistent, deliberate progress. You understand that wealth is built in decades, not days. Your patience is genuinely rare and powerful.",
+      traits:["Consistent long-term saver and investor","Values financial independence as the ultimate goal","Patient with compound growth","Prefers automated, systematic approaches","Does not need external validation of financial progress"],
+      scenarios:["You are the kind of person who sets something up once and lets it run for years","You find more comfort in slow steady progress than in dramatic wins","You would rather be consistently good than occasionally brilliant with money","You do not feel the need to tell people about your financial progress","You trust time more than timing when it comes to building wealth"],
+      advice:["Your consistency is rare and powerful. Make sure you are reviewing your approach at least once a year to check it still fits your life stage.","Patience can sometimes become passivity. Set a calendar reminder to review your plan annually.","You are probably in a stronger position than most people your age. Take a moment to appreciate that."],
+      blind_spot:"Patience is your superpower but it can become passivity. Review your plan annually to make sure it still fits your life stage and goals.",
+      next_step:"Set an annual review date in your calendar. Check whether your contributions, approach, and protection are still right for where you are now." },
   }
+  // Match archetype
+  const priSG = sg === "balanced" ? "balanced" : sg
+  const priPS = ps === "balanced" ? "planned" : ps
+  let key
 
-  // Match archetype by primary signals
-  const key = `${sg === "balanced" ? "growth" : sg}-${pf === "balanced" ? "future" : pf}-${si === "balanced" ? "systematic" : si}`
-  const archetype = ARCHETYPES[key] || ARCHETYPES["freedom-present-systematic"]
+  // Scarcity mindset is a strong enough signal to be its own archetype
+  if(as_ === "scarcity" && norm.abundance_scarcity < 35) key = "scarcity-any"
+  // Status + growth combination
+  else if(sf === "status" && sg !== "security") key = "status-growth"
+  // Freedom + growth
+  else if(sf === "freedom" && sg !== "security" && ps !== "planned") key = "freedom-growth"
+  // Freedom + planned
+  else if(sf === "freedom" && ps === "planned") key = "freedom-planned"
+  // Primary: security/growth × planned/spontaneous
+  else key = `${priSG}-${priPS}`
+
+  const archetype = ARCHETYPES[key] || ARCHETYPES["balanced-planned"]
 
   return {
     scores: norm,
-    dimensions: { sg, pf, si, ic, as, sc, er },
+    dimensions: { sg, pf, ps, is_, as_, ea, sf },
     archetype,
     completedAt: new Date().toISOString(),
   }
@@ -477,6 +500,19 @@ const PRIORITY_GOALS = [
   { id:"calm",       icon:"😌", label:"Stop worrying about money", color:"#F9A8D4",lesson:"nw_basics" },
   { id:"learn",      icon:"💡", label:"Learn how money works",     color:T.teal,   lesson:"compound_interest" },
   { id:"house",      icon:"🏠", label:"Buy a house",               color:T.amber,  lesson:"isa_basics" },
+]
+
+
+const NORTH_STAR_OPTIONS = [
+  { id:"own_home",     emoji:"🏠", label:"Own my own home",             sub:"Stop paying someone else's mortgage. A place that's truly yours.",           color:T.green,  defaultTarget:40000 },
+  { id:"retire_early", emoji:"🏖️", label:"Retire on my own terms",      sub:"Work because you want to, not because you have to.",                         color:T.teal,   defaultTarget:null },
+  { id:"debt_free",    emoji:"💳", label:"Become completely debt free",  sub:"Never owe anyone anything again. Total financial clarity.",                  color:T.red,    defaultTarget:null },
+  { id:"peace",        emoji:"🛡️", label:"Never worry about money",     sub:"Sleep soundly knowing you and your family are financially secure.",          color:T.blue,   defaultTarget:null },
+  { id:"freedom",      emoji:"🌍", label:"Total financial freedom",      sub:"Have enough that every day is yours to choose how to spend.",                color:T.purple, defaultTarget:null },
+  { id:"business",     emoji:"🚀", label:"Build something of my own",   sub:"Go freelance, start a business, bet on yourself.",                           color:T.amber,  defaultTarget:20000 },
+  { id:"family",       emoji:"💛", label:"Give my family a better life", sub:"Break the cycle. Build something that lasts beyond you.",                    color:T.green,  defaultTarget:null },
+  { id:"wedding",      emoji:"💍", label:"Get married",                  sub:"The celebration you deserve without the financial stress.",                   color:"#F9A8D4",defaultTarget:25000 },
+  { id:"custom",       emoji:"⭐", label:"Something else",               sub:"You know what drives you. Name it.",                                         color:T.muted,  defaultTarget:null },
 ]
 
 const GOAL_TYPES = [
@@ -535,6 +571,7 @@ const DEFAULTS = {
   spending: { monthly:0, breakdown:{} },
   goals:[], history:[], completedLessons:[], completedLevels:[], currentLevel:1, pendingLearnLevel:null, badges:[],
   priorityGoals: [],
+  northStar: null,
   dashboardTiles: []
 }
 
@@ -634,7 +671,6 @@ function AppProvider({ children }) {
   const [state, setState] = useState(load)
   const [tab, setTab] = useState(0)
   const [toastMsg, setToastMsg] = useState(null)
-  const [globalSheet, setGlobalSheet] = useState(null)
 
   function save(ns) {
     const merged = { ...DEFAULTS, ...ns }
@@ -653,7 +689,7 @@ function AppProvider({ children }) {
   }
 
   return (
-    <AppCtx.Provider value={{ state, save, reset, tab, setTab, toast, globalSheet, setGlobalSheet }}>
+    <AppCtx.Provider value={{ state, save, reset, tab, setTab, toast }}>
       <style>{G}</style>
       {children}
       {toastMsg && (
@@ -731,14 +767,14 @@ function Tag({ children, color="teal" }) {
 
 function Sheet({ title, onClose, children }) {
   return (
-    <div className="ls-fadein" style={{ position:"fixed",inset:0,background:"rgba(7,13,26,.85)",backdropFilter:"blur(8px)",zIndex:9999,display:"flex",alignItems:"flex-end",justifyContent:"center" }}
+    <div className="ls-fadein" style={{ position:"fixed",inset:0,background:"rgba(7,13,26,.75)",backdropFilter:"blur(6px)",zIndex:1000,display:"flex",alignItems:"flex-end",justifyContent:"center" }}
       onClick={e=>{ if(e.target===e.currentTarget) onClose() }}>
-      <div className="ls-fadein" style={{ background:"#0B1424",borderRadius:"24px 24px 0 0",width:"100%",maxWidth:600,maxHeight:"90dvh",overflow:"hidden",display:"flex",flexDirection:"column",boxShadow:"0 -8px 40px rgba(0,0,0,.6)" }}>
-        <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"18px 20px 16px",borderBottom:`1px solid ${T.border}`,flexShrink:0,background:"#0F1D32" }}>
-          <p style={{ color:T.white,fontWeight:800,fontSize:17 }}>{title}</p>
-          <button onClick={onClose} style={{ background:"rgba(255,255,255,.08)",border:"none",borderRadius:99,width:30,height:30,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",color:T.muted }}><X size={16}/></button>
+      <div className="ls-fadein" style={{ background:T.surface,borderRadius:"20px 20px 0 0",width:"100%",maxWidth:600,maxHeight:"92vh",overflow:"hidden",display:"flex",flexDirection:"column" }}>
+        <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"18px 20px",borderBottom:`1px solid ${T.border}`,flexShrink:0 }}>
+          <p style={{ color:T.white,fontWeight:800,fontSize:16 }}>{title}</p>
+          <button onClick={onClose} style={{ background:"none",border:"none",color:T.muted,cursor:"pointer",padding:4 }}><X size={20}/></button>
         </div>
-        <div style={{ flex:1,overflowY:"auto",padding:"20px",WebkitOverflowScrolling:"touch" }}>{children}</div>
+        <div style={{ flex:1,overflowY:"auto",padding:"20px" }}>{children}</div>
       </div>
     </div>
   )
@@ -1494,6 +1530,137 @@ function WowScreen({ assets, debts, income, spending, name, onFinish }) {
 /* ════════════════════════════════════════════════════════════════════
    HOME TAB
    ════════════════════════════════════════════════════════════════════ */
+
+function NorthStarSelector({ onSelect, onClose }) {
+  const [selected, setSelected] = useState(null)
+  const [customLabel, setCustomLabel] = useState("")
+  const [targetAmount, setTargetAmount] = useState("")
+  const ns = NORTH_STAR_OPTIONS.find(n => n.id === selected)
+
+  function confirm() {
+    if (!selected) return
+    const star = {
+      id: selected,
+      label: selected === "custom" ? (customLabel || "My goal") : ns.label,
+      emoji: ns.emoji,
+      color: ns.color,
+      targetAmount: targetAmount ? parseFloat(targetAmount) : ns.defaultTarget,
+      createdAt: new Date().toISOString(),
+    }
+    onSelect(star)
+  }
+
+  return (
+    <div style={{ position:"fixed",inset:0,background:T.bg,zIndex:300,overflowY:"auto" }}>
+      <div style={{ maxWidth:520,margin:"0 auto",padding:"24px 20px 60px" }}>
+        {onClose && <button onClick={onClose} style={{ background:"none",border:"none",cursor:"pointer",color:T.muted,fontSize:20,padding:4,marginBottom:12 }}>←</button>}
+        <div style={{ textAlign:"center",marginBottom:28 }}>
+          <p style={{ fontSize:40,marginBottom:12 }}>🌟</p>
+          <h1 style={{ color:T.white,fontWeight:900,fontSize:24,lineHeight:1.2,marginBottom:8 }}>What is your North Star?</h1>
+          <p style={{ color:"#C8D8EC",fontSize:14,lineHeight:1.6 }}>The one thing you want more than anything else financially. Everything in this app will help you get there.</p>
+        </div>
+
+        <div style={{ display:"flex",flexDirection:"column",gap:8,marginBottom:24 }}>
+          {NORTH_STAR_OPTIONS.map(ns => {
+            const sel = selected === ns.id
+            return (
+              <button key={ns.id} onClick={() => setSelected(ns.id)}
+                style={{ background:sel ? `${ns.color}12` : T.card, border:`2px solid ${sel ? ns.color : T.border}`,
+                  borderRadius:16, padding:"16px 18px", cursor:"pointer", fontFamily:"inherit",
+                  display:"flex", alignItems:"center", gap:14, textAlign:"left", transition:"all .15s" }}>
+                <span style={{ fontSize:26,flexShrink:0 }}>{ns.emoji}</span>
+                <div style={{ flex:1 }}>
+                  <p style={{ color:sel ? T.white : "#E2EAF6", fontWeight:800, fontSize:15 }}>{ns.label}</p>
+                  <p style={{ color:sel ? "#C8D8EC" : "#6B8CB8", fontSize:12, lineHeight:1.4, marginTop:2 }}>{ns.sub}</p>
+                </div>
+                {sel && <div style={{ width:22,height:22,borderRadius:"50%",background:ns.color,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
+                  <Check size={13} color={T.bg}/>
+                </div>}
+              </button>
+            )
+          })}
+        </div>
+
+        {selected && (
+          <div className="ls-fadein" style={{ marginBottom:24 }}>
+            {selected === "custom" && (
+              <div style={{ marginBottom:12 }}>
+                <p style={{ color:T.muted,fontSize:12,fontWeight:600,marginBottom:6 }}>Name your goal</p>
+                <input type="text" value={customLabel} onChange={e => setCustomLabel(e.target.value)} placeholder="e.g. Travel the world"
+                  style={{ width:"100%",background:T.card,border:`1.5px solid ${T.border}`,borderRadius:12,padding:"12px 14px",color:T.white,fontSize:15,fontFamily:"inherit",outline:"none" }}/>
+              </div>
+            )}
+            {(ns?.defaultTarget || selected === "custom") && (
+              <div>
+                <p style={{ color:T.muted,fontSize:12,fontWeight:600,marginBottom:6 }}>How much do you need? (optional)</p>
+                <div style={{ display:"flex",alignItems:"center",background:T.card,border:`1.5px solid ${T.border}`,borderRadius:12,overflow:"hidden" }}>
+                  <span style={{ padding:"0 12px",color:T.muted,fontSize:17,fontWeight:700 }}>£</span>
+                  <input type="number" min="0" value={targetAmount} onChange={e => setTargetAmount(e.target.value)} placeholder={ns?.defaultTarget ? String(ns.defaultTarget) : "0"}
+                    style={{ flex:1,background:"transparent",border:"none",outline:"none",color:T.white,fontSize:15,fontWeight:600,padding:"12px 12px 12px 0",fontFamily:"inherit" }}/>
+                </div>
+                <p style={{ color:"#6B8CB8",fontSize:11,marginTop:4 }}>You can always change this later</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        <button onClick={confirm} disabled={!selected}
+          style={{ width:"100%",background:selected ? `linear-gradient(135deg,${T.teal},${T.tealMid})` : T.subtle,
+            border:"none",borderRadius:16,padding:"16px",color:selected ? T.bg : T.muted,
+            fontWeight:900,fontSize:16,cursor:selected ? "pointer" : "not-allowed",fontFamily:"inherit" }}>
+          Set my North Star
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function NorthStarCard({ star, netWorth, surplus, savings, onEdit }) {
+  if (!star) return null
+  const ns = NORTH_STAR_OPTIONS.find(n => n.id === star.id) || NORTH_STAR_OPTIONS[8]
+  const color = star.color || ns.color || T.teal
+  const hasTarget = star.targetAmount && star.targetAmount > 0
+  const relevantSavings = star.id === "debt_free" ? 0 : (savings || 0)
+  const progress = hasTarget ? Math.min(100, Math.round(relevantSavings / star.targetAmount * 100)) : null
+  const monthsLeft = hasTarget && surplus > 0 ? Math.max(0, Math.ceil((star.targetAmount - relevantSavings) / surplus)) : null
+  const etaDate = monthsLeft ? (() => { const d = new Date(); d.setMonth(d.getMonth() + monthsLeft); return d.toLocaleDateString("en-GB",{month:"short",year:"numeric"}) })() : null
+
+  return (
+    <div style={{ background:`linear-gradient(135deg, ${color}10, ${color}05)`, border:`1.5px solid ${color}30`,
+      borderRadius:20, padding:"18px 20px", marginBottom:14, position:"relative", overflow:"hidden" }}>
+      <div style={{ position:"absolute",top:0,right:0,width:100,height:100,background:`radial-gradient(circle at 100% 0%,${color}12,transparent 70%)`,pointerEvents:"none" }}/>
+      <div style={{ display:"flex",alignItems:"flex-start",gap:12,position:"relative" }}>
+        <div style={{ width:44,height:44,borderRadius:14,background:`${color}20`,border:`1.5px solid ${color}35`,
+          display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0 }}>
+          {star.emoji || ns.emoji}
+        </div>
+        <div style={{ flex:1,minWidth:0 }}>
+          <p style={{ color:"#6B8CB8",fontSize:9,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:3 }}>My North Star</p>
+          <p style={{ color:T.white,fontWeight:900,fontSize:17,lineHeight:1.2,marginBottom:2 }}>{star.label}</p>
+          {hasTarget && (
+            <div style={{ marginTop:8 }}>
+              <div style={{ display:"flex",justifyContent:"space-between",marginBottom:4 }}>
+                <p style={{ color:"#C8D8EC",fontSize:12,fontWeight:600 }}>{fmt(relevantSavings)} of {fmt(star.targetAmount)}</p>
+                <p style={{ color:color,fontWeight:800,fontSize:12 }}>{progress}%</p>
+              </div>
+              <div style={{ background:`${color}15`,borderRadius:6,height:8,overflow:"hidden" }}>
+                <div style={{ width:`${progress}%`,height:"100%",background:`linear-gradient(90deg,${color}80,${color})`,borderRadius:6,transition:"width .8s" }}/>
+              </div>
+              {etaDate && <p style={{ color:"#6B8CB8",fontSize:10,marginTop:4 }}>At your current rate: {etaDate}</p>}
+            </div>
+          )}
+          {!hasTarget && (
+            <p style={{ color:"#8FA3BE",fontSize:11,marginTop:4,lineHeight:1.4 }}>{ns.sub}</p>
+          )}
+        </div>
+        <button onClick={onEdit} style={{ background:"none",border:"none",cursor:"pointer",padding:4,flexShrink:0 }}>
+          <Pencil size={13} color="#6B8CB8"/>
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function HomeTab() {
   const { state, save, setTab, toast, reset } = useApp()
   const { assets, debts, income, spending, goals, profile, completedLessons, priorityGoals } = state
@@ -1505,12 +1672,15 @@ function HomeTab() {
   const hasIncome  = (income?.primary||0) > 0
   const safetyMonths = (bk.safetyNet > 0 && spending.monthly > 0) ? parseFloat((bk.safetyNet / spending.monthly).toFixed(1)) : null
   const fireNumber   = hasSpending ? spending.monthly * 12 * 25 : null
+  const runwayMonths = (bk.safetyNet > 0 && spending.monthly > 0) ? parseFloat((bk.safetyNet / spending.monthly).toFixed(1)) : 0
   const [showEdit, setShowEdit] = useState(false)
   const [showQuiz, setShowQuiz] = useState(false)
   const [showResult, setShowResult] = useState(false)
   const [activeTooltip, setActiveTooltip] = useState(null)
   const [expandNW, setExpandNW] = useState(false)
   const [expandProj, setExpandProj] = useState(false)
+  const [showNorthStar, setShowNorthStar] = useState(false)
+  const northStar = state.profile?.northStar || state.northStar
 
   const mode      = PRIORITY_MODES.find(m=>m.id===(profile?.mode||"grow")) || PRIORITY_MODES[0]
   const quizResult= profile?.personalityResult
@@ -1551,6 +1721,7 @@ function HomeTab() {
     { label:"Other debts",        color:T.muted,  value: debts.filter(d=>!["mortgage","primary_residence","personal_loan","loan","credit_card","credit","student_loan","student"].includes(d.category)).reduce((s,d)=>s+(d.balance||0),0) },
   ].filter(r=>r.value>0)
 
+  if(showNorthStar) return <NorthStarSelector onSelect={(star) => { save({...state, northStar: star}); setShowNorthStar(false) }} onClose={() => setShowNorthStar(false)}/>
   if(showQuiz)   return <PersonalityQuiz state={state} save={save} onClose={()=>setShowQuiz(false)}/>
   if(showResult) return <div style={{ position:"fixed",inset:0,background:T.bg,zIndex:300,overflowY:"auto" }}>
     <div style={{ padding:"24px 20px 60px",maxWidth:520,margin:"0 auto" }}>
@@ -1635,6 +1806,19 @@ function HomeTab() {
       </div>
 
       <div style={{ maxWidth:600, margin:"0 auto", padding:"0 16px" }}>
+
+        {/* ══ NORTH STAR ══ */}
+        {northStar && <NorthStarCard star={northStar} netWorth={netWorth} surplus={surplus} savings={bk.safetyNet} onEdit={() => setShowNorthStar(true)}/>}
+        {!northStar && hasNumbers && (
+          <button onClick={() => setShowNorthStar(true)} style={{ width:"100%",background:`linear-gradient(135deg,${T.teal}12,${T.purple}12)`,border:`1.5px solid ${T.tealBorder}`,borderRadius:18,padding:"18px 20px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",marginBottom:14,display:"flex",alignItems:"center",gap:14 }}>
+            <span style={{ fontSize:28 }}>🌟</span>
+            <div style={{ flex:1 }}>
+              <p style={{ color:T.white,fontWeight:900,fontSize:15,marginBottom:2 }}>Set your North Star</p>
+              <p style={{ color:"#C8D8EC",fontSize:12,lineHeight:1.4 }}>What are you working toward? Pick the one thing that matters most and we will help you track your progress.</p>
+            </div>
+            <ChevronRight size={18} color={T.teal}/>
+          </button>
+        )}
 
         {/* ══ SECTION 1: TWO TAPPABLE TILES ══ */}
         <div style={{ marginTop:18, marginBottom:12 }}>
@@ -1941,7 +2125,7 @@ function HomeTab() {
                   <p style={{ color:"#FFFFFF", fontWeight:800, fontSize:16, marginBottom:2 }}>
                     What type of investor are you?
                   </p>
-                  <p style={{ color:"rgba(167,139,250,.65)", fontSize:13 }}>8 archetypes · 12 questions</p>
+                  <p style={{ color:"rgba(167,139,250,.65)", fontSize:13 }}>10 types · 12 questions</p>
                 </div>
               </div>
               <div style={{ background:T.purple, borderRadius:12, padding:"10px 16px", flexShrink:0 }}>
@@ -2940,907 +3124,400 @@ function GoalsTab() {
 
 
 
+
 function AnalyticsTab() {
-  const { state, save, toast, setGlobalSheet } = useApp()
+  const { state, save, toast } = useApp()
   const [sheet, setSheet] = useState(null)
   const [editItem, setEditItem] = useState(null)
   const [showHealthQ, setShowHealthQ] = useState(false)
-  const [whatIfExtra, setWhatIfExtra] = useState(0)
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const [assetsConfirmed, setAssetsConfirmed] = useState(false)
+  const [spendingPhase, setSpendingPhase] = useState(state.spending?.breakdown && Object.keys(state.spending.breakdown).length > 0 ? "chart" : "locked")
+  const [whatIfExtra, setWhatIfExtra] = useState(100)
 
   const { totalAssets, totalDebts } = calcTotals(state.assets, state.debts)
   const netWorth = totalAssets - totalDebts
   const drag = totalInterestDrag(state.debts)
-  const totalIncome = calcIncome(state.income||{}, state.assets||[])
+  const totalIncome = calcIncome(state.income || {}, state.assets || [])
   const totalSpending = state.spending?.monthly || 0
   const surplus = totalIncome - totalSpending
   const age = state.profile?.age || 30
   const bench = ageBenchmark(age)
   const hq = state.healthAnswers || {}
+  const savingsRate = totalIncome > 0 ? Math.max(0, Math.round((surplus / totalIncome) * 100)) : 0
+  const productive = state.assets.filter(a => ["savings","investments","pension"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0)
+  const productivePct = totalAssets > 0 ? Math.round(productive / totalAssets * 100) : 0
+  const savingsVal = state.assets.filter(a => a.category === "savings").reduce((s,a)=>s+(a.value||0),0)
+  const emergencyMonths = totalSpending > 0 ? Math.round(savingsVal / totalSpending * 10) / 10 : 0
+  const interestEarned = state.assets.reduce((s,a)=>s+((a.value||0)*((a.annualReturn||0)/100)),0)
 
-  // Financial Health Score
-  function calcHealthScore() {
-    let score = 0, max = 0, answered = 0
-    max += 15; if (netWorth > 0) score += 15
-    max += 10; if (totalDebts === 0) score += 10; else if (!state.debts.some(d => d.interestRate > 15)) score += 5
-    max += 10; if (surplus > 0) score += Math.min(10, Math.round(surplus / Math.max(totalIncome,1) * 20))
-    max += 5; if (totalAssets > 0) score += 5
-    if (hq.emergencyFund !== undefined) { answered++; max += 15; if (hq.emergencyFund === "yes") score += 15; else if (hq.emergencyFund === "partial") score += 8 }
-    if (hq.pensionMatch !== undefined) { answered++; max += 12; if (hq.pensionMatch === "yes") score += 12; else if (hq.pensionMatch === "partial") score += 6 }
-    if (hq.investsMonthly !== undefined) { answered++; max += 12; if (hq.investsMonthly === "yes") score += 12 }
-    if (hq.hasBudget !== undefined) { answered++; max += 8; if (hq.hasBudget === "yes") score += 8 }
-    if (hq.hasWill !== undefined) { answered++; max += 6; if (hq.hasWill === "yes") score += 6 }
-    if (hq.hasProtection !== undefined) { answered++; max += 6; if (hq.hasProtection === "yes") score += 6 }
-    return { score: max > 0 ? Math.round((score / max) * 100) : 0, isPartial: answered < 6, answered, total: 6 }
-  }
+  function calcHealthScore(){let s=0,m=0,ans=0;m+=15;if(netWorth>0)s+=15;m+=10;if(totalDebts===0)s+=10;else if(!state.debts.some(d=>d.interestRate>15))s+=5;m+=10;if(surplus>0)s+=Math.min(10,Math.round(surplus/Math.max(totalIncome,1)*20));m+=5;if(totalAssets>0)s+=5;if(hq.emergencyFund!==undefined){ans++;m+=15;if(hq.emergencyFund==="yes")s+=15;else if(hq.emergencyFund==="partial")s+=8}if(hq.pensionMatch!==undefined){ans++;m+=12;if(hq.pensionMatch==="yes")s+=12;else if(hq.pensionMatch==="partial")s+=6}if(hq.investsMonthly!==undefined){ans++;m+=12;if(hq.investsMonthly==="yes")s+=12}if(hq.hasBudget!==undefined){ans++;m+=8;if(hq.hasBudget==="yes")s+=8}if(hq.hasWill!==undefined){ans++;m+=6;if(hq.hasWill==="yes")s+=6}if(hq.hasProtection!==undefined){ans++;m+=6;if(hq.hasProtection==="yes")s+=6}return{score:m>0?Math.round((s/m)*100):0,isPartial:ans<6,answered:ans,total:6}}
   const health = calcHealthScore()
   const healthColor = health.score >= 80 ? T.teal : health.score >= 60 ? T.green : health.score >= 35 ? T.amber : T.red
+  const ratio = bench && bench.median > 0 ? netWorth / bench.median : 0
+  const percentile = ratio <= 0 ? 15 : ratio < 0.5 ? 25 : ratio < 0.8 ? 35 : ratio < 1 ? 45 : ratio < 1.5 ? 60 : ratio < 2 ? 72 : ratio < 3 ? 82 : 90
 
-  // Daily Pulse
-  function getDailyInsight() {
-    const day = new Date().getDate()
-    const ins = []
-    if (drag > 0) ins.push({ icon: "💸", text: `Your debt costs you ${fmt(Math.round(drag / 365))}/day in interest. That is ${fmt(Math.round(drag))}/year leaving your wealth.`, color: T.red })
-    if (surplus > 0) ins.push({ icon: "🌱", text: `Your surplus of ${fmt(surplus)}/month becomes ${fmt(surplus * 12)}/year. Invested at 7% for 20 years, that could grow to roughly ${fmtK(Math.round(surplus * 12 * ((Math.pow(1.07, 20) - 1) / 0.07)))}.`, color: T.teal })
-    if (bench && netWorth > bench.median) ins.push({ icon: "🏆", text: `You are ${fmtK(netWorth - bench.median)} above the UK median net worth for your age. Keep tracking to stay ahead.`, color: T.green })
-    if (bench && netWorth < bench.median && netWorth !== 0) ins.push({ icon: "📈", text: `You are ${fmtK(bench.median - netWorth)} below the UK median for age ${age}. Completing your learning levels will help close this gap.`, color: T.amber })
-    if (totalSpending > 0 && totalIncome > 0) { const pct = Math.round(totalSpending / totalIncome * 100); ins.push({ icon: "📊", text: `You spend ${pct}% of your income. ${pct > 80 ? "Aim to bring this below 80% to build savings faster." : "You are within a healthy range."}`, color: pct > 80 ? T.amber : T.teal }) }
-    if (ins.length === 0) ins.push({ icon: "🚀", text: "Add your assets and income to unlock personalised insights about your financial health.", color: T.teal })
-    return ins[day % ins.length]
-  }
-  const pulse = getDailyInsight()
-
-  // Streak
-  const lastVisit = state.lastDashboardVisit || null
-  const today = new Date().toDateString()
-  const streak = state.dashboardStreak || 0
-  useEffect(() => {
-    if (lastVisit !== today) {
-      const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1)
-      const newStreak = lastVisit === yesterday.toDateString() ? streak + 1 : 1
-      save({ ...state, lastDashboardVisit: today, dashboardStreak: newStreak })
-    }
-  }, [])
-  const currentStreak = lastVisit === today ? streak : 1
-
-  // Asset/Debt CRUD
-  function saveAsset({ cat, name, val, monthlyIncome, hasLoan, loanBal, annualReturn, existingId, existingLinkedDebtId }) {
-    let nA = [...state.assets], nD = [...state.debts]
-    const aid = existingId || `a_${Date.now()}`
-    const ao = { id:aid, category:cat, name, value:val, monthlyIncome:monthlyIncome||0, linkedDebtId:existingLinkedDebtId||null, annualReturn:annualReturn||null }
-    if(existingId) nA = nA.map(a=>a.id===existingId?ao:a); else nA.push(ao)
-    if(hasLoan && loanBal>0) {
-      const t = DEBT_TYPES.find(x=>["mortgage","car_loan"].includes(x.cat)&&x.cat===cat)||DEBT_TYPES[0]
-      const did = existingLinkedDebtId||`d_linked_${Date.now()}`
-      const dobj = { id:did, category:cat==="primary_residence"?"mortgage":cat, name:`${name} loan`, balance:loanBal, interestRate:t?.assumedRate||4.5, linkedAssetId:aid, isAutoCreated:true }
-      nA = nA.map(a=>a.id===aid?{...a,linkedDebtId:did}:a)
-      if(existingLinkedDebtId) nD = nD.map(d=>d.id===existingLinkedDebtId?dobj:d); else nD.push(dobj)
-    }
-    const h=[...(state.history||[])]; const mk=new Date().toISOString().slice(0,7); const nw2=nA.reduce((s,a)=>s+(a.value||0),0)-nD.reduce((s,d)=>s+(d.balance||0),0)
-    const ex=h.findIndex(x=>x.month===mk); if(ex>=0)h[ex]={month:mk,netWorth:nw2}; else h.push({month:mk,netWorth:nw2})
-    save({...state,assets:nA,debts:nD,history:h}); toast(existingId?"✓ Updated":"✓ Added"); setSheet(null); setEditItem(null)
-  }
+  // CRUD
+  function saveAsset({cat,name,val,monthlyIncome,hasLoan,loanBal,annualReturn,existingId,existingLinkedDebtId}){let nA=[...state.assets],nD=[...state.debts];const aid=existingId||`a_${Date.now()}`;const ao={id:aid,category:cat,name,value:val,monthlyIncome:monthlyIncome||0,linkedDebtId:existingLinkedDebtId||null,annualReturn:annualReturn||null};if(existingId)nA=nA.map(a=>a.id===existingId?ao:a);else nA.push(ao);if(hasLoan&&loanBal>0){const t=DEBT_TYPES.find(x=>["mortgage","car_loan"].includes(x.cat)&&x.cat===cat)||DEBT_TYPES[0];const did=existingLinkedDebtId||`d_linked_${Date.now()}`;const dobj={id:did,category:cat==="primary_residence"?"mortgage":cat,name:`${name} loan`,balance:loanBal,interestRate:t?.assumedRate||4.5,linkedAssetId:aid,isAutoCreated:true};nA=nA.map(a=>a.id===aid?{...a,linkedDebtId:did}:a);if(existingLinkedDebtId)nD=nD.map(d=>d.id===existingLinkedDebtId?dobj:d);else nD.push(dobj)}const h=[...(state.history||[])];const mk=new Date().toISOString().slice(0,7);const nw2=nA.reduce((s,a)=>s+(a.value||0),0)-nD.reduce((s,d)=>s+(d.balance||0),0);const ex=h.findIndex(x=>x.month===mk);if(ex>=0)h[ex]={month:mk,netWorth:nw2};else h.push({month:mk,netWorth:nw2});save({...state,assets:nA,debts:nD,history:h});toast("Saved");setSheet(null);setEditItem(null)}
   function deleteAsset(a){if(!window.confirm(`Remove "${a.name}"?`))return;save({...state,assets:state.assets.filter(x=>x.id!==a.id),debts:a.linkedDebtId?state.debts.filter(d=>d.id!==a.linkedDebtId):state.debts});toast("Removed")}
-  function saveDebt({cat,name,bal,rate,minPayment,existingId}){
-    const t=DEBT_TYPES.find(x=>x.cat===cat); const dobj={id:existingId||`d_${Date.now()}`,category:cat,name,balance:bal,interestRate:rate||t?.assumedRate||10,minPayment:minPayment||0,linkedAssetId:null,isAutoCreated:false}
-    save({...state,debts:existingId?state.debts.map(d=>d.id===existingId?dobj:d):[...state.debts,dobj]});toast(existingId?"✓ Updated":"✓ Added");setSheet(null);setEditItem(null)
-  }
+  function saveDebt({cat,name,bal,rate,minPayment,existingId}){const t=DEBT_TYPES.find(x=>x.cat===cat);const dobj={id:existingId||`d_${Date.now()}`,category:cat,name,balance:bal,interestRate:rate||t?.assumedRate||10,minPayment:minPayment||0,linkedAssetId:null,isAutoCreated:false};save({...state,debts:existingId?state.debts.map(d=>d.id===existingId?dobj:d):[...state.debts,dobj]});toast("Saved");setSheet(null);setEditItem(null)}
   function deleteDebt(d){if(d.isAutoCreated){toast("Remove the linked asset instead");return};if(!window.confirm(`Remove "${d.name}"?`))return;save({...state,debts:state.debts.filter(x=>x.id!==d.id)});toast("Removed")}
 
-  // Asset groups
-  const assetGroups = [
-    {label:"Cash & Savings",icon:"💰",color:T.teal,value:state.assets.filter(a=>a.category==="savings").reduce((s,a)=>s+(a.value||0),0)},
-    {label:"Investments",icon:"📈",color:T.purple,value:state.assets.filter(a=>a.category==="investments").reduce((s,a)=>s+(a.value||0),0)},
-    {label:"Pension",icon:"🏛️",color:T.amber,value:state.assets.filter(a=>a.category==="pension").reduce((s,a)=>s+(a.value||0),0)},
-    {label:"Property",icon:"🏠",color:T.green,value:state.assets.filter(a=>["primary_residence","investment_property"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0)},
-    {label:"Other",icon:"📦",color:T.blue,value:state.assets.filter(a=>!["savings","investments","pension","primary_residence","investment_property"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0)},
-  ].filter(g=>g.value>0)
+  const lastVisit=state.lastDashboardVisit||null;const today=new Date().toDateString();const streak=state.dashboardStreak||0
+  useEffect(()=>{if(lastVisit!==today){const y=new Date();y.setDate(y.getDate()-1);save({...state,lastDashboardVisit:today,dashboardStreak:lastVisit===y.toDateString()?streak+1:1})}},[])
 
   // What-if
-  const wiYears=[5,10,20,30]
-  const wiData=wiYears.map(y=>({year:y,gain:Math.round(whatIfExtra*12*((Math.pow(1.07,y)-1)/0.07))}))
+  const wiMax = Math.max(30,70-(age||35)); const wiData = []
+  for(let y=0;y<=wiMax;y+=(wiMax>25?2:1)){const aS=Math.max(0,surplus)*12,aB=(Math.max(0,surplus)+whatIfExtra)*12;wiData.push({year:y,age:(age||35)+y,current:Math.round(netWorth*Math.pow(1.07,y)+aS*((Math.pow(1.07,y)-1)/0.07)),boosted:Math.round(netWorth*Math.pow(1.07,y)+aB*((Math.pow(1.07,y)-1)/0.07))})}
+  const fmtAx=v=>v>=1e6?`${(v/1e6).toFixed(1)}M`:v>=1000?`${(v/1000).toFixed(0)}k`:`${v}`
 
-  // Progress ring data
-  const emergencyTarget=totalSpending>0?totalSpending*3:3000
-  const savingsVal=state.assets.filter(a=>a.category==="savings").reduce((s,a)=>s+(a.value||0),0)
-  const emergencyPct=Math.min(100,Math.round(savingsVal/emergencyTarget*100))
-  const debtFreePct=totalDebts>0?Math.max(0,Math.round((1-totalDebts/Math.max(totalAssets,1))*100)):100
-  const investPct=hq.investsMonthly==="yes"?100:hq.investsMonthly===undefined?0:30
+  // FI
+  const fiNum=totalSpending>0?totalSpending*12*25:0;const fiProg=fiNum>0?Math.min(100,Math.round(productive/fiNum*100)):0
+  const coastFI=fiNum>0?Math.round(fiNum/Math.pow(1.07,Math.max(1,65-(age||35)))):0
+  let yearsToFI=null;if(surplus>0&&fiNum>productive)yearsToFI=Math.ceil(Math.log(1+(fiNum-productive)*0.07/(surplus*12))/Math.log(1.07))
 
-  // SVG components
-  function HealthArc({score,size=110}) {
-    const cx=size/2,cy=size/2,r=size*0.38,sw=size*0.09
-    const sa=-220,ea=40,ta=ea-sa,filled=ta*(score/100)
-    const toXY=a=>({x:cx+r*Math.cos(a*Math.PI/180),y:cy+r*Math.sin(a*Math.PI/180)})
-    const bs=toXY(sa),fe=toXY(sa+filled),be=toXY(ea)
-    return(<svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      <path d={`M${bs.x},${bs.y} A${r},${r} 0 ${ta>180?1:0},1 ${be.x},${be.y}`} fill="none" stroke={T.border} strokeWidth={sw} strokeLinecap="round"/>
-      {score>0&&<path d={`M${bs.x},${bs.y} A${r},${r} 0 ${filled>180?1:0},1 ${fe.x},${fe.y}`} fill="none" stroke={healthColor} strokeWidth={sw} strokeLinecap="round" style={{filter:`drop-shadow(0 0 6px ${healthColor}40)`}}/>}
-      <text x={cx} y={cy-4} textAnchor="middle" fill={healthColor} fontSize={size*0.24} fontWeight="900" fontFamily="DM Sans">{score}</text>
-      <text x={cx} y={cy+12} textAnchor="middle" fill="#6B8CB8" fontSize={size*0.07} fontWeight="700" fontFamily="DM Sans">{health.isPartial?"PARTIAL":"/ 100"}</text>
-    </svg>)
-  }
+  // HQ Sheet
+  function HQSheet(){const[ans,setAns]=useState({...hq});const QS=[{id:"emergencyFund",q:"Emergency fund (3+ months expenses)?",opts:[{v:"yes",l:"Yes"},{v:"partial",l:"Building"},{v:"no",l:"Not yet"}]},{id:"pensionMatch",q:"Employer pension match maximised?",opts:[{v:"yes",l:"Yes"},{v:"partial",l:"Partly"},{v:"no",l:"No / unsure"}]},{id:"investsMonthly",q:"Do you invest monthly?",opts:[{v:"yes",l:"Yes"},{v:"no",l:"Not yet"}]},{id:"hasBudget",q:"Track spending or follow a budget?",opts:[{v:"yes",l:"Yes"},{v:"no",l:"Not really"}]},{id:"hasWill",q:"Do you have a will?",opts:[{v:"yes",l:"Yes"},{v:"no",l:"No"}]},{id:"hasProtection",q:"Income protection or life insurance?",opts:[{v:"yes",l:"Yes"},{v:"no",l:"No"}]}];return(<Sheet title="Complete your health score" onClose={()=>setShowHealthQ(false)}><p style={{color:"#C8D8EC",fontSize:13,lineHeight:1.6,marginBottom:20}}>Six quick questions. Under a minute.</p>{QS.map((q,qi)=>(<div key={q.id} style={{marginBottom:16}}><p style={{color:T.white,fontWeight:700,fontSize:13,marginBottom:8}}>{qi+1}. {q.q}</p><div style={{display:"flex",gap:8}}>{q.opts.map(o=>(<button key={o.v} onClick={()=>setAns(p=>({...p,[q.id]:o.v}))} style={{flex:1,background:ans[q.id]===o.v?T.tealDim:T.card,border:`2px solid ${ans[q.id]===o.v?T.teal:T.border}`,borderRadius:12,padding:"10px 6px",cursor:"pointer",fontFamily:"inherit",color:ans[q.id]===o.v?T.teal:"#C8D8EC",fontWeight:600,fontSize:12}}>{o.l}</button>))}</div></div>))}<button onClick={()=>{save({...state,healthAnswers:ans});setShowHealthQ(false);toast("Score updated")}} style={{width:"100%",background:`linear-gradient(135deg,${T.teal},${T.tealMid})`,border:"none",borderRadius:14,padding:"16px",color:"#070D1A",fontWeight:800,fontSize:15,cursor:"pointer",fontFamily:"inherit"}}>Save & see my score</button></Sheet>)}
 
-  function Ring({pct,size=46,color,icon,label}){
-    const r=17,sw=3.5,c=2*Math.PI*r,off=c*(1-Math.min(pct,100)/100)
-    return(<div style={{textAlign:"center"}}>
-      <svg width={size} height={size} viewBox="0 0 46 46">
-        <circle cx="23" cy="23" r={r} fill="none" stroke={T.border} strokeWidth={sw}/>
-        <circle cx="23" cy="23" r={r} fill="none" stroke={color} strokeWidth={sw} strokeDasharray={c} strokeDashoffset={off} strokeLinecap="round" transform="rotate(-90 23 23)" style={{transition:"stroke-dashoffset .8s"}}/>
-        <text x="23" y="25" textAnchor="middle" fill={color} fontSize="11" fontWeight="800">{icon}</text>
-      </svg>
-      <p style={{color:"#C8D8EC",fontSize:9,marginTop:1,fontWeight:600}}>{label}</p>
-      <p style={{color,fontSize:9,fontWeight:700}}>{pct}%</p>
-    </div>)
-  }
-
-  // Health Questions Sheet
-  function HQSheet() {
-    const [ans, setAns] = useState({...hq})
-    const QS=[
-      {id:"emergencyFund",q:"Do you have an emergency fund (3+ months expenses)?",opts:[{v:"yes",l:"Yes"},{v:"partial",l:"Building"},{v:"no",l:"Not yet"}]},
-      {id:"pensionMatch",q:"Employer pension match maximised?",opts:[{v:"yes",l:"Yes"},{v:"partial",l:"Partly"},{v:"no",l:"No / unsure"}]},
-      {id:"investsMonthly",q:"Do you invest monthly (ISA, index fund)?",opts:[{v:"yes",l:"Yes"},{v:"no",l:"Not yet"}]},
-      {id:"hasBudget",q:"Do you track spending or follow a budget?",opts:[{v:"yes",l:"Yes"},{v:"no",l:"Not really"}]},
-      {id:"hasWill",q:"Do you have a will?",opts:[{v:"yes",l:"Yes"},{v:"no",l:"No"}]},
-      {id:"hasProtection",q:"Income protection or life insurance?",opts:[{v:"yes",l:"Yes"},{v:"no",l:"No"}]},
-    ]
-    return(<Sheet title="Unlock your full health score" onClose={()=>setShowHealthQ(false)}>
-      <p style={{color:"#C8D8EC",fontSize:13,lineHeight:1.6,marginBottom:20}}>Six quick questions to complete your financial health picture. Under a minute.</p>
-      {QS.map((q,qi)=>(<div key={q.id} style={{marginBottom:16}}>
-        <p style={{color:T.white,fontWeight:700,fontSize:13,marginBottom:8}}>{qi+1}. {q.q}</p>
-        <div style={{display:"flex",gap:8}}>
-          {q.opts.map(o=>(<button key={o.v} onClick={()=>setAns(p=>({...p,[q.id]:o.v}))}
-            style={{flex:1,background:ans[q.id]===o.v?`${T.teal}15`:T.card,border:`2px solid ${ans[q.id]===o.v?T.teal:T.border}`,borderRadius:12,padding:"10px 6px",cursor:"pointer",fontFamily:"inherit",color:ans[q.id]===o.v?T.teal:"#C8D8EC",fontWeight:600,fontSize:12}}>
-            {o.l}</button>))}
-        </div>
-      </div>))}
-      <button onClick={()=>{save({...state,healthAnswers:ans});setShowHealthQ(false);toast("✓ Score updated")}}
-        style={{width:"100%",background:`linear-gradient(135deg,${T.teal},${T.tealMid})`,border:"none",borderRadius:14,padding:"16px",color:"#070D1A",fontWeight:800,fontSize:15,cursor:"pointer",fontFamily:"inherit"}}>Save & see my score</button>
-    </Sheet>)
-  }
-
-  return(
-    <div style={{flex:1,overflowY:"auto",paddingBottom:100}}>
-      {showHealthQ&&<HQSheet/>}
-
-      {/* HEADER */}
-      <div style={{padding:"20px 20px 0",background:"linear-gradient(180deg,rgba(15,191,184,.06) 0%,transparent 100%)"}}>
-        <div style={{maxWidth:900,margin:"0 auto"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-            <div>
-              <p style={{color:T.teal,fontSize:10,fontWeight:800,letterSpacing:2,textTransform:"uppercase",marginBottom:2}}>Mission Control</p>
-              <p style={{color:"#6B8CB8",fontSize:11}}>Updated {new Date().toLocaleDateString("en-GB",{day:"numeric",month:"short"})}</p>
-            </div>
-            {currentStreak>1&&<div style={{display:"flex",alignItems:"center",gap:5,background:T.amberDim,border:`1px solid ${T.amberBorder}`,borderRadius:99,padding:"4px 10px"}}>
-              <span style={{fontSize:12}}>🔥</span><p style={{color:T.amber,fontWeight:800,fontSize:11}}>{currentStreak} day streak</p>
-            </div>}
-          </div>
-        </div>
-      </div>
-
-      <div style={{maxWidth:900,margin:"0 auto",padding:"10px 18px"}}>
-
-        {/* ROW 1: Big Three */}
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:12}}>
-          {/* Net Worth */}
-          <div style={{background:T.card,border:`1.5px solid ${netWorth>=0?T.tealBorder:T.redBorder}`,borderRadius:18,padding:"16px 14px",textAlign:"center"}}>
-            <p style={{color:"#6B8CB8",fontSize:9,fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:6}}>Net Worth</p>
-            <p style={{color:netWorth>=0?T.teal:T.red,fontWeight:900,fontSize:"clamp(20px,4vw,28px)",lineHeight:1,textShadow:`0 0 20px ${netWorth>=0?T.teal:T.red}25`}}>{fmtK(netWorth)}</p>
-            <div style={{display:"flex",justifyContent:"center",gap:10,marginTop:8}}>
-              <div><p style={{color:T.green,fontWeight:700,fontSize:11}}>{fmtK(totalAssets)}</p><p style={{color:"#4A6080",fontSize:8}}>assets</p></div>
-              <div style={{width:1,background:T.border}}/>
-              <div><p style={{color:totalDebts>0?T.red:"#6B8CB8",fontWeight:700,fontSize:11}}>{fmtK(totalDebts)}</p><p style={{color:"#4A6080",fontSize:8}}>debts</p></div>
-            </div>
-          </div>
-          {/* Surplus */}
-          <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:18,padding:"16px 14px",textAlign:"center"}}>
-            <p style={{color:"#6B8CB8",fontSize:9,fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:6}}>Monthly Surplus</p>
-            <p style={{color:surplus>=0?T.teal:T.red,fontWeight:900,fontSize:"clamp(20px,4vw,28px)",lineHeight:1}}>{fmtK(surplus)}</p>
-            <p style={{color:"#4A6080",fontSize:9,marginTop:6}}>per month</p>
-            {totalIncome>0&&<div style={{background:T.surface,borderRadius:99,height:3,marginTop:6,overflow:"hidden"}}><div style={{width:`${Math.min(100,Math.max(0,Math.round(surplus/totalIncome*100)))}%`,height:"100%",background:surplus>=0?T.teal:T.red,borderRadius:99}}/></div>}
-          </div>
-          {/* Health */}
-          <div onClick={()=>setShowHealthQ(true)} style={{background:T.card,border:`1.5px solid ${healthColor}25`,borderRadius:18,padding:"6px 6px 12px",textAlign:"center",cursor:"pointer"}}>
-            <HealthArc score={health.score} size={90}/>
-            {health.isPartial?
-              <button onClick={e=>{e.stopPropagation();setShowHealthQ(true)}} style={{background:`${healthColor}12`,border:`1px solid ${healthColor}25`,borderRadius:8,padding:"3px 8px",cursor:"pointer",fontFamily:"inherit",color:healthColor,fontWeight:700,fontSize:9}}>Unlock full score →</button>:
-              <p style={{color:"#4A6080",fontSize:8}}>Tap to update</p>}
-          </div>
-        </div>
-
-        {/* DAILY PULSE */}
-        <div style={{background:`${pulse.color}08`,border:`1px solid ${pulse.color}20`,borderRadius:14,padding:"12px 14px",marginBottom:12,display:"flex",alignItems:"flex-start",gap:10}}>
-          <span style={{fontSize:18,flexShrink:0}}>{pulse.icon}</span>
-          <div style={{flex:1}}>
-            <p style={{color:"#4A6080",fontSize:8,fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:3}}>Today's Insight</p>
-            <p style={{color:"#E2EAF6",fontSize:12,lineHeight:1.5}}>{pulse.text}</p>
-          </div>
-        </div>
-
-        {/* ROW 2: Assets + Debts */}
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
-          {/* Assets */}
-          <div>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-              <p style={{color:T.green,fontWeight:800,fontSize:12}}>Assets · {fmtK(totalAssets)}</p>
-              <button onClick={()=>setGlobalSheet({type:"asset",item:null})} style={{background:T.tealDim,border:`1px solid ${T.tealBorder}`,borderRadius:8,padding:"3px 8px",color:T.teal,fontWeight:700,fontSize:10,cursor:"pointer",fontFamily:"inherit"}}>+</button>
-            </div>
-            <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:14,overflow:"hidden",marginBottom:6}}>
-              {state.assets.length===0?
-                <button onClick={()=>{setEditItem(null);setSheet("asset")}} style={{width:"100%",background:"transparent",border:"none",padding:"16px",textAlign:"center",cursor:"pointer",fontFamily:"inherit"}}><p style={{color:"#4A6080",fontSize:11}}>+ Add first asset</p></button>:
-                state.assets.map((a,i)=>(
-                  <div key={a.id} onClick={()=>setGlobalSheet({type:"asset",item:a})} style={{display:"flex",alignItems:"center",gap:6,padding:"8px 10px",borderBottom:i<state.assets.length-1?`1px solid ${T.border}`:"none",cursor:"pointer"}}>
-                    <span style={{fontSize:13}}>{ASSET_TYPES.find(t=>t.cat===a.category||t.id===a.category)?.icon||"📦"}</span>
-                    <p style={{color:"#E2EAF6",fontWeight:600,fontSize:11,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{a.name}</p>
-                    <p style={{color:T.green,fontWeight:800,fontSize:11}}>{fmtK(a.value)}</p>
-                  </div>
-                ))}
-            </div>
-            <div style={{marginTop:8}}>
-              <AssetBreakdownChart assets={state.assets} totalAssets={totalAssets} onConfirmAssets={()=>{}}/>
-            </div>
-          </div>
-          {/* Debts */}
-          <div>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-              <p style={{color:totalDebts>0?T.red:"#6B8CB8",fontWeight:800,fontSize:12}}>Debts · {fmtK(totalDebts)}</p>
-              <button onClick={()=>setGlobalSheet({type:"debt",item:null})} style={{background:T.redDim,border:`1px solid ${T.redBorder}`,borderRadius:8,padding:"3px 8px",color:T.red,fontWeight:700,fontSize:10,cursor:"pointer",fontFamily:"inherit"}}>+</button>
-            </div>
-            <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:14,overflow:"hidden",marginBottom:6}}>
-              {state.debts.length===0?
-                <div style={{padding:"16px",textAlign:"center"}}><p style={{color:"#4A6080",fontSize:11}}>No debts ✓</p></div>:
-                state.debts.map((d,i)=>(
-                  <div key={d.id} onClick={()=>setGlobalSheet({type:"debt",item:d})} style={{display:"flex",alignItems:"center",gap:6,padding:"8px 10px",borderBottom:i<state.debts.length-1?`1px solid ${T.border}`:"none",cursor:"pointer",background:d.interestRate>15?"rgba(248,113,113,.03)":"transparent"}}>
-                    <span style={{fontSize:13}}>{DEBT_TYPES.find(t=>t.cat===d.category||t.id===d.category)?.icon||"💳"}</span>
-                    <div style={{flex:1,minWidth:0}}>
-                      <p style={{color:"#E2EAF6",fontWeight:600,fontSize:11}}>{d.name}</p>
-                      <p style={{color:d.interestRate>15?T.red:"#4A6080",fontSize:9}}>{d.interestRate}% APR</p>
-                    </div>
-                    <p style={{color:T.red,fontWeight:800,fontSize:11}}>{fmtK(d.balance)}</p>
-                  </div>
-                ))}
-            </div>
-            {drag>0&&<div style={{background:T.redDim,border:`1px solid ${T.redBorder}`,borderRadius:12,padding:"10px"}}>
-              <p style={{color:T.red,fontWeight:800,fontSize:12}}>💸 {fmt(Math.round(drag))}/yr in interest</p>
-              <p style={{color:"#C8D8EC",fontSize:9,marginTop:2}}>That is {fmt(Math.round(drag/12))}/month working against you</p>
-            </div>}
-          </div>
-        </div>
-
-        {/* ROW 3: Cash Flow + Goals */}
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
-          {/* Cash flow */}
-          <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:"14px"}}>
-            <p style={{color:"#6B8CB8",fontSize:9,fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:8}}>Cash Flow</p>
-            <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
-              <div><p style={{color:T.teal,fontWeight:800,fontSize:15}}>{fmt(totalIncome)}</p><p style={{color:"#4A6080",fontSize:8}}>in/mo</p></div>
-              <div style={{textAlign:"right"}}><p style={{color:T.amber,fontWeight:800,fontSize:15}}>{fmt(totalSpending)}</p><p style={{color:"#4A6080",fontSize:8}}>out/mo</p></div>
-            </div>
-            <div style={{position:"relative",height:16,background:T.surface,borderRadius:8,overflow:"hidden",marginBottom:6}}>
-              {totalIncome>0&&<>
-                <div style={{position:"absolute",left:0,top:0,bottom:0,width:`${Math.min(100,Math.round(totalSpending/totalIncome*100))}%`,background:`linear-gradient(90deg,${T.amber}60,${T.amber}30)`,borderRadius:8}}/>
-                {surplus>0&&<div style={{position:"absolute",right:0,top:0,bottom:0,width:`${Math.round(surplus/totalIncome*100)}%`,background:`linear-gradient(90deg,${T.teal}30,${T.teal}60)`,borderRadius:"0 8px 8px 0"}}/>}
-              </>}
-            </div>
-            <div style={{display:"flex",justifyContent:"space-between"}}>
-              <p style={{color:T.amber,fontSize:8}}>Spend {totalIncome>0?Math.round(totalSpending/totalIncome*100):0}%</p>
-              <p style={{color:T.teal,fontSize:8}}>Surplus {totalIncome>0?Math.max(0,Math.round(surplus/totalIncome*100)):0}%</p>
-            </div>
-          </div>
-          {/* Progress Rings */}
-          <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:"14px"}}>
-            <p style={{color:"#6B8CB8",fontSize:9,fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:8}}>Progress</p>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:2}}>
-              <Ring pct={emergencyPct} color={emergencyPct>=100?T.green:T.amber} label="Safety net" icon="🛡️"/>
-              <Ring pct={debtFreePct} color={totalDebts===0?T.green:T.red} label="Debt free" icon="⚡"/>
-              <Ring pct={investPct} color={investPct>=100?T.teal:T.purple} label="Investing" icon="📈"/>
-            </div>
-          </div>
-        </div>
-
-        {/* ROW 4: What If + Comparison */}
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
-          {/* What if */}
-          <div style={{background:T.card,border:`1.5px solid ${T.tealBorder}`,borderRadius:16,padding:"14px"}}>
-            <p style={{color:T.teal,fontWeight:800,fontSize:12,marginBottom:3}}>🔮 What If?</p>
-            <p style={{color:"#6B8CB8",fontSize:9,marginBottom:8}}>Extra savings per month</p>
-            <input type="range" min="0" max="500" step="25" value={whatIfExtra} onChange={e=>setWhatIfExtra(Number(e.target.value))}
-              style={{width:"100%",accentColor:T.teal,marginBottom:4}}/>
-            <p style={{color:T.teal,fontWeight:900,fontSize:18,textAlign:"center"}}>+£{whatIfExtra}/mo</p>
-            {whatIfExtra>0&&<div style={{marginTop:8}}>
-              {wiData.map(d=><div key={d.year} style={{display:"flex",justifyContent:"space-between",marginBottom:3}}>
-                <p style={{color:"#6B8CB8",fontSize:9}}>{d.year}yr</p>
-                <p style={{color:T.teal,fontWeight:700,fontSize:9}}>+{fmtK(d.gain)}</p>
-              </div>)}
-            </div>}
-          </div>
-          {/* Comparison */}
-          <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:"14px"}}>
-            <p style={{color:"#6B8CB8",fontSize:9,fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:8}}>👥 How You Compare</p>
-            {bench?<div>
-              <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
-                <div><p style={{color:T.teal,fontWeight:900,fontSize:16}}>{fmtK(netWorth)}</p><p style={{color:"#4A6080",fontSize:8}}>You</p></div>
-                <div style={{textAlign:"right"}}><p style={{color:T.muted,fontWeight:700,fontSize:16}}>{fmtK(bench.median)}</p><p style={{color:"#4A6080",fontSize:8}}>UK ({age})</p></div>
-              </div>
-              <div style={{background:T.surface,borderRadius:99,height:6,overflow:"hidden",position:"relative",marginBottom:6}}>
-                <div style={{width:`${Math.min(100,bench.median>0?Math.round(Math.min(netWorth,bench.median*2)/(bench.median*2)*100):50)}%`,height:"100%",background:netWorth>=bench.median?T.teal:T.amber,borderRadius:99}}/>
-                <div style={{position:"absolute",left:"50%",top:-1,bottom:-1,width:2,background:"#6B8CB8"}}/>
-              </div>
-              <p style={{color:"#C8D8EC",fontSize:10,lineHeight:1.3}}>{netWorth>=bench.median?`${fmtK(netWorth-bench.median)} above median.`:`${fmtK(bench.median-netWorth)} below. Tracking helps close the gap.`}</p>
-            </div>:<p style={{color:"#4A6080",fontSize:10,textAlign:"center",padding:"12px 0"}}>Set age in profile to compare</p>}
-          </div>
-        </div>
-
-        {/* ROW 5: Momentum */}
-        <NetWorthMomentumChart state={state}/>
-      </div>
-    </div>
-  )
-}
-
-/* ════════════════════════════════════════════════════════════════════
-   ANALYTICS CHARTS, Asset Breakdown, Spending Breakdown, NW Momentum
-   ════════════════════════════════════════════════════════════════════ */
-
-// PieChart-style donut using SVG (no extra recharts imports needed)
-function DonutChart({ segments, size=120 }) {
-  const total = segments.reduce((s,x)=>s+x.value,0)
-  if(total===0) return null
-  const cx=size/2, cy=size/2, r=size*0.38, strokeW=size*0.18
-  let cumAngle=-90
-  const arcs = segments.map(seg=>{
-    const pct = seg.value/total
-    const startAngle = cumAngle
-    const sweep = pct*360
-    cumAngle += sweep
-    const start = polarToXY(cx,cy,r,startAngle)
-    const end   = polarToXY(cx,cy,r,startAngle+sweep-0.5)
-    const large = sweep>180?1:0
-    return { ...seg, d:`M${start.x},${start.y} A${r},${r} 0 ${large},1 ${end.x},${end.y}`, pct }
-  })
-  return (
-    <svg width={size} height={size} style={{ overflow:"visible" }}>
-      {arcs.map((a,i)=>(
-        <path key={i} d={a.d} fill="none" stroke={a.color} strokeWidth={strokeW} strokeLinecap="butt"/>
-      ))}
-    </svg>
-  )
-}
-function polarToXY(cx,cy,r,angleDeg){
-  const rad=((angleDeg-0)*Math.PI)/180
-  return { x: cx+r*Math.cos(rad), y: cy+r*Math.sin(rad) }
-}
-
-/* ── 1. Asset Breakdown Chart ─────────────────────────────────────── */
-function AssetBreakdownChart({ assets, totalAssets, onConfirmAssets }) {
-  const [confirmed, setConfirmed] = useState(false)
-
-  const liquid     = assets.filter(a=>["savings","cash"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0)
-  const productive = assets.filter(a=>["investments","stocks","pension","investment_property","rental","business"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0)
-  const lifestyle  = assets.filter(a=>["primary_residence","vehicle","other"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0)
-
-  const segments = [
-    { label:"Liquid",      value:liquid,      color:T.teal,   desc:"Cash and savings — your accessible money" },
-    { label:"Productive",  value:productive,  color:T.green,  desc:"Investments, pension, property that earns — grows over time" },
-    { label:"Lifestyle",   value:lifestyle,   color:T.amber,  desc:"Home, car, other — has value but doesn't grow predictably" },
-  ].filter(s=>s.value>0)
-
-  const hasData = assets.length>0 && totalAssets>0
-
-  const demoSegs = [
-    { label:"Liquid", value:20, color:T.teal },
-    { label:"Productive", value:50, color:T.green },
-    { label:"Lifestyle", value:30, color:T.amber },
-  ]
+  function SmallDonut({segments,size=90}){const total=segments.reduce((s,x)=>s+x.value,0);if(total===0)return null;const cx=size/2,cy=size/2,r=size*0.38,sw=size*0.18;let cum=-90;const toXY=a=>({x:cx+r*Math.cos(a*Math.PI/180),y:cy+r*Math.sin(a*Math.PI/180)});const arcs=segments.map(seg=>{const sweep=(seg.value/total)*360,start=cum;cum+=sweep;const s=toXY(start),e=toXY(start+sweep-0.5);return{...seg,d:`M${s.x},${s.y} A${r},${r} 0 ${sweep>180?1:0},1 ${e.x},${e.y}`}});return <svg width={size} height={size} style={{overflow:"visible"}}>{arcs.map((a,i)=><path key={i} d={a.d} fill="none" stroke={a.color} strokeWidth={sw}/>)}</svg>}
 
   return (
-    <div style={{ background:T.card,border:`1.5px solid ${confirmed?T.tealBorder:T.border}`,borderRadius:20,overflow:"hidden",marginBottom:12 }}>
-      <div style={{ padding:"16px 18px",borderBottom:`1px solid ${T.border}` }}>
-        <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
-          <div>
-            <p style={{ color:T.white,fontWeight:800,fontSize:14 }}>Asset breakdown</p>
-            <p style={{ color:T.muted,fontSize:11 }}>Liquid · Productive · Lifestyle</p>
-          </div>
-          {hasData && !confirmed && (
-            <button onClick={()=>setConfirmed(true)}
-              style={{ background:T.tealDim,border:`1px solid ${T.tealBorder}`,borderRadius:10,
-                padding:"6px 12px",color:T.teal,fontWeight:700,fontSize:12,cursor:"pointer",fontFamily:"inherit" }}>
-              Confirm →
-            </button>
-          )}
-        </div>
-      </div>
+    <>
+      <div style={{flex:1,overflowY:"auto",paddingBottom:100}}>
+        <div style={{maxWidth:900,margin:"0 auto",padding:"14px 18px"}}>
 
-      <div style={{ padding:"16px 18px",position:"relative" }}>
-        {!confirmed && (
-          <div style={{ filter:"blur(5px)",opacity:.45,pointerEvents:"none",userSelect:"none" }}>
-            <div style={{ display:"flex",gap:18,alignItems:"center" }}>
-              <DonutChart segments={demoSegs} size={90}/>
-              <div style={{ flex:1 }}>
-                {demoSegs.map(s=>(
-                  <div key={s.label} style={{ display:"flex",justifyContent:"space-between",marginBottom:6 }}>
-                    <div style={{ display:"flex",alignItems:"center",gap:6 }}>
-                      <div style={{ width:7,height:7,borderRadius:"50%",background:s.color }}/>
-                      <p style={{ color:"#E2EAF6",fontSize:12 }}>{s.label}</p>
-                    </div>
-                    <p style={{ color:s.color,fontWeight:700,fontSize:12 }}>{s.value}%</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-        {!confirmed && hasData && (
-          <div style={{ position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:8 }}>
-            <p style={{ color:T.white,fontWeight:700,fontSize:13,textAlign:"center" }}>Confirm your assets to unlock</p>
-            <button onClick={()=>setConfirmed(true)}
-              style={{ background:T.teal,border:"none",borderRadius:12,padding:"10px 22px",color:T.bg,fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit" }}>
-              Confirm assets →
-            </button>
-          </div>
-        )}
-        {!confirmed && !hasData && (
-          <p style={{ color:T.muted,fontSize:13,textAlign:"center",padding:"12px 0" }}>Add assets to unlock</p>
-        )}
-
-        {confirmed && segments.length>0 && (
-          <div>
-            <div style={{ display:"flex",gap:18,alignItems:"center",marginBottom:16 }}>
-              <div style={{ position:"relative",flexShrink:0 }}>
-                <DonutChart segments={segments} size={100}/>
-                <div style={{ position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center" }}>
-                  <p style={{ color:T.white,fontWeight:900,fontSize:11,textAlign:"center" }}>{segments.length}<br/>types</p>
-                </div>
-              </div>
-              <div style={{ flex:1 }}>
-                {segments.map(s=>{
-                  const pct = totalAssets>0 ? Math.round((s.value/totalAssets)*100) : 0
-                  return (
-                    <div key={s.label} style={{ marginBottom:10 }}>
-                      <div style={{ display:"flex",justifyContent:"space-between",marginBottom:4 }}>
-                        <div style={{ display:"flex",alignItems:"center",gap:6 }}>
-                          <div style={{ width:7,height:7,borderRadius:"50%",background:s.color }}/>
-                          <p style={{ color:"#E2EAF6",fontSize:12 }}>{s.label}</p>
-                        </div>
-                        <div style={{ display:"flex",gap:8 }}>
-                          <p style={{ color:"#8FA3BE",fontSize:11 }}>{fmt(s.value)}</p>
-                          <p style={{ color:s.color,fontWeight:700,fontSize:12 }}>{pct}%</p>
-                        </div>
-                      </div>
-                      <div style={{ background:"rgba(255,255,255,.06)",borderRadius:99,height:5 }}>
-                        <div style={{ width:`${pct}%`,height:"100%",background:s.color,borderRadius:99,transition:"width .5s" }}/>
-                      </div>
-                      <p style={{ color:"#4A6080",fontSize:10,marginTop:3,lineHeight:1.4 }}>{s.desc}</p>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-            {productive < lifestyle && (
-              <div style={{ background:"rgba(245,158,11,.08)",border:"1px solid rgba(245,158,11,.2)",borderRadius:12,padding:"10px 12px" }}>
-                <p style={{ color:T.amber,fontSize:12,fontWeight:700,marginBottom:2 }}>Lifestyle heavy</p>
-                <p style={{ color:"#C8D8EC",fontSize:11,lineHeight:1.5 }}>
-                  More of your wealth is in lifestyle assets than productive ones. Over time, shift more into investments, pension and ISA.
-                </p>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-function SpendingBreakdownChart({ state, save }) {
-  const [phase, setPhase] = useState("locked") // locked | demo | input | chart
-  const [amounts, setAmounts] = useState({})
-  const savedBreakdown = state.spending?.breakdown || null
-
-  // Load saved breakdown on mount
-  useState(()=>{ if(savedBreakdown){ setAmounts(savedBreakdown); setPhase("chart") } },[])
-
-  const totalInput = Object.values(amounts).reduce((s,v)=>s+(parseFloat(v)||0),0)
-  const monthly = state.spending?.monthly || 0
-
-  const bucketTotals = { needs:0, wants:0, savings:0 }
-  SPEND_CATS.forEach(c=>{ bucketTotals[c.bucket] += parseFloat(amounts[c.id])||0 })
-
-  const chartSegs = Object.entries(bucketTotals)
-    .filter(([,v])=>v>0)
-    .map(([k,v])=>({ label:BUCKET_LABELS[k], value:v, color:BUCKET_COLORS[k] }))
-
-  function saveBreakdown(){
-    save({ ...state, spending:{ ...state.spending, breakdown:amounts } })
-    setPhase("chart")
-  }
-
-  // DEMO PIE data
-  const demoSegs = [
-    { label:"Needs",   value:50, color:T.amber  },
-    { label:"Wants",   value:30, color:T.purple  },
-    { label:"Savings", value:20, color:T.teal    },
-  ]
-
-  return (
-    <div style={{ background:T.card,border:`1.5px solid ${phase==="chart"?T.purpleBorder:T.border}`,borderRadius:20,marginBottom:14,overflow:"hidden" }}>
-      {/* Header */}
-      <div style={{ padding:"18px 20px",cursor:phase==="locked"?"pointer":"default" }}
-        onClick={()=>{ if(phase==="locked") setPhase("demo") }}>
-        <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
-          <div style={{ display:"flex",alignItems:"center",gap:10 }}>
-            <div style={{ width:36,height:36,borderRadius:10,background:T.purpleDim,border:`1px solid ${T.purpleBorder}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18 }}>🥧</div>
-            <div>
-              <p style={{ color:T.white,fontWeight:800,fontSize:14 }}>Spending breakdown</p>
-              <p style={{ color:T.muted,fontSize:11 }}>Needs · Wants · Savings</p>
-            </div>
-          </div>
-          {phase==="locked" && <span style={{ background:T.purpleDim,color:T.purple,fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:99,border:`1px solid ${T.purpleBorder}` }}>Tap to unlock</span>}
-          {phase==="chart" && <button onClick={()=>setPhase("input")} style={{ background:"none",border:"none",color:T.purple,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>Edit →</button>}
-        </div>
-      </div>
-
-      {/* LOCKED, blurred preview */}
-      {phase==="locked" && (
-        <div style={{ padding:"0 20px 18px",position:"relative" }}>
-          <div style={{ filter:"blur(6px)",opacity:.4,pointerEvents:"none",userSelect:"none",display:"flex",alignItems:"center",gap:16 }}>
-            <DonutChart segments={demoSegs} size={90}/>
-            <div style={{ flex:1 }}>
-              {demoSegs.map(s=>(
-                <div key={s.label} style={{ display:"flex",justifyContent:"space-between",marginBottom:6 }}>
-                  <p style={{ color:"#E2EAF6",fontSize:12 }}>{s.label}</p>
-                  <p style={{ color:s.color,fontWeight:700,fontSize:12 }}>{s.value}%</p>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div style={{ position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:8 }}>
-            <p style={{ color:T.white,fontWeight:700,fontSize:13,textAlign:"center" }}>Categorise your spending to unlock</p>
-            <button onClick={()=>setPhase("demo")}
-              style={{ background:T.purple,border:"none",borderRadius:12,padding:"8px 18px",color:T.bg,fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit" }}>
-              See how it works →
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* DEMO, show example chart, explain, then offer to start */}
-      {phase==="demo" && (
-        <div className="ls-fadein" style={{ padding:"0 20px 20px" }}>
-          <p style={{ color:"#D8E8F8",fontSize:14,lineHeight:1.65,marginBottom:16 }}>
-            The 50/30/20 rule is a simple way to see if your money is working well. Here's what a healthy split looks like:
-          </p>
-          <div style={{ display:"flex",alignItems:"center",gap:20,marginBottom:16 }}>
-            <div style={{ position:"relative",width:110,height:110,flexShrink:0 }}>
-              <DonutChart segments={demoSegs} size={110}/>
-              <div style={{ position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center" }}>
-                <p style={{ color:T.white,fontWeight:900,fontSize:11 }}>50/30/20</p>
-              </div>
-            </div>
-            <div style={{ flex:1 }}>
-              {[
-                { label:"50% Needs",   desc:"Housing, food, bills, transport",  color:T.amber  },
-                { label:"30% Wants",   desc:"Eating out, shopping, leisure",    color:T.purple },
-                { label:"20% Savings", desc:"Investments, pension, emergency",  color:T.teal   },
-              ].map(s=>(
-                <div key={s.label} style={{ marginBottom:10 }}>
-                  <p style={{ color:s.color,fontWeight:700,fontSize:12,marginBottom:2 }}>{s.label}</p>
-                  <p style={{ color:T.muted,fontSize:11 }}>{s.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-          <p style={{ color:"#8FA3BE",fontSize:12,marginBottom:14 }}>Takes 2 minutes. You only need rough numbers.</p>
-          <div style={{ display:"flex",gap:10 }}>
-            <button onClick={()=>setPhase("input")}
-              style={{ flex:1,background:T.purple,border:"none",borderRadius:12,padding:"11px",color:T.bg,fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit" }}>
-              Categorise my spending →
-            </button>
-            <button onClick={()=>setPhase("locked")}
-              style={{ background:"none",border:`1px solid ${T.border}`,borderRadius:12,padding:"11px 14px",color:T.muted,fontWeight:600,fontSize:13,cursor:"pointer",fontFamily:"inherit" }}>
-              Later
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* INPUT, category entry */}
-      {phase==="input" && (
-        <div className="ls-fadein" style={{ padding:"0 20px 20px" }}>
-          <p style={{ color:"#E2EAF6",fontSize:13,marginBottom:4 }}>Enter your rough monthly amounts. Estimates are fine.</p>
-          {monthly>0 && <p style={{ color:T.teal,fontSize:12,fontWeight:700,marginBottom:14 }}>Your total monthly spend: {fmt(monthly)}</p>}
-          <div style={{ display:"flex",flexDirection:"column",gap:8,marginBottom:16 }}>
-            {SPEND_CATS.map(cat=>(
-              <div key={cat.id} style={{ display:"flex",alignItems:"center",gap:12,background:T.surface,borderRadius:12,padding:"10px 14px" }}>
-                <span style={{ fontSize:16,width:22,textAlign:"center" }}>{cat.icon}</span>
-                <p style={{ flex:1,color:"#E2EAF6",fontSize:13 }}>{cat.label}</p>
-                <div style={{ display:"flex",alignItems:"center",gap:4 }}>
-                  <span style={{ color:T.muted,fontSize:14 }}>£</span>
-                  <input type="number" min="0" placeholder="0"
-                    value={amounts[cat.id]||""}
-                    onChange={e=>setAmounts(v=>({...v,[cat.id]:e.target.value}))}
-                    style={{ width:70,background:"none",border:`1px solid ${T.border}`,borderRadius:8,padding:"5px 8px",color:T.white,fontSize:13,fontFamily:"inherit",textAlign:"right" }}/>
-                </div>
-                <div style={{ width:8,height:8,borderRadius:"50%",background:BUCKET_COLORS[cat.bucket],flexShrink:0 }}/>
-              </div>
-            ))}
-          </div>
-          {totalInput>0 && (
-            <div style={{ background:T.surface,borderRadius:12,padding:"10px 14px",marginBottom:14 }}>
-              <p style={{ color:"#E2EAF6",fontSize:12 }}>Total entered: <strong style={{ color:T.white }}>{fmt(totalInput)}/mo</strong></p>
-            </div>
-          )}
-          <div style={{ display:"flex",gap:10 }}>
-            <button onClick={saveBreakdown}
-              style={{ flex:1,background:T.purple,border:"none",borderRadius:12,padding:"11px",color:T.bg,fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit" }}>
-              Save breakdown
-            </button>
-            <button onClick={()=>setPhase(savedBreakdown?"chart":"locked")}
-              style={{ background:"none",border:`1px solid ${T.border}`,borderRadius:12,padding:"11px 14px",color:T.muted,fontWeight:600,fontSize:13,cursor:"pointer",fontFamily:"inherit" }}>
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* CHART, real breakdown */}
-      {phase==="chart" && chartSegs.length>0 && (
-        <div className="ls-fadein" style={{ padding:"0 20px 20px" }}>
-          <div style={{ display:"flex",alignItems:"center",gap:20,marginBottom:14 }}>
-            <div style={{ position:"relative",width:110,height:110,flexShrink:0 }}>
-              <DonutChart segments={chartSegs} size={110}/>
-              <div style={{ position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center" }}>
-                <p style={{ color:T.white,fontWeight:900,fontSize:11 }}>{fmt(totalInput)}</p>
-                <p style={{ color:T.muted,fontSize:9 }}>/month</p>
-              </div>
-            </div>
-            <div style={{ flex:1 }}>
-              {chartSegs.map(s=>(
-                <div key={s.label} style={{ marginBottom:10 }}>
-                  <div style={{ display:"flex",justifyContent:"space-between",marginBottom:3 }}>
-                    <div style={{ display:"flex",alignItems:"center",gap:6 }}>
-                      <div style={{ width:8,height:8,borderRadius:"50%",background:s.color,flexShrink:0 }}/>
-                      <p style={{ color:"#E2EAF6",fontSize:12 }}>{s.label}</p>
-                    </div>
-                    <p style={{ color:s.color,fontWeight:800,fontSize:12 }}>{Math.round(s.value/totalInput*100)}%</p>
-                  </div>
-                  <div style={{ background:T.surface,borderRadius:99,height:6,overflow:"hidden" }}>
-                    <div style={{ width:`${Math.round(s.value/totalInput*100)}%`,height:"100%",background:s.color,borderRadius:99,transition:"width .6s" }}/>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          {/* 50/30/20 nudge */}
+          {/* ═══ MONTHLY CHECK-IN ═══ */}
           {(() => {
-            const needsPct = Math.round((bucketTotals.needs||0)/totalInput*100)||0
-            const wantsPct = Math.round((bucketTotals.wants||0)/totalInput*100)||0
-            const savePct  = Math.round((bucketTotals.savings||0)/totalInput*100)||0
-            if(totalInput===0) return null
-            const msgs = []
-            if(needsPct>60) msgs.push("Your needs are over 60%, look for ways to reduce fixed costs like rent or subscriptions.")
-            if(wantsPct>35) msgs.push("Wants are high. Even trimming £100/mo here adds £1,200/yr to your savings.")
-            if(savePct<10)  msgs.push("Less than 10% going to savings. Aim for 20% as a long-term goal.")
-            if(msgs.length===0) msgs.push("Your split looks healthy. Keep it up.")
-            return <div style={{ background:T.surface,borderRadius:12,padding:"10px 14px" }}>
-              <p style={{ color:"#E2EAF6",fontSize:12,lineHeight:1.55 }}>{msgs[0]}</p>
-            </div>
+            const lastUpdate = (state.history||[]).length > 0 ? state.history[state.history.length-1].month : null
+            const currentMonth = new Date().toISOString().slice(0,7)
+            const needsUpdate = !lastUpdate || lastUpdate !== currentMonth
+            if (!needsUpdate || state.assets.length === 0) return null
+            return (
+              <div onClick={() => {
+                const h = [...(state.history||[])]; const mk = currentMonth
+                const ex = h.findIndex(x=>x.month===mk); if(ex>=0)h[ex]={month:mk,netWorth:netWorth}; else h.push({month:mk,netWorth:netWorth})
+                save({...state, history:h}); toast("Monthly snapshot saved")
+              }} style={{ background:`${T.teal}08`, border:`1.5px solid ${T.tealBorder}`, borderRadius:14, padding:"14px 16px", marginBottom:12, cursor:"pointer", display:"flex", alignItems:"center", gap:12 }}>
+                <div style={{ width:36,height:36,borderRadius:10,background:T.tealDim,border:`1px solid ${T.tealBorder}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0 }}>📸</div>
+                <div style={{ flex:1 }}>
+                  <p style={{ color:T.white,fontWeight:800,fontSize:13 }}>Monthly snapshot ready</p>
+                  <p style={{ color:"#C8D8EC",fontSize:11 }}>Tap to record your net worth for {new Date().toLocaleDateString("en-GB",{month:"long"})} and track progress</p>
+                </div>
+                <span style={{ color:T.teal,fontWeight:800,fontSize:16 }}>→</span>
+              </div>
+            )
           })()}
-        </div>
-      )}
-    </div>
-  )
-}
 
-/* ── 3. Net Worth Momentum Chart ──────────────────────────────────── */
-function NetWorthMomentumChart({ state }) {
-  const history = state.history || []
-  const hasThreeMonths = history.length >= 3
-
-  // Demo sparkline data
-  const demoData = [
-    {month:"Jan",nw:18000},{month:"Feb",nw:19200},{month:"Mar",nw:20100},
-    {month:"Apr",nw:21800},{month:"May",nw:22400},{month:"Jun",nw:24000},
-  ]
-
-  if(!hasThreeMonths) {
-    return (
-      <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:20,marginBottom:14,overflow:"hidden" }}>
-        <div style={{ padding:"18px 20px" }}>
-          <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10 }}>
-            <div style={{ display:"flex",alignItems:"center",gap:10 }}>
-              <div style={{ width:36,height:36,borderRadius:10,background:T.blueDim,border:`1px solid ${T.blueBorder}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18 }}>📈</div>
-              <div>
-                <p style={{ color:T.white,fontWeight:800,fontSize:14 }}>Net worth momentum</p>
-                <p style={{ color:T.muted,fontSize:11 }}>Monthly growth over time</p>
+          {/* ═══ 1. NET WORTH + HEALTH + COMPARISON (hero section) ═══ */}
+          <div style={{background:T.card,border:`1.5px solid ${netWorth>=0?T.tealBorder:T.redBorder}`,borderRadius:22,marginBottom:14,overflow:"hidden"}}>
+            {/* Net worth hero */}
+            <div style={{padding:"18px 20px 12px",background:`linear-gradient(145deg,${T.card} 0%,rgba(15,191,184,.03) 100%)`}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+                <div>
+                  <p style={{color:"#6B8CB8",fontSize:9,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:4}}>Net Worth</p>
+                  <p className="ls-numpop" style={{color:netWorth>=0?T.teal:T.red,fontWeight:900,fontSize:"clamp(28px,6vw,36px)",lineHeight:1,letterSpacing:-0.5}}>{fmt(netWorth)}</p>
+                  <div style={{display:"flex",gap:14,marginTop:8}}>
+                    <div style={{display:"flex",alignItems:"center",gap:4}}><div style={{width:6,height:6,borderRadius:"50%",background:T.green}}/><span style={{color:T.green,fontWeight:700,fontSize:12}}>{fmtK(totalAssets)}</span><span style={{color:"#4A6080",fontSize:9}}>assets</span></div>
+                    <div style={{display:"flex",alignItems:"center",gap:4}}><div style={{width:6,height:6,borderRadius:"50%",background:totalDebts>0?T.red:T.muted}}/><span style={{color:totalDebts>0?T.red:T.muted,fontWeight:700,fontSize:12}}>{fmtK(totalDebts)}</span><span style={{color:"#4A6080",fontSize:9}}>debts</span></div>
+                  </div>
+                </div>
+                <div onClick={()=>setShowHealthQ(true)} style={{cursor:"pointer",textAlign:"center",background:`${healthColor}08`,borderRadius:14,padding:"10px 12px",border:`1px solid ${healthColor}18`}}>
+                  <p style={{color:"#6B8CB8",fontSize:7,fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:3}}>Financial Health</p>
+                  <p style={{color:healthColor,fontWeight:900,fontSize:26,lineHeight:1}}>{health.score}</p>
+                  <p style={{color:healthColor,fontSize:9,fontWeight:700,marginTop:3}}>{health.score>=80?"Excellent":health.score>=60?"Good":health.score>=40?"Fair":"Needs work"}</p>
+                  <div style={{display:"flex",gap:2,marginTop:5,justifyContent:"center"}}>
+                    {[0,20,40,60,80].map(t=><div key={t} style={{width:14,height:3,borderRadius:2,background:health.score>t?healthColor:`${T.border}`}}/>)}
+                  </div>
+                  {health.isPartial&&<p style={{color:"#6B8CB8",fontSize:7,marginTop:3}}>Tap to complete</p>}
+                </div>
               </div>
             </div>
-            <span style={{ background:T.surface,color:T.muted,fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:99,border:`1px solid ${T.border}` }}>Locked</span>
+
+            {/* Comparison section embedded */}
+            {bench && <div style={{padding:"0 20px 16px",borderTop:`1px solid ${T.border}`}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",margin:"12px 0 10px"}}>
+                <p style={{color:"#6B8CB8",fontSize:9,fontWeight:700,letterSpacing:1,textTransform:"uppercase"}}>How You Compare · Age {age}</p>
+                <div style={{background:`${percentile>=50?T.teal:T.amber}12`,borderRadius:99,padding:"2px 8px",border:`1px solid ${percentile>=50?T.tealBorder:T.amberBorder}`}}><p style={{color:percentile>=50?T.teal:T.amber,fontWeight:900,fontSize:11}}>{percentile}th percentile</p></div>
+              </div>
+              <div style={{display:"flex",alignItems:"flex-end",height:32,gap:1,marginBottom:4}}>
+                {Array.from({length:25},(_,i)=>{const bp=i/25*100,h=Math.exp(-0.5*Math.pow((i-12.5)/4,2))*100,isY=Math.abs(bp-percentile)<5;return <div key={i} style={{flex:1,height:`${h}%`,background:isY?T.teal:bp<percentile?`${T.teal}25`:`${T.muted}15`,borderRadius:"2px 2px 0 0",position:"relative"}}>{isY&&<div style={{position:"absolute",top:-6,left:"50%",transform:"translateX(-50%)",width:0,height:0,borderLeft:"3px solid transparent",borderRight:"3px solid transparent",borderTop:`5px solid ${T.teal}`}}/>}</div>})}
+              </div>
+              <div style={{display:"flex",justifyContent:"space-between",marginBottom:10}}><p style={{color:T.muted,fontSize:8}}>Bottom</p><p style={{color:T.muted,fontSize:8}}>Median</p><p style={{color:T.muted,fontSize:8}}>Top</p></div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6}}>
+                {[{l:"Net Worth",y:fmtK(netWorth),b:fmtK(bench.median),ok:netWorth>=bench.median},{l:"Savings Rate",y:`${savingsRate}%`,b:"12%",ok:savingsRate>=12},{l:"Emergency",y:`${emergencyMonths}mo`,b:"3mo",ok:emergencyMonths>=3}].map(m=>(
+                  <div key={m.l} style={{background:T.surface,borderRadius:10,padding:"8px",textAlign:"center"}}>
+                    <p style={{color:"#6B8CB8",fontSize:8,fontWeight:700,textTransform:"uppercase",marginBottom:3}}>{m.l}</p>
+                    <p style={{color:m.ok?T.teal:T.white,fontWeight:900,fontSize:14}}>{m.y}</p>
+                    <p style={{color:T.muted,fontSize:9}}>vs {m.b}</p>
+                  </div>
+                ))}
+              </div>
+            </div>}
           </div>
-          {/* Blurred demo chart */}
-          <div style={{ position:"relative" }}>
-            <div style={{ filter:"blur(5px)",opacity:.35,pointerEvents:"none",height:80,userSelect:"none" }}>
-              <ResponsiveContainer width="100%" height={80}>
-                <AreaChart data={demoData} margin={{top:5,right:0,bottom:0,left:0}}>
-                  <defs>
-                    <linearGradient id="gMom" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor={T.blue} stopOpacity={.3}/>
-                      <stop offset="95%" stopColor={T.blue} stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <Area type="monotone" dataKey="nw" stroke={T.blue} strokeWidth={2} fill="url(#gMom)" dot={false}/>
+
+          {/* ═══ 2. ANALYSE MY ASSETS ═══ */}
+          <div style={{background:T.card,border:`1.5px solid ${assetsConfirmed?T.tealBorder:T.border}`,borderRadius:20,marginBottom:14,overflow:"hidden"}}>
+            <div style={{padding:"16px 18px"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                <div style={{display:"flex",alignItems:"center",gap:8}}><span style={{fontSize:18}}>📊</span><div><p style={{color:T.white,fontWeight:800,fontSize:15}}>Analyse My Assets</p><p style={{color:T.muted,fontSize:10}}>Review and unlock your wealth breakdown</p></div></div>
+                {assetsConfirmed&&<span style={{color:T.teal,fontSize:10,fontWeight:700,display:"flex",alignItems:"center",gap:3}}><Check size={10}/> Verified</span>}
+              </div>
+
+              {/* Assets list */}
+              <div style={{marginBottom:10}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                  <p style={{color:T.green,fontWeight:800,fontSize:12}}>Assets · {fmtK(totalAssets)}</p>
+                  <button onClick={()=>{setEditItem(null);setSheet("asset")}} style={{background:T.tealDim,border:`1px solid ${T.tealBorder}`,borderRadius:8,padding:"3px 8px",color:T.teal,fontWeight:700,fontSize:10,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:3}}><Plus size={10}/> Add</button>
+                </div>
+                <div style={{background:T.surface,borderRadius:12,overflow:"hidden"}}>
+                  {state.assets.length===0?<button onClick={()=>{setEditItem(null);setSheet("asset")}} style={{width:"100%",background:"transparent",border:"none",padding:"16px",textAlign:"center",cursor:"pointer",fontFamily:"inherit"}}><p style={{color:"#4A6080",fontSize:11}}>+ Add your first asset</p></button>:
+                  state.assets.map((a,i)=><div key={a.id} onClick={()=>{setEditItem(a);setSheet("asset")}} style={{display:"flex",alignItems:"center",gap:8,padding:"9px 10px",borderBottom:i<state.assets.length-1?`1px solid ${T.border}`:"none",cursor:"pointer"}}>
+                    <span style={{fontSize:14}}>{ASSET_TYPES.find(t=>t.cat===a.category||t.id===a.category)?.icon||"📦"}</span>
+                    <div style={{flex:1,minWidth:0}}><p style={{color:"#E2EAF6",fontWeight:600,fontSize:11,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{a.name}</p>{a.annualReturn>0&&<p style={{color:T.purple,fontSize:8,fontWeight:600}}>{a.annualReturn}% return</p>}</div>
+                    <p style={{color:T.green,fontWeight:800,fontSize:11}}>{fmtK(a.value)}</p><Pencil size={11} color={T.muted}/>
+                  </div>)}
+                </div>
+              </div>
+
+              {/* Debts list */}
+              <div style={{marginBottom:10}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                  <p style={{color:totalDebts>0?T.red:"#6B8CB8",fontWeight:800,fontSize:12}}>Debts · {fmtK(totalDebts)}</p>
+                  <button onClick={()=>{setEditItem(null);setSheet("debt")}} style={{background:T.redDim,border:`1px solid ${T.redBorder}`,borderRadius:8,padding:"3px 8px",color:T.red,fontWeight:700,fontSize:10,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:3}}><Plus size={10}/> Add</button>
+                </div>
+                <div style={{background:T.surface,borderRadius:12,overflow:"hidden"}}>
+                  {state.debts.length===0?<div style={{padding:"14px",textAlign:"center"}}><p style={{color:"#4A6080",fontSize:11}}>No debts ✓</p></div>:
+                  state.debts.map((d,i)=><div key={d.id} onClick={()=>{setEditItem(d);setSheet("debt")}} style={{display:"flex",alignItems:"center",gap:8,padding:"9px 10px",borderBottom:i<state.debts.length-1?`1px solid ${T.border}`:"none",cursor:"pointer",background:d.interestRate>15?"rgba(248,113,113,.03)":"transparent"}}>
+                    <span style={{fontSize:14}}>{DEBT_TYPES.find(t=>t.cat===d.category||t.id===d.category)?.icon||"💳"}</span>
+                    <div style={{flex:1,minWidth:0}}><p style={{color:"#E2EAF6",fontWeight:600,fontSize:11}}>{d.name}</p><p style={{color:d.interestRate>15?T.red:"#4A6080",fontSize:8,fontWeight:600}}>{d.interestRate}% APR</p></div>
+                    <p style={{color:T.red,fontWeight:800,fontSize:11}}>{fmtK(d.balance)}</p><Pencil size={11} color={T.muted}/>
+                  </div>)}
+                </div>
+                {drag>0&&<div style={{background:T.redDim,borderRadius:10,padding:"8px 10px",marginTop:6,border:`1px solid ${T.redBorder}`}}><p style={{color:T.red,fontWeight:800,fontSize:11}}>💸 {fmt(Math.round(drag))}/yr interest · {fmt(Math.round(drag/12))}/mo</p></div>}
+              </div>
+
+              {/* Confirm button */}
+              {(state.assets.length>0||state.debts.length>0)&&<button onClick={()=>setShowConfirmModal(true)} style={{width:"100%",background:assetsConfirmed?T.surface:`linear-gradient(135deg,${T.teal},${T.tealMid})`,border:assetsConfirmed?`1px solid ${T.border}`:"none",borderRadius:12,padding:"12px",color:assetsConfirmed?T.muted:"#070D1A",fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>{assetsConfirmed?"Update my figures":"✓ Confirm & unlock asset analysis"}</button>}
+            </div>
+
+            {/* Breakdown - unlocked */}
+            {assetsConfirmed&&totalAssets>0&&(()=>{
+              const segs=[{label:"Savings",value:state.assets.filter(a=>a.category==="savings").reduce((s,a)=>s+(a.value||0),0),color:T.teal,icon:"💰"},{label:"Investments",value:state.assets.filter(a=>a.category==="investments").reduce((s,a)=>s+(a.value||0),0),color:T.purple,icon:"📈"},{label:"Pension",value:state.assets.filter(a=>a.category==="pension").reduce((s,a)=>s+(a.value||0),0),color:T.amber,icon:"🏛️"},{label:"Property",value:state.assets.filter(a=>["primary_residence","investment_property"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0),color:T.green,icon:"🏠"},{label:"Other",value:state.assets.filter(a=>!["savings","investments","pension","primary_residence","investment_property"].includes(a.category)).reduce((s,a)=>s+(a.value||0),0),color:T.blue,icon:"📦"}].filter(s=>s.value>0)
+              return(<div className="ls-fadein" style={{padding:"0 18px 16px",borderTop:`1px solid ${T.border}`}}>
+                <p style={{color:"#6B8CB8",fontSize:9,fontWeight:700,letterSpacing:1,textTransform:"uppercase",margin:"12px 0 10px"}}>Your Wealth Breakdown</p>
+                <div style={{display:"flex",alignItems:"center",gap:16}}>
+                  <div style={{position:"relative",width:90,height:90,flexShrink:0}}><SmallDonut segments={segs} size={90}/><div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}><p style={{color:T.white,fontWeight:900,fontSize:10}}>{fmtK(totalAssets)}</p></div></div>
+                  <div style={{flex:1}}>{segs.map(s=><div key={s.label} style={{display:"flex",alignItems:"center",gap:6,marginBottom:5}}><span style={{fontSize:11}}>{s.icon}</span><p style={{color:"#E2EAF6",fontSize:11,flex:1}}>{s.label}</p><p style={{color:s.color,fontWeight:800,fontSize:11}}>{Math.round(s.value/totalAssets*100)}%</p></div>)}</div>
+                </div>
+                <div style={{background:T.surface,borderRadius:10,padding:"10px 12px",marginTop:10}}>
+                  <p style={{color:T.teal,fontWeight:800,fontSize:12,marginBottom:3}}>{productivePct}% productive assets</p>
+                  <p style={{color:"#C8D8EC",fontSize:11,lineHeight:1.5}}>{productivePct<30?"Productive assets (savings, investments, pensions) compound over time. Focus on building this portion to accelerate growth.":productivePct<60?"Decent foundation. Shifting more toward investments and pensions accelerates compounding.":"Strong productive allocation — your wealth is actively compounding."}</p>
+                </div>
+              </div>)
+            })()}
+
+            {/* Blurred preview when locked */}
+            {!assetsConfirmed&&totalAssets>0&&<div style={{padding:"0 18px 16px",borderTop:`1px solid ${T.border}`}}>
+              <div style={{position:"relative",padding:"12px 0"}}>
+                <div style={{filter:"blur(5px)",opacity:.3,pointerEvents:"none",display:"flex",alignItems:"center",gap:16}}><SmallDonut segments={[{value:60,color:T.teal},{value:40,color:T.amber}]} size={80}/><div style={{flex:1}}><p style={{color:"#E2EAF6",fontSize:11}}>Productive 60%</p><p style={{color:"#E2EAF6",fontSize:11}}>Lifestyle 40%</p></div></div>
+                <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center"}}><p style={{color:T.muted,fontWeight:700,fontSize:11}}>🔒 Confirm assets above to unlock analysis</p></div>
+              </div>
+            </div>}
+
+            {/* Debt timeline inline */}
+            {assetsConfirmed&&state.debts.length>0&&<div style={{padding:"0 18px 16px",borderTop:`1px solid ${T.border}`}}>
+              <p style={{color:"#6B8CB8",fontSize:9,fontWeight:700,letterSpacing:1,textTransform:"uppercase",margin:"12px 0 10px"}}>Debt Freedom Timeline</p>
+              {state.debts.map(d=>{const mi=(d.balance||0)*((d.interestRate||10)/100/12);const pay=d.minPayment||Math.max(mi*1.5,d.balance*0.02,25);const eff=pay-mi;const months=eff>0?Math.min(Math.ceil(d.balance/eff),360):360;const maxM=360;const label=months>=12?`${Math.round(months/12)}yr`:`${months}mo`;return <div key={d.id} style={{marginBottom:8}}>
+                <div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}><p style={{color:"#E2EAF6",fontSize:11,fontWeight:600}}>{d.name} <span style={{color:"#4A6080",fontSize:9}}>{d.interestRate}%</span></p><p style={{color:T.muted,fontSize:10}}>{label}</p></div>
+                <div style={{height:14,background:T.surface,borderRadius:5,overflow:"hidden"}}><div style={{width:`${Math.round(months/maxM*100)}%`,height:"100%",background:d.interestRate>15?`linear-gradient(90deg,${T.red}80,${T.red}40)`:d.interestRate>8?`linear-gradient(90deg,${T.amber}80,${T.amber}40)`:`linear-gradient(90deg,${T.blue}80,${T.blue}40)`,borderRadius:5,display:"flex",alignItems:"center",justifyContent:"flex-end",padding:"0 5px"}}><p style={{color:T.white,fontSize:8,fontWeight:700,textShadow:"0 1px 2px rgba(0,0,0,.5)"}}>{fmtK(d.balance)}</p></div></div>
+              </div>})}
+              {state.debts.some(d=>d.interestRate>15)&&<p style={{color:"#C8D8EC",fontSize:10,lineHeight:1.4,background:T.redDim,borderRadius:8,padding:"8px 10px"}}><strong style={{color:T.red}}>Priority:</strong> Pay down debts above 15% first — they cost the most.</p>}
+            </div>}
+          </div>
+
+          {/* ═══ 3. INCOME & SPENDING ═══ */}
+          <div style={{background:T.card,border:`1.5px solid ${spendingPhase==="chart"?T.purpleBorder:T.border}`,borderRadius:20,marginBottom:14,overflow:"hidden"}}>
+            <div style={{padding:"16px 18px"}}>
+              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}><span style={{fontSize:18}}>💰</span><div><p style={{color:T.white,fontWeight:800,fontSize:15}}>Income & Spending</p><p style={{color:T.muted,fontSize:10}}>Your monthly cash flow</p></div></div>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginBottom:8}}>
+                <div><p style={{color:T.teal,fontWeight:900,fontSize:18}}>{fmtK(totalIncome)}</p><p style={{color:"#4A6080",fontSize:8}}>income/mo</p></div>
+                <div style={{textAlign:"center"}}><p style={{color:surplus>=0?T.teal:T.red,fontWeight:900,fontSize:14}}>{surplus>=0?"+":""}{fmt(surplus)}</p><p style={{color:"#4A6080",fontSize:8}}>surplus</p></div>
+                <div style={{textAlign:"right"}}><p style={{color:T.amber,fontWeight:900,fontSize:18}}>{fmtK(totalSpending)}</p><p style={{color:"#4A6080",fontSize:8}}>spending/mo</p></div>
+              </div>
+              {totalIncome>0&&<div style={{position:"relative",height:16,background:T.surface,borderRadius:8,overflow:"hidden",marginBottom:6}}>
+                <div style={{position:"absolute",left:0,top:0,bottom:0,width:`${Math.min(100,Math.round(totalSpending/totalIncome*100))}%`,background:`linear-gradient(90deg,${T.amber}70,${T.amber}30)`,borderRadius:8}}/>
+                {surplus>0&&<div style={{position:"absolute",right:0,top:0,bottom:0,width:`${Math.round(surplus/totalIncome*100)}%`,background:`linear-gradient(90deg,${T.teal}30,${T.teal}70)`,borderRadius:"0 8px 8px 0"}}/>}
+                <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center"}}><p style={{color:T.white,fontWeight:800,fontSize:9,textShadow:"0 1px 3px rgba(0,0,0,.6)"}}>{savingsRate}% saved</p></div>
+              </div>}
+              {(interestEarned>0||drag>0)&&<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginTop:6}}>
+                {interestEarned>0&&<div style={{background:T.tealDim,borderRadius:10,padding:"8px 10px",border:`1px solid ${T.tealBorder}`}}><p style={{color:T.teal,fontWeight:800,fontSize:12}}>+{fmt(Math.round(interestEarned/12))}/mo</p><p style={{color:"#C8D8EC",fontSize:9}}>returns for you</p></div>}
+                {drag>0&&<div style={{background:T.redDim,borderRadius:10,padding:"8px 10px",border:`1px solid ${T.redBorder}`}}><p style={{color:T.red,fontWeight:800,fontSize:12}}>-{fmt(Math.round(drag/12))}/mo</p><p style={{color:"#C8D8EC",fontSize:9}}>interest on debts</p></div>}
+              </div>}
+            </div>
+            {/* Spending analysis unlock */}
+            <AnalyticsSpendingInner state={state} save={save} toast={toast} totalIncome={totalIncome} phase={spendingPhase} setPhase={setSpendingPhase}/>
+          </div>
+
+          {/* ═══ 4. WHAT-IF GRAPH ═══ */}
+          <div style={{background:T.card,border:`1.5px solid ${T.tealBorder}`,borderRadius:20,marginBottom:14,overflow:"hidden"}}>
+            <div style={{padding:"14px 16px 10px"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                <div style={{display:"flex",alignItems:"center",gap:8}}><span style={{fontSize:18}}>🔮</span><div><p style={{color:T.white,fontWeight:800,fontSize:14}}>What If I Saved More?</p><p style={{color:T.muted,fontSize:10}}>See how extra savings compound</p></div></div>
+                <div style={{textAlign:"right"}}><p style={{color:T.teal,fontWeight:900,fontSize:16}}>+£{whatIfExtra}</p><p style={{color:"#4A6080",fontSize:8}}>per month</p></div>
+              </div>
+              <input type="range" min="0" max="1000" step="25" value={whatIfExtra} onChange={e=>setWhatIfExtra(Number(e.target.value))} style={{width:"100%",accentColor:T.teal,height:4,marginBottom:4}}/>
+            </div>
+            <div style={{height:160,padding:"0 4px"}}>
+              <ResponsiveContainer width="100%" height={160}>
+                <AreaChart data={wiData} margin={{top:5,right:8,bottom:0,left:0}}>
+                  <defs><linearGradient id="gWiC" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={T.muted} stopOpacity={.12}/><stop offset="95%" stopColor={T.muted} stopOpacity={0}/></linearGradient><linearGradient id="gWiB" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={T.teal} stopOpacity={.2}/><stop offset="95%" stopColor={T.teal} stopOpacity={0}/></linearGradient></defs>
+                  <XAxis dataKey="age" tick={{fontSize:9,fill:"#8FA3BE"}} axisLine={false} tickLine={false}/>
+                  <YAxis tick={{fontSize:8,fill:"#6B8CB8"}} axisLine={false} tickLine={false} tickFormatter={fmtAx} width={48}/>
+                  <Tooltip formatter={(v,n)=>[`£${fmtAx(v)}`,n==="current"?"Current":`+£${whatIfExtra}/mo`]} contentStyle={{background:T.card,border:`1px solid ${T.border}`,borderRadius:10,fontSize:11,color:T.white}} labelFormatter={v=>`Age ${v}`}/>
+                  <Area type="monotone" dataKey="current" stroke="#6B8CB8" strokeWidth={1.5} fill="url(#gWiC)" dot={false} name="current"/>
+                  {whatIfExtra>0&&<Area type="monotone" dataKey="boosted" stroke={T.teal} strokeWidth={2.5} fill="url(#gWiB)" dot={false} name="boosted"/>}
                 </AreaChart>
               </ResponsiveContainer>
             </div>
-            <div style={{ position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:6 }}>
-              <p style={{ color:T.white,fontWeight:800,fontSize:13,textAlign:"center" }}>🔒 Unlocks after 3 monthly updates</p>
-              <p style={{ color:T.muted,fontSize:12,textAlign:"center" }}>You have {history.length} of 3. Update your figures each month.</p>
-            </div>
+            {whatIfExtra>0&&<div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6,padding:"8px 16px 14px"}}>
+              {[10,20,30].map(yr=>{const d=wiData.find(x=>x.year>=yr);return d?<div key={yr} style={{background:T.surface,borderRadius:10,padding:"8px",textAlign:"center"}}><p style={{color:T.muted,fontSize:8}}>{yr}yr</p><p style={{color:T.teal,fontWeight:900,fontSize:13}}>+{fmtK(d.boosted-d.current)}</p></div>:null})}
+            </div>}
           </div>
+
+          {/* ═══ 5. FI METER ═══ */}
+          {totalSpending>0&&<div style={{background:T.card,border:`1px solid rgba(52,211,153,.2)`,borderRadius:20,marginBottom:14,padding:"14px 16px"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+              <div style={{display:"flex",alignItems:"center",gap:8}}><span style={{fontSize:18}}>🏖️</span><div><p style={{color:T.white,fontWeight:800,fontSize:14}}>Financial Independence</p><p style={{color:T.muted,fontSize:10}}>When work becomes optional</p></div></div>
+              <div style={{width:48,height:48}}><svg viewBox="0 0 48 48" width={48} height={48}><circle cx="24" cy="24" r="19" fill="none" stroke={T.border} strokeWidth="5"/><circle cx="24" cy="24" r="19" fill="none" stroke={T.green} strokeWidth="5" strokeDasharray={`${fiProg*1.194} ${119.4-fiProg*1.194}`} strokeLinecap="round" transform="rotate(-90 24 24)"/><text x="24" y="26" textAnchor="middle" fill={T.green} fontSize="11" fontWeight="900" fontFamily="Outfit">{fiProg}%</text></svg></div>
+            </div>
+            <div style={{height:8,background:T.border,borderRadius:4,overflow:"hidden",marginBottom:8}}><div style={{width:`${fiProg}%`,height:"100%",background:`linear-gradient(90deg,${T.green},${T.teal})`,borderRadius:4,transition:"width .8s"}}/></div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
+              <div style={{background:T.surface,borderRadius:10,padding:"8px",textAlign:"center"}}><p style={{color:T.green,fontWeight:900,fontSize:13}}>{fmtK(fiNum)}</p><p style={{color:T.muted,fontSize:8}}>FI number</p></div>
+              <div style={{background:T.surface,borderRadius:10,padding:"8px",textAlign:"center"}}><p style={{color:T.white,fontWeight:900,fontSize:13}}>{fmtK(coastFI)}</p><p style={{color:T.muted,fontSize:8}}>Coast FI</p></div>
+              <div style={{background:T.surface,borderRadius:10,padding:"8px",textAlign:"center"}}><p style={{color:T.white,fontWeight:900,fontSize:13}}>{yearsToFI?`~${yearsToFI}yr`:"—"}</p><p style={{color:T.muted,fontSize:8}}>Years to FI</p></div>
+            </div>
+            <p style={{color:T.muted,fontSize:10,lineHeight:1.4,marginTop:8}}>FI = 25× annual spending in productive assets. Property equity excluded.</p>
+          </div>}
+
+          {/* ═══ 6. MOMENTUM ═══ */}
+          <AnalyticsMomentum state={state}/>
+
         </div>
       </div>
-    )
-  }
 
-  // Real momentum chart
-  const chartData = history.slice(-12).map(h=>({
-    month: new Date(h.date).toLocaleDateString("en-GB",{month:"short"}),
-    nw: h.netWorth
-  }))
-  const first = chartData[0]?.nw||0
-  const last  = chartData[chartData.length-1]?.nw||0
-  const change= last-first
-  const pct   = first!==0 ? Math.round((change/Math.abs(first))*100) : 0
-
-  return (
-    <div style={{ background:T.card,border:`1.5px solid ${T.blueBorder}`,borderRadius:20,marginBottom:14,overflow:"hidden" }}>
-      <div style={{ padding:"18px 20px 0" }}>
-        <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12 }}>
-          <div style={{ display:"flex",alignItems:"center",gap:10 }}>
-            <div style={{ width:36,height:36,borderRadius:10,background:T.blueDim,border:`1px solid ${T.blueBorder}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18 }}>📈</div>
-            <div>
-              <p style={{ color:T.white,fontWeight:800,fontSize:14 }}>Net worth momentum</p>
-              <p style={{ color:T.blue,fontSize:12,fontWeight:700 }}>
-                {change>=0?"↑":"↓"} {fmt(Math.abs(change))} ({pct>0?"+":""}{pct}%) over {chartData.length} months
-              </p>
-            </div>
+      {/* ═══ MODALS — NO DOUBLE WRAPPING ═══ */}
+      {sheet==="asset"&&<AssetSheet item={editItem} onClose={()=>{setSheet(null);setEditItem(null)}} onSave={saveAsset}/>}
+      {sheet==="debt"&&<DebtSheet item={editItem} onClose={()=>{setSheet(null);setEditItem(null)}} onSave={saveDebt}/>}
+      {showHealthQ&&<HQSheet/>}
+      {showConfirmModal&&<div style={{position:"fixed",inset:0,background:"rgba(7,13,26,.88)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+        <div className="ls-fadein" style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:20,padding:"24px 20px",width:"100%",maxWidth:440,maxHeight:"80vh",overflowY:"auto"}}>
+          <p style={{color:T.white,fontWeight:900,fontSize:17,marginBottom:6}}>Confirm your figures</p>
+          <p style={{color:"#D8E8F8",fontSize:13,lineHeight:1.6,marginBottom:16}}>Are these roughly accurate? Tap any item to edit.</p>
+          {state.assets.length>0&&<div style={{marginBottom:12}}><p style={{color:T.green,fontWeight:700,fontSize:11,marginBottom:6}}>Assets</p>{state.assets.map(a=><div key={a.id} style={{display:"flex",justifyContent:"space-between",padding:"6px 12px",background:T.card,borderRadius:8,marginBottom:3}}><p style={{color:"#E2EAF6",fontSize:12}}>{a.name}</p><p style={{color:T.teal,fontWeight:700,fontSize:12}}>{fmt(a.value)}</p></div>)}</div>}
+          {state.debts.length>0&&<div style={{marginBottom:16}}><p style={{color:T.red,fontWeight:700,fontSize:11,marginBottom:6}}>Debts</p>{state.debts.map(d=><div key={d.id} style={{display:"flex",justifyContent:"space-between",padding:"6px 12px",background:T.card,borderRadius:8,marginBottom:3}}><p style={{color:"#E2EAF6",fontSize:12}}>{d.name} <span style={{color:"#4A6080",fontSize:10}}>({d.interestRate}%)</span></p><p style={{color:T.red,fontWeight:700,fontSize:12}}>{fmt(d.balance)}</p></div>)}</div>}
+          <div style={{display:"flex",gap:10}}>
+            <button onClick={()=>{setShowConfirmModal(false);setAssetsConfirmed(true);toast("Assets verified")}} style={{flex:1,background:T.teal,border:"none",borderRadius:12,padding:"14px",color:T.bg,fontWeight:800,fontSize:14,cursor:"pointer",fontFamily:"inherit"}}>Yes, looks right</button>
+            <button onClick={()=>setShowConfirmModal(false)} style={{background:"none",border:`1px solid ${T.border}`,borderRadius:12,padding:"14px 16px",color:T.muted,fontWeight:700,fontSize:14,cursor:"pointer",fontFamily:"inherit"}}>Edit first</button>
           </div>
         </div>
-      </div>
-      <div style={{ padding:"0 8px 16px",height:120 }}>
-        <ResponsiveContainer width="100%" height={120}>
-          <AreaChart data={chartData} margin={{top:5,right:8,bottom:0,left:0}}>
-            <defs>
-              <linearGradient id="gMomReal" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={change>=0?T.blue:T.red} stopOpacity={.3}/>
-                <stop offset="95%" stopColor={change>=0?T.blue:T.red} stopOpacity={0}/>
-              </linearGradient>
-            </defs>
-            <XAxis dataKey="month" tick={{fontSize:10,fill:"#8FA3BE"}} axisLine={false} tickLine={false}/>
-            <YAxis hide/>
-            <Tooltip
-              formatter={v=>[fmt(v),"Net worth"]}
-              contentStyle={{background:T.card,border:`1px solid ${T.border}`,borderRadius:10,fontSize:12,color:T.white}}/>
-            <Area type="monotone" dataKey="nw" stroke={change>=0?T.blue:T.red} strokeWidth={2.5} fill="url(#gMomReal)" dot={false}/>
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
-    </div>
+      </div>}
+    </>
   )
 }
 
-function AssetsSection({ assets, totalAssets, onAdd, onEdit, onDelete }) {
-  const getBucket = a => {
-    if(a.category==="savings") return { icon:"💰", color:T.teal, label:"Cash & Savings" }
-    if(a.category==="investments") return { icon:"📈", color:T.purple, label:"Investments" }
-    if(a.category==="pension") return { icon:"🏛️", color:T.amber, label:"Pension" }
-    if(["primary_residence","investment_property"].includes(a.category)) return { icon:"🏠", color:T.green, label:"Property" }
-    return { icon:"📦", color:T.blue, label:"Other" }
-  }
+/* ════════ SPENDING ANALYSIS (inner, no card wrapper) ════════ */
+const SPEND_CATS = [
+  {id:"housing",label:"Rent / Mortgage",icon:"🏠",bucket:"needs"},{id:"food",label:"Groceries",icon:"🛒",bucket:"needs"},
+  {id:"transport",label:"Transport",icon:"🚗",bucket:"needs"},{id:"bills",label:"Bills & utilities",icon:"⚡",bucket:"needs"},
+  {id:"health",label:"Health & insurance",icon:"💊",bucket:"needs"},{id:"eating_out",label:"Eating out & coffee",icon:"🍽️",bucket:"wants"},
+  {id:"subs",label:"Subscriptions",icon:"📺",bucket:"wants"},{id:"shopping",label:"Shopping & clothing",icon:"🛍️",bucket:"wants"},
+  {id:"leisure",label:"Leisure & hobbies",icon:"🎮",bucket:"wants"},{id:"personal",label:"Personal care",icon:"💇",bucket:"wants"},
+  {id:"debt_repay",label:"Debt repayments",icon:"💳",bucket:"needs"},{id:"other",label:"Other / misc",icon:"📦",bucket:"wants"},
+]
+const BUCKET_COLORS={needs:T.amber,wants:T.purple,savings:T.teal}
+const BUCKET_LABELS={needs:"Needs",wants:"Wants",savings:"Savings"}
 
-  return (
-    <div>
-      <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16 }}>
-        <div>
-          <p style={{ color:T.green,fontWeight:900,fontSize:22 }}>{fmt(totalAssets)}</p>
-          <p style={{ color:"#C8D8EC",fontSize:13,fontWeight:600 }}>Total assets</p>
-        </div>
-        <button onClick={onAdd} style={{ background:T.tealDim,border:`1.5px solid ${T.tealBorder}`,borderRadius:12,padding:"10px 18px",color:T.teal,fontWeight:700,fontSize:14,cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontFamily:"inherit" }}>
-          <Plus size={15}/>Add asset
-        </button>
+function AnalyticsSpendingInner({state,save,toast,totalIncome,phase,setPhase}){
+  const[amounts,setAmounts]=useState(state.spending?.breakdown||{})
+  const totalInput=Object.values(amounts).reduce((s,v)=>s+(parseFloat(v)||0),0)
+  const leftover=Math.max(0,totalIncome-totalInput)
+  const bucketTotals={needs:0,wants:0,savings:0}
+  SPEND_CATS.forEach(c=>{bucketTotals[c.bucket]+=parseFloat(amounts[c.id])||0})
+  bucketTotals.savings=leftover
+  const allTotal=totalInput+leftover
+  const chartSegs=Object.entries(bucketTotals).filter(([,v])=>v>0).map(([k,v])=>({label:BUCKET_LABELS[k],value:v,color:BUCKET_COLORS[k]}))
+  function saveBreakdown(){save({...state,spending:{...state.spending,breakdown:amounts,monthly:totalInput}});setPhase("chart");toast("Spending saved")}
+  function MiniDonut({segments,size=100}){const total=segments.reduce((s,x)=>s+x.value,0);if(total===0)return null;const cx=size/2,cy=size/2,r=size*0.38,sw=size*0.18;let cum=-90;const toXY=a=>({x:cx+r*Math.cos(a*Math.PI/180),y:cy+r*Math.sin(a*Math.PI/180)});const arcs=segments.map(seg=>{const sweep=(seg.value/total)*360,start=cum;cum+=sweep;const s=toXY(start),e=toXY(start+sweep-0.5);return{...seg,d:`M${s.x},${s.y} A${r},${r} 0 ${sweep>180?1:0},1 ${e.x},${e.y}`}});return <svg width={size} height={size} style={{overflow:"visible"}}>{arcs.map((a,i)=><path key={i} d={a.d} fill="none" stroke={a.color} strokeWidth={sw}/>)}</svg>}
+
+  return(<>
+    {/* Unlock button or edit */}
+    {phase==="locked"&&<div style={{padding:"0 18px 16px",borderTop:`1px solid ${T.border}`}}>
+      <div style={{position:"relative",padding:"12px 0"}}>
+        <div style={{filter:"blur(5px)",opacity:.3,pointerEvents:"none",display:"flex",alignItems:"center",gap:14}}><MiniDonut segments={[{value:50,color:T.amber},{value:30,color:T.purple},{value:20,color:T.teal}]} size={70}/><div><p style={{color:T.amber,fontSize:11}}>Needs 50%</p><p style={{color:T.purple,fontSize:11}}>Wants 30%</p><p style={{color:T.teal,fontSize:11}}>Savings 20%</p></div></div>
+        <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center"}}><button onClick={()=>setPhase("guide")} style={{background:T.purple,border:"none",borderRadius:12,padding:"10px 18px",color:T.bg,fontWeight:800,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>Unlock spending analysis →</button></div>
       </div>
+    </div>}
 
-      {assets.length===0 ? (
-        <EmptyState icon="💰" title="No assets tracked" body="Add your savings, pension, investments, property. Everything of value." cta="Add an asset" onClick={onAdd}/>
-      ) : (
-        <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
-          {assets.map(a=>{
-            const b = getBucket(a)
-            const t = ASSET_TYPES.find(x=>x.cat===a.category)||ASSET_TYPES[ASSET_TYPES.length-1]
-            return (
-              <div key={a.id} style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:"14px 16px",display:"flex",alignItems:"center",gap:12 }}>
-                <div style={{ width:40,height:40,borderRadius:12,background:`${b.color}12`,border:`1px solid ${b.color}25`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0 }}>{b.icon}</div>
-                <div style={{ flex:1,minWidth:0 }}>
-                  <p style={{ color:T.white,fontWeight:700,fontSize:14,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{a.name}</p>
-                  <div style={{ display:"flex",alignItems:"center",gap:8,marginTop:2 }}>
-                    <span style={{ color:b.color,fontSize:11,fontWeight:600 }}>{b.label}</span>
-                    {a.annualReturn && <span style={{ color:T.purple,fontSize:11,fontWeight:600 }}>{a.annualReturn}%/yr</span>}
-                    {a.monthlyIncome>0 && <span style={{ color:T.muted,fontSize:11 }}>{fmt(a.monthlyIncome)}/mo</span>}
-                  </div>
-                </div>
-                <p style={{ color:T.green,fontWeight:900,fontSize:16,flexShrink:0 }}>{fmt(a.value)}</p>
-                <div style={{ display:"flex",gap:2,flexShrink:0 }}>
-                  <button onClick={()=>onEdit(a)} style={{ background:"none",border:"none",color:T.teal,cursor:"pointer",padding:6,borderRadius:8 }}><Pencil size={14}/></button>
-                  <button onClick={()=>onDelete(a)} style={{ background:"none",border:"none",color:T.subtle,cursor:"pointer",padding:6,borderRadius:8 }}><Trash2 size={14}/></button>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      )}
-    </div>
-  )
+    {phase==="guide"&&<div className="ls-fadein" style={{padding:"0 18px 16px",borderTop:`1px solid ${T.border}`}}>
+      <div style={{background:T.surface,borderRadius:12,padding:"14px",marginTop:12,marginBottom:12}}>
+        <p style={{color:T.white,fontWeight:800,fontSize:13,marginBottom:8}}>📋 Quick prep</p>
+        <p style={{color:"#D8E8F8",fontSize:12,lineHeight:1.6,marginBottom:8}}>Check your last 3 months of bank statements and average each category. Rough numbers are fine.</p>
+        <p style={{color:T.muted,fontSize:10,lineHeight:1.4}}>Whatever is left over after spending is automatically counted as savings (50/30/20 framework).</p>
+      </div>
+      <div style={{display:"flex",gap:8}}>
+        <button onClick={()=>setPhase("input")} style={{flex:1,background:T.purple,border:"none",borderRadius:12,padding:"12px",color:T.bg,fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>I'm ready →</button>
+        <button onClick={()=>setPhase("locked")} style={{background:"none",border:`1px solid ${T.border}`,borderRadius:12,padding:"12px 14px",color:T.muted,fontWeight:600,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>Later</button>
+      </div>
+    </div>}
+
+    {phase==="input"&&<div className="ls-fadein" style={{padding:"0 18px 16px",borderTop:`1px solid ${T.border}`}}>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6,margin:"12px 0"}}>
+        <div style={{background:T.surface,borderRadius:10,padding:"8px",textAlign:"center"}}><p style={{color:T.teal,fontWeight:900,fontSize:14}}>{fmtK(totalIncome)}</p><p style={{color:"#4A6080",fontSize:8}}>income</p></div>
+        <div style={{background:T.surface,borderRadius:10,padding:"8px",textAlign:"center"}}><p style={{color:T.amber,fontWeight:900,fontSize:14}}>{fmtK(totalInput)}</p><p style={{color:"#4A6080",fontSize:8}}>spending</p></div>
+        <div style={{background:T.surface,borderRadius:10,padding:"8px",textAlign:"center"}}><p style={{color:leftover>0?T.teal:T.red,fontWeight:900,fontSize:14}}>{fmtK(leftover)}</p><p style={{color:"#4A6080",fontSize:8}}>→ savings</p></div>
+      </div>
+      {["needs","wants"].map(bucket=>(<div key={bucket} style={{marginBottom:10}}>
+        <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:6}}><div style={{width:6,height:6,borderRadius:"50%",background:BUCKET_COLORS[bucket]}}/><p style={{color:BUCKET_COLORS[bucket],fontWeight:800,fontSize:10,textTransform:"uppercase",letterSpacing:0.8}}>{BUCKET_LABELS[bucket]}</p></div>
+        {SPEND_CATS.filter(c=>c.bucket===bucket).map(cat=>(<div key={cat.id} style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
+          <span style={{fontSize:13,width:20,textAlign:"center"}}>{cat.icon}</span><p style={{flex:1,color:"#E2EAF6",fontSize:11}}>{cat.label}</p>
+          <div style={{display:"flex",alignItems:"center",gap:2}}><span style={{color:T.muted,fontSize:12}}>£</span><input type="number" min="0" placeholder="0" value={amounts[cat.id]||""} onChange={e=>setAmounts(v=>({...v,[cat.id]:e.target.value}))} style={{width:60,background:T.surface,border:`1px solid ${T.border}`,borderRadius:6,padding:"5px 6px",color:T.white,fontSize:12,fontFamily:"inherit",textAlign:"right"}}/></div>
+        </div>))}
+      </div>))}
+      <div style={{display:"flex",gap:8}}>
+        <button onClick={saveBreakdown} disabled={totalInput===0} style={{flex:1,background:totalInput>0?T.purple:T.subtle,border:"none",borderRadius:12,padding:"12px",color:totalInput>0?T.bg:T.muted,fontWeight:800,fontSize:13,cursor:totalInput>0?"pointer":"not-allowed",fontFamily:"inherit"}}>Save & analyse</button>
+        <button onClick={()=>setPhase(state.spending?.breakdown?"chart":"locked")} style={{background:"none",border:`1px solid ${T.border}`,borderRadius:12,padding:"12px 14px",color:T.muted,fontWeight:600,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>Cancel</button>
+      </div>
+    </div>}
+
+    {phase==="chart"&&chartSegs.length>0&&<div className="ls-fadein" style={{padding:"0 18px 16px",borderTop:`1px solid ${T.border}`}}>
+      <p style={{color:"#6B8CB8",fontSize:9,fontWeight:700,letterSpacing:1,textTransform:"uppercase",margin:"12px 0 10px"}}>50/30/20 Breakdown</p>
+      <div style={{display:"flex",alignItems:"center",gap:16,marginBottom:12}}>
+        <div style={{position:"relative",width:90,height:90,flexShrink:0}}><MiniDonut segments={chartSegs} size={90}/><div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}><p style={{color:T.white,fontWeight:900,fontSize:10}}>{fmt(allTotal)}</p><p style={{color:T.muted,fontSize:7}}>/mo</p></div></div>
+        <div style={{flex:1}}>{chartSegs.map(s=>{const pct=allTotal>0?Math.round(s.value/allTotal*100):0;const target=s.label==="Needs"?50:s.label==="Wants"?30:20;const ok=s.label==="Savings"?pct>=target:pct<=target;return(<div key={s.label} style={{marginBottom:7}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:2}}><div style={{display:"flex",alignItems:"center",gap:5}}><div style={{width:6,height:6,borderRadius:"50%",background:s.color}}/><p style={{color:"#E2EAF6",fontSize:11}}>{s.label}</p></div><div style={{display:"flex",alignItems:"center",gap:5}}><p style={{color:s.color,fontWeight:800,fontSize:11}}>{pct}%</p><p style={{color:ok?T.green:T.amber,fontSize:8,fontWeight:700}}>{ok?"✓":`→${target}%`}</p></div></div>
+          <div style={{background:T.surface,borderRadius:99,height:5,overflow:"hidden",position:"relative"}}><div style={{width:`${pct}%`,height:"100%",background:s.color,borderRadius:99}}/><div style={{position:"absolute",left:`${target}%`,top:0,bottom:0,width:1.5,background:"#fff",opacity:.2}}/></div>
+        </div>)})}</div>
+      </div>
+      {(()=>{const nP=allTotal>0?Math.round(bucketTotals.needs/allTotal*100):0,sP=allTotal>0?Math.round(bucketTotals.savings/allTotal*100):0,wP=allTotal>0?Math.round(bucketTotals.wants/allTotal*100):0;let msg,col=T.teal;if(sP>=20&&nP<=55)msg="Your split looks healthy.";else if(sP<10){msg=`Only ${sP}% to savings. Small changes make a big difference over time.`;col=T.amber}else if(nP>60){msg=`Needs at ${nP}% — above 50% target. Look for ways to reduce fixed costs.`;col=T.amber}else if(wP>35){msg=`Wants at ${wP}%. Small reductions free up savings.`;col=T.amber}else msg="Decent position. Keep building savings.";return <div style={{background:`${col}08`,border:`1px solid ${col}15`,borderRadius:10,padding:"8px 12px"}}><p style={{color:"#E2EAF6",fontSize:11,lineHeight:1.45}}>{msg}</p></div>})()}
+    </div>}
+  </>)
 }
 
-function DebtsSection({ debts, totalDebts, drag, onAdd, onEdit, onDelete }) {
-  return (
-    <div>
-      <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:drag>0?8:16 }}>
-        <div>
-          <p style={{ color:totalDebts>0?T.red:T.muted,fontWeight:900,fontSize:22 }}>{fmt(totalDebts)}</p>
-          <p style={{ color:"#E2EAF6",fontSize:13,fontWeight:600 }}>Total debts</p>
-        </div>
-        <button onClick={onAdd} style={{ background:T.redDim,border:`1.5px solid ${T.redBorder}`,borderRadius:11,padding:"10px 18px",color:T.red,fontWeight:700,fontSize:14,cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontFamily:"inherit" }}>
-          <Plus size={15}/>Add debt
-        </button>
-      </div>
-
-      {drag>0 && (
-        <div style={{ background:T.redDim,border:`1px solid ${T.redBorder}`,borderRadius:12,padding:"12px 16px",marginBottom:16 }}>
-          <p style={{ color:T.red,fontSize:14,fontWeight:700 }}>💸 {fmt(Math.round(drag/12))}/month ({fmt(Math.round(drag))}/yr) lost to interest</p>
-          <p style={{ color:"#E2EAF6",fontSize:13,marginTop:4 }}>Paying off highest-rate debt first (avalanche method) is a guaranteed return equal to the rate you eliminate.</p>
-        </div>
-      )}
-
-      {debts.length===0 ? (
-        <EmptyState icon="💳" title="No debts" body="Add what you owe to track interest costs and see your true net worth." cta="Add a debt" onClick={onAdd}/>
-      ) : (
-        <>
-          {/* Table header */}
-          <div style={{ display:"grid",gridTemplateColumns:"1fr auto auto auto auto",gap:8,padding:"8px 14px",marginBottom:4 }}>
-            <p style={{ color:"#8FA3BE",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8 }}>Debt</p>
-            <p style={{ color:"#8FA3BE",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8,textAlign:"right",minWidth:55 }}>APR</p>
-            <p style={{ color:"#8FA3BE",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8,textAlign:"right",minWidth:70 }}>Interest/mo</p>
-            <p style={{ color:"#8FA3BE",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:.8,textAlign:"right",minWidth:80 }}>Balance</p>
-            <p style={{ color:"transparent",fontSize:11,minWidth:54 }}>...</p>
-          </div>
-
-          {debts.map(d=>{
-            const t = DEBT_TYPES.find(x=>x.cat===d.category)||DEBT_TYPES[DEBT_TYPES.length-1]
-            const interest = annualInterest(d)
-            const rate = d.interestRate||t?.assumedRate||10
-            const rateColor = rate>15?T.red:rate>8?T.amber:T.green
-            return (
-              <div key={d.id} style={{ display:"grid",gridTemplateColumns:"1fr auto auto auto auto",gap:8,alignItems:"center",padding:"12px 14px",background:T.card,border:`1px solid ${T.border}`,borderRadius:12,marginBottom:8 }}>
-                <div style={{ minWidth:0 }}>
-                  <p style={{ color:T.white,fontWeight:700,fontSize:14,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{d.name}</p>
-                  <p style={{ color:"#8FA3BE",fontSize:12 }}>{t?.label}{d.minPayment>0?` min ${fmt(d.minPayment)}/mo`:""}</p>
-                </div>
-                <div style={{ background:`${rateColor}20`,border:`1px solid ${rateColor}40`,borderRadius:8,padding:"3px 8px",minWidth:55,textAlign:"center" }}>
-                  <p style={{ color:rateColor,fontWeight:800,fontSize:12 }}>{rate}%</p>
-                </div>
-                <p style={{ color:T.red,fontWeight:700,fontSize:13,textAlign:"right",minWidth:70 }}>{fmt(Math.round(interest/12))}</p>
-                <p style={{ color:T.red,fontWeight:800,fontSize:14,textAlign:"right",minWidth:80 }}>{fmt(d.balance)}</p>
-                <div style={{ display:"flex",gap:4,minWidth:54,justifyContent:"flex-end" }}>
-                  <button onClick={()=>onEdit(d)} style={{ background:"none",border:"none",color:T.teal,cursor:"pointer",padding:6,borderRadius:8 }}><Pencil size={14}/></button>
-                  {!d.isAutoCreated && <button onClick={()=>onDelete(d)} style={{ background:"none",border:"none",color:"#8FA3BE",cursor:"pointer",padding:6,borderRadius:8 }}><Trash2 size={14}/></button>}
-                </div>
-              </div>
-            )
-          })}
-        </>
-      )}
-    </div>
-  )
+/* ════════ NET WORTH MOMENTUM ════════ */
+function AnalyticsMomentum({state}){
+  const history=state.history||[];const has3=history.length>=3
+  const demo=[{month:"Jan",nw:18000},{month:"Feb",nw:19200},{month:"Mar",nw:20100},{month:"Apr",nw:21800},{month:"May",nw:22400},{month:"Jun",nw:24000}]
+  if(!has3)return(<div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:20,marginBottom:12,padding:"14px 16px"}}>
+    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}><span style={{fontSize:18}}>📈</span><p style={{color:T.white,fontWeight:800,fontSize:14}}>Net Worth Over Time</p><span style={{marginLeft:"auto",color:T.muted,fontSize:10,fontWeight:700,background:T.surface,padding:"2px 8px",borderRadius:99}}>🔒 {history.length}/3</span></div>
+    <div style={{position:"relative"}}><div style={{filter:"blur(5px)",opacity:.25,pointerEvents:"none",height:70}}><ResponsiveContainer width="100%" height={70}><AreaChart data={demo}><defs><linearGradient id="gMD" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={T.blue} stopOpacity={.3}/><stop offset="95%" stopColor={T.blue} stopOpacity={0}/></linearGradient></defs><Area type="monotone" dataKey="nw" stroke={T.blue} strokeWidth={2} fill="url(#gMD)" dot={false}/></AreaChart></ResponsiveContainer></div><div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:4}}><p style={{color:T.white,fontWeight:700,fontSize:11}}>Unlocks after 3 monthly updates</p><div style={{display:"flex",gap:5}}>{[0,1,2].map(i=><div key={i} style={{width:8,height:8,borderRadius:"50%",background:i<history.length?T.teal:T.border}}/>)}</div><button onClick={()=>{const m=prompt("Past month (e.g. 2025-01):");const v=prompt("Rough net worth that month:");if(m&&v){const h=[...(state.history||[])];h.push({month:m,netWorth:parseFloat(v)});h.sort((a,b)=>a.month.localeCompare(b.month));save({...state,history:h})}}} style={{background:T.tealDim,border:`1px solid ${T.tealBorder}`,borderRadius:8,padding:"4px 12px",color:T.teal,fontWeight:700,fontSize:10,cursor:"pointer",fontFamily:"inherit",marginTop:6}}>Add a past month</button></div></div>
+  </div>)
+  const cd=history.slice(-12).map(h=>({month:h.month?new Date(h.month+"-01").toLocaleDateString("en-GB",{month:"short"}):"?",nw:h.netWorth}))
+  const change=(cd[cd.length-1]?.nw||0)-(cd[0]?.nw||0);const pct=cd[0]?.nw?Math.round((change/Math.abs(cd[0].nw))*100):0
+  const fmtAx=v=>v>=1e6?`${(v/1e6).toFixed(1)}M`:v>=1000?`${(v/1000).toFixed(0)}k`:`${v}`
+  return(<div style={{background:T.card,border:`1.5px solid ${T.blueBorder}`,borderRadius:20,marginBottom:12,overflow:"hidden"}}>
+    <div style={{padding:"14px 16px 0"}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}><div style={{display:"flex",alignItems:"center",gap:8}}><span style={{fontSize:18}}>📈</span><div><p style={{color:T.white,fontWeight:800,fontSize:14}}>Net Worth Over Time</p><p style={{color:change>=0?T.teal:T.red,fontSize:11,fontWeight:700}}>{change>=0?"↑":"↓"} {fmt(Math.abs(change))} ({pct>0?"+":""}{pct}%)</p></div></div></div></div>
+    <div style={{height:120,padding:"0 4px 12px"}}><ResponsiveContainer width="100%" height={120}><AreaChart data={cd} margin={{top:5,right:8,bottom:0,left:0}}><defs><linearGradient id="gMR" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={change>=0?T.blue:T.red} stopOpacity={.3}/><stop offset="95%" stopColor={change>=0?T.blue:T.red} stopOpacity={0}/></linearGradient></defs><XAxis dataKey="month" tick={{fontSize:9,fill:"#8FA3BE"}} axisLine={false} tickLine={false}/><YAxis tick={{fontSize:8,fill:"#6B8CB8"}} axisLine={false} tickLine={false} tickFormatter={fmtAx} width={48}/><Tooltip formatter={v=>[fmt(v),"Net worth"]} contentStyle={{background:T.card,border:`1px solid ${T.border}`,borderRadius:10,fontSize:11,color:T.white}}/><Area type="monotone" dataKey="nw" stroke={change>=0?T.blue:T.red} strokeWidth={2.5} fill="url(#gMR)" dot={{r:2.5,fill:change>=0?T.blue:T.red,strokeWidth:0}}/></AreaChart></ResponsiveContainer></div>
+  </div>)
 }
 
 /* ── Asset Sheet detailed ───────────────────────────────────── */
@@ -4686,15 +4363,14 @@ function LevelPlayer({ level, onBack, onComplete }) {
 
 
 function PersonalityQuiz({ state, save, onClose }) {
-  const [step, setStep]       = useState(0)         // 0 = intro, 1-12 = questions, 13 = result
+  const [step, setStep] = useState(0)
   const [answers, setAnswers] = useState({})
   const [selected, setSelected] = useState(null)
-  const [result, setResult]   = useState(null)
-  const [animDir, setAnimDir] = useState("in")
+  const [result, setResult] = useState(null)
 
   const total = PERSONALITY_QUIZ.length
-  const q     = PERSONALITY_QUIZ[step - 1]
-  const isIntro  = step === 0
+  const q = PERSONALITY_QUIZ[step - 1]
+  const isIntro = step === 0
   const isResult = step > total
 
   function next() {
@@ -4702,30 +4378,22 @@ function PersonalityQuiz({ state, save, onClose }) {
     if(selected === null) return
     const newAnswers = { ...answers, [q.id]: selected }
     setAnswers(newAnswers)
-    setAnimDir("out")
-    setTimeout(() => {
-      if(step >= total) {
-        const r = calcQuizPersonality(newAnswers, state)
-        setResult(r)
-        save({ ...state, profile: { ...state.profile, personalityResult: r } })
-        setStep(total + 1)
-      } else {
-        setStep(s => s + 1)
-        setSelected(null)
-      }
-      setAnimDir("in")
-    }, 180)
+    if(step >= total) {
+      const r = calcQuizPersonality(newAnswers, state)
+      setResult(r)
+      save({ ...state, profile: { ...state.profile, personalityResult: r } })
+      setStep(total + 1)
+    } else {
+      setStep(s => s + 1)
+      setSelected(null)
+    }
   }
 
   function back() {
     if(step <= 1) { onClose(); return }
-    setAnimDir("out")
-    setTimeout(() => {
-      setStep(s => s - 1)
-      const prevQ = PERSONALITY_QUIZ[step - 2]
-      setSelected(answers[prevQ?.id] ?? null)
-      setAnimDir("in")
-    }, 180)
+    setStep(s => s - 1)
+    const prevQ = PERSONALITY_QUIZ[step - 2]
+    setSelected(answers[prevQ?.id] ?? null)
   }
 
   const pct = step === 0 ? 0 : Math.round((step / total) * 100)
@@ -4734,10 +4402,9 @@ function PersonalityQuiz({ state, save, onClose }) {
     <div style={{ position:"fixed",inset:0,background:T.bg,zIndex:300,display:"flex",flexDirection:"column",overflowY:"auto" }}>
       <style>{`@keyframes quizIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}`}</style>
 
-      {/* Top bar */}
       <div style={{ padding:"16px 20px",display:"flex",alignItems:"center",gap:14,borderBottom:`1px solid ${T.border}`,position:"sticky",top:0,background:T.bg,zIndex:10 }}>
         <button onClick={isResult ? onClose : back} style={{ background:"none",border:"none",cursor:"pointer",color:T.muted,padding:4,fontFamily:"inherit" }}>
-          {isResult ? <span style={{ fontSize:13,fontWeight:700 }}>Done</span> : <span style={{ fontSize:20 }}>←</span>}
+          {isResult ? <span style={{ fontSize:13,fontWeight:700 }}>Done</span> : <span style={{ fontSize:20 }}>{"\u2190"}</span>}
         </button>
         <div style={{ flex:1 }}>
           {!isIntro && !isResult && (
@@ -4757,22 +4424,21 @@ function PersonalityQuiz({ state, save, onClose }) {
 
       <div style={{ flex:1,padding:"28px 20px 40px",maxWidth:520,margin:"0 auto",width:"100%" }}>
 
-        {/* INTRO */}
         {isIntro && (
           <div style={{ animation:"quizIn .3s ease" }}>
-            <div style={{ fontSize:56,marginBottom:20,textAlign:"center" }}>🧠</div>
+            <div style={{ fontSize:56,marginBottom:20,textAlign:"center" }}>{"\u{1F9E0}"}</div>
             <h1 style={{ color:T.white,fontWeight:900,fontSize:26,textAlign:"center",marginBottom:12,lineHeight:1.2 }}>
-              Find out your money personality
+              Discover your money personality
             </h1>
             <p style={{ color:"#E2EAF6",fontSize:15,textAlign:"center",lineHeight:1.7,marginBottom:32 }}>
-              12 scenario questions. No right answers. Takes about 4 minutes.
+              12 real-life scenarios. No right answers. Based on financial psychology research. Takes about 4 minutes.
             </p>
             <div style={{ display:"flex",flexDirection:"column",gap:10,marginBottom:32 }}>
               {[
-                { icon:"🎯", text:"Your money archetype, one of 8 types" },
-                { icon:"📊", text:"How you make financial decisions" },
-                { icon:"💡", text:"Your specific blind spots and strengths" },
-                { icon:"🗺️", text:"What this means in real-life scenarios" },
+                { icon:"\u{1F3AF}", text:"Your archetype from 10 financial personality types" },
+                { icon:"\u{1F4CA}", text:"7 dimensions of how you relate to money" },
+                { icon:"\u{1F4A1}", text:"Your specific blind spots and hidden strengths" },
+                { icon:"\u{1F52E}", text:"Personalised insights based on financial psychology research" },
               ].map((item,i)=>(
                 <div key={i} style={{ display:"flex",alignItems:"center",gap:12,background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"12px 14px" }}>
                   <span style={{ fontSize:20 }}>{item.icon}</span>
@@ -4786,15 +4452,9 @@ function PersonalityQuiz({ state, save, onClose }) {
           </div>
         )}
 
-        {/* QUESTION */}
         {!isIntro && !isResult && q && (
           <div key={step} style={{ animation:"quizIn .25s ease" }}>
-            <div style={{ marginBottom:8 }}>
-              <span style={{ background:T.purpleDim,color:T.purple,fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:99,border:`1px solid ${T.purpleBorder}`,letterSpacing:.8,textTransform:"uppercase" }}>
-                {q.dimension.replace(/_/g," ")}
-              </span>
-            </div>
-            <h2 style={{ color:T.white,fontWeight:900,fontSize:21,lineHeight:1.25,marginBottom:6,marginTop:14 }}>{q.headline}</h2>
+            <h2 style={{ color:T.white,fontWeight:900,fontSize:21,lineHeight:1.25,marginBottom:6,marginTop:8 }}>{q.headline}</h2>
             <p style={{ color:"#8FA3BE",fontSize:14,marginBottom:28 }}>{q.sub}</p>
 
             <div style={{ display:"flex",flexDirection:"column",gap:10,marginBottom:32 }}>
@@ -4814,7 +4474,7 @@ function PersonalityQuiz({ state, save, onClose }) {
                       display:"flex", alignItems:"center", gap:12
                     }}>
                     <div style={{ width:28,height:28,borderRadius:"50%",flexShrink:0,border:`2px solid ${sel?T.teal:T.border}`,background:sel?T.teal:"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:900,color:sel?T.bg:T.muted,transition:"all .15s" }}>
-                      {sel ? "✓" : String.fromCharCode(65+oi)}
+                      {sel ? "\u2713" : String.fromCharCode(65+oi)}
                     </div>
                     {opt.label}
                   </button>
@@ -4823,13 +4483,12 @@ function PersonalityQuiz({ state, save, onClose }) {
             </div>
 
             <button onClick={next} disabled={selected===null}
-              style={{ width:"100%",background:selected!==null?`linear-gradient(135deg,${T.teal},${T.purple})`:`${T.surface}`,border:`1px solid ${selected!==null?T.teal:T.border}`,borderRadius:16,padding:"15px",color:selected!==null?T.bg:T.muted,fontWeight:900,fontSize:15,cursor:selected!==null?"pointer":"default",fontFamily:"inherit",transition:"all .2s" }}>
+              style={{ width:"100%",background:selected!==null?`linear-gradient(135deg,${T.teal},${T.purple})`:T.subtle,border:"none",borderRadius:14,padding:"15px",color:selected!==null?T.bg:T.muted,fontWeight:800,fontSize:15,cursor:selected!==null?"pointer":"not-allowed",fontFamily:"inherit",transition:"all .2s" }}>
               {step < total ? "Next question" : "See my result"}
             </button>
           </div>
         )}
 
-        {/* RESULT */}
         {isResult && result && (
           <PersonalityResult result={result} onClose={onClose}/>
         )}
@@ -4840,50 +4499,43 @@ function PersonalityQuiz({ state, save, onClose }) {
 
 function PersonalityResult({ result, onClose }) {
   const arch = result.archetype
-  const [tab, setTab] = useState("overview") // overview | scenarios | blindspot
-
-  const DIM_LABELS = {
-    sg:  { security:"Security-focused", balanced:"Security-leaning", growth:"Growth-focused" },
-    pf:  { present:"Present-focused",   balanced:"Balanced",         future:"Future-focused" },
-    si:  { systematic:"Systematic",     balanced:"Balanced",         intuitive:"Intuitive" },
-    ic:  { independent:"Independent",   collaborative:"Collaborative" },
-    as_: { scarcity:"Scarcity mindset", balanced:"Balanced",         abundance:"Abundance mindset" },
-    sc:  { simplicity:"Simplicity-first",complexity:"Complexity-comfortable" },
-    er:  { cautious:"Cautious",         balanced:"Balanced",         adventurous:"Adventurous" },
-  }
+  const [tab, setTab] = useState("overview")
   const dims = result.dimensions
+  const norm = result.scores
+
+  const dimRows = [
+    { key:"Risk appetite", left:"Security-first", right:"Growth-seeking", val:norm.security_growth, color:norm.security_growth>55?T.teal:norm.security_growth<45?T.amber:T.muted },
+    { key:"Time horizon", left:"Present-focused", right:"Future-focused", val:norm.present_future, color:norm.present_future>55?T.teal:norm.present_future<45?T.amber:T.muted },
+    { key:"Decision style", left:"Methodical", right:"Spontaneous", val:norm.planned_spontaneous, color:T.purple },
+    { key:"Money mindset", left:"Scarcity-aware", right:"Abundance-minded", val:norm.abundance_scarcity, color:norm.abundance_scarcity>55?T.green:norm.abundance_scarcity<45?T.red:T.amber },
+    { key:"Decisions led by", left:"Emotion & instinct", right:"Data & analysis", val:norm.emotional_analytical, color:T.blue },
+    { key:"Money means", left:"Status & security", right:"Freedom & options", val:norm.status_freedom, color:norm.status_freedom>55?T.teal:T.amber },
+    { key:"Advice style", left:"Self-reliant", right:"Seeks input", val:norm.independent_social, color:T.purple },
+  ]
+
   const DIM_TIPS = {
-    "Risk appetite":      "How comfortable you are with investment risk and potential losses. High = comfortable seeing portfolio drops. Low = prefers certainty.",
-    "Time horizon":       "Whether you naturally think short-term (next few months) or long-term (decades). Affects how you should invest your pension and savings.",
-    "Decision style":     "Data-driven = researches thoroughly before deciding. Intuitive = trusts gut feel and moves faster. Neither is better, both have blind spots.",
-    "Advice preference":  "Whether you prefer to decide independently or value trusted guidance. Affects whether a financial adviser would genuinely help you.",
-    "Money mindset":      "Abundance = believes there will always be enough. Scarcity-cautious = carries background worry about money running out, even when it won't.",
-    "Complexity comfort": "Simplicity = wants one account, one plan, no fuss. Loves detail = enjoys understanding every layer of a financial product or portfolio.",
+    "Risk appetite":"How comfortable you are with investment volatility. Higher = comfortable seeing your portfolio drop 30%. Lower = prefers certainty even at lower returns.",
+    "Time horizon":"Whether you naturally optimise for now or for decades ahead. Affects how you should invest your pension and savings.",
+    "Decision style":"Methodical = researches thoroughly and follows plans. Spontaneous = trusts instinct and moves quickly. Neither is better — both have different blind spots.",
+    "Money mindset":"Abundance = believes there is enough and acts accordingly. Scarcity = carries background worry about money, even when the numbers say otherwise. Rooted in childhood experiences.",
+    "Decisions led by":"Whether you make money decisions based on how they feel or what the data says. Most people believe they are more analytical than they actually are.",
+    "Money means":"What money represents to you at a core level. Status-driven = money proves something. Freedom-driven = money buys options and autonomy.",
+    "Advice style":"Whether you prefer to figure money out alone or value input from others. Neither is right, but extreme self-reliance can mean missing valuable perspectives.",
   }
   const [activeTip, setActiveTip] = useState(null)
-  const dimRows = [
-    { key:"Risk appetite",        val: dims.sg==="growth"?"High":dims.sg==="security"?"Low":"Medium",          color: dims.sg==="growth"?T.teal:dims.sg==="security"?T.amber:T.muted },
-    { key:"Time horizon",         val: dims.pf==="future"?"Long-term":"Short-term",                             color: dims.pf==="future"?T.teal:T.amber },
-    { key:"Decision style",       val: dims.si==="systematic"?"Data-driven":"Intuitive",                        color: T.purple },
-    { key:"Advice preference",    val: dims.ic==="collaborative"?"Seeks guidance":"Self-directed",              color: T.blue },
-    { key:"Money mindset",        val: dims.as_==="abundance"?"Abundance":"Scarcity-cautious",                  color: dims.as_==="abundance"?T.green:T.red },
-    { key:"Complexity comfort",   val: dims.sc==="complexity"?"Loves detail":"Wants simplicity",               color: T.muted },
-  ]
 
   return (
     <div style={{ animation:"quizIn .3s ease" }}>
-      {/* Archetype hero */}
       <div style={{ textAlign:"center",marginBottom:28 }}>
         <div style={{ width:80,height:80,borderRadius:24,background:`${arch.color}20`,border:`2px solid ${arch.color}50`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:40,margin:"0 auto 16px",boxShadow:`0 0 40px ${arch.color}30` }}>
           {arch.emoji}
         </div>
         <p style={{ color:arch.color,fontWeight:700,fontSize:11,letterSpacing:1.5,textTransform:"uppercase",marginBottom:8 }}>Your money personality</p>
         <h2 style={{ color:T.white,fontWeight:900,fontSize:28,marginBottom:8 }}>{arch.name}</h2>
-        <p style={{ color:arch.headline?arch.color:T.muted,fontWeight:700,fontSize:15,marginBottom:14 }}>{arch.headline}</p>
+        <p style={{ color:arch.color,fontWeight:700,fontSize:15,marginBottom:14 }}>{arch.headline}</p>
         <p style={{ color:"#E2EAF6",fontSize:14,lineHeight:1.7 }}>{arch.summary}</p>
       </div>
 
-      {/* Tab switcher */}
       <div style={{ display:"flex",gap:6,marginBottom:20,background:T.surface,borderRadius:12,padding:4 }}>
         {[["overview","Overview"],["scenarios","What this means"],["blindspot","Blind spot"]].map(([id,label])=>(
           <button key={id} onClick={()=>setTab(id)}
@@ -4893,23 +4545,26 @@ function PersonalityResult({ result, onClose }) {
         ))}
       </div>
 
-      {/* Overview tab */}
       {tab==="overview" && (
         <div style={{ animation:"quizIn .2s ease" }}>
-          <p style={{ color:T.muted,fontSize:11,fontWeight:700,letterSpacing:1.2,textTransform:"uppercase",marginBottom:10 }}>Your financial profile</p>
+          <p style={{ color:T.muted,fontSize:11,fontWeight:700,letterSpacing:1.2,textTransform:"uppercase",marginBottom:10 }}>Your 7 dimensions</p>
           <div style={{ display:"flex",flexDirection:"column",gap:8,marginBottom:20 }}>
             {dimRows.map(d=>(
-              <div key={d.key} style={{ background:T.card,border:`1px solid ${activeTip===d.key?arch.color+"50":T.border}`,borderRadius:10,padding:"10px 14px",transition:"border .15s" }}>
-                <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
-                  <div style={{ display:"flex",alignItems:"center",gap:6 }}>
-                    <p style={{ color:"#8FA3BE",fontSize:13 }}>{d.key}</p>
-                    <button onClick={()=>setActiveTip(activeTip===d.key?null:d.key)}
-                      style={{ background:`${arch.color}20`,border:`1px solid ${arch.color}30`,borderRadius:"50%",width:16,height:16,cursor:"pointer",fontFamily:"inherit",fontSize:9,fontWeight:800,color:arch.color,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>?</button>
-                  </div>
-                  <p style={{ color:d.color,fontWeight:700,fontSize:13 }}>{d.val}</p>
+              <div key={d.key} onClick={()=>setActiveTip(activeTip===d.key?null:d.key)} style={{ background:T.card,border:`1px solid ${activeTip===d.key?arch.color+"50":T.border}`,borderRadius:12,padding:"12px 14px",cursor:"pointer",transition:"border .15s" }}>
+                <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6 }}>
+                  <p style={{ color:"#8FA3BE",fontSize:12,fontWeight:600 }}>{d.key}</p>
+                  <p style={{ color:d.color,fontWeight:800,fontSize:12 }}>{d.val}/100</p>
+                </div>
+                {/* Spectrum bar */}
+                <div style={{ position:"relative",height:6,background:T.surface,borderRadius:3,marginBottom:4 }}>
+                  <div style={{ position:"absolute",left:`${Math.max(2,Math.min(98,d.val))}%`,top:-2,width:10,height:10,borderRadius:"50%",background:d.color,transform:"translateX(-50%)",border:`2px solid ${T.card}`,transition:"left .6s" }}/>
+                </div>
+                <div style={{ display:"flex",justifyContent:"space-between" }}>
+                  <p style={{ color:d.val<45?"#E2EAF6":"#4A6080",fontSize:9,fontWeight:d.val<45?700:500 }}>{d.left}</p>
+                  <p style={{ color:d.val>55?"#E2EAF6":"#4A6080",fontSize:9,fontWeight:d.val>55?700:500 }}>{d.right}</p>
                 </div>
                 {activeTip===d.key && (
-                  <p className="ls-fadein" style={{ color:"#E2EAF6",fontSize:12,lineHeight:1.55,marginTop:8,paddingTop:8,borderTop:`1px solid ${T.border}` }}>{DIM_TIPS[d.key]}</p>
+                  <p className="ls-fadein" style={{ color:"#D8E8F8",fontSize:12,lineHeight:1.55,marginTop:8,paddingTop:8,borderTop:`1px solid ${T.border}` }}>{DIM_TIPS[d.key]}</p>
                 )}
               </div>
             ))}
@@ -4918,7 +4573,7 @@ function PersonalityResult({ result, onClose }) {
           <div style={{ display:"flex",flexDirection:"column",gap:7 }}>
             {(arch.traits||[]).map((t,i)=>(
               <div key={i} style={{ display:"flex",alignItems:"flex-start",gap:10 }}>
-                <span style={{ color:arch.color,fontSize:14,marginTop:1 }}>✓</span>
+                <span style={{ color:arch.color,fontSize:14,marginTop:1 }}>{"\u2713"}</span>
                 <p style={{ color:"#E2EAF6",fontSize:13,lineHeight:1.5 }}>{t}</p>
               </div>
             ))}
@@ -4926,30 +4581,40 @@ function PersonalityResult({ result, onClose }) {
         </div>
       )}
 
-      {/* Scenarios tab */}
       {tab==="scenarios" && (
         <div style={{ animation:"quizIn .2s ease" }}>
-          <p style={{ color:"#D8E8F8",fontSize:14,lineHeight:1.65,marginBottom:16 }}>Based on your profile, here is how you are likely to think and act with money:</p>
-          <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
+          <p style={{ color:T.muted,fontSize:11,fontWeight:700,letterSpacing:1.2,textTransform:"uppercase",marginBottom:10 }}>This is probably true about you</p>
+          <p style={{ color:"#C8D8EC",fontSize:13,lineHeight:1.55,marginBottom:14 }}>The more accurate these feel, the more reliable your result is.</p>
+          <div style={{ display:"flex",flexDirection:"column",gap:8,marginBottom:24 }}>
             {(arch.scenarios||[]).map((s,i)=>(
-              <div key={i} style={{ background:T.card,border:`1px solid ${arch.color}25`,borderRadius:12,padding:"13px 15px",display:"flex",gap:10,alignItems:"flex-start" }}>
-                <span style={{ fontSize:15,marginTop:1 }}>→</span>
+              <div key={i} style={{ background:T.card,border:`1px solid ${arch.color}20`,borderRadius:12,padding:"12px 14px",display:"flex",gap:10,alignItems:"flex-start" }}>
+                <span style={{ color:arch.color,fontSize:14,marginTop:1,flexShrink:0 }}>{"\u2713"}</span>
                 <p style={{ color:"#E2EAF6",fontSize:13,lineHeight:1.55 }}>{s}</p>
               </div>
             ))}
           </div>
+          {(arch.advice||[]).length>0 && <>
+            <p style={{ color:T.muted,fontSize:11,fontWeight:700,letterSpacing:1.2,textTransform:"uppercase",marginBottom:10 }}>Advice for your type</p>
+            <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
+              {arch.advice.map((a,i)=>(
+                <div key={i} style={{ background:`${arch.color}08`,border:`1px solid ${arch.color}18`,borderRadius:12,padding:"12px 14px",display:"flex",gap:10,alignItems:"flex-start" }}>
+                  <span style={{ color:arch.color,fontSize:14,marginTop:1,flexShrink:0 }}>{"\u{1F4A1}"}</span>
+                  <p style={{ color:"#E2EAF6",fontSize:13,lineHeight:1.55 }}>{a}</p>
+                </div>
+              ))}
+            </div>
+          </>}
         </div>
       )}
 
-      {/* Blind spot tab */}
       {tab==="blindspot" && (
         <div style={{ animation:"quizIn .2s ease" }}>
           <div style={{ background:T.amberDim,border:`1.5px solid ${T.amberBorder}`,borderRadius:16,padding:"18px",marginBottom:20 }}>
-            <p style={{ color:T.amber,fontWeight:700,fontSize:13,marginBottom:8 }}>⚠ Your main blind spot</p>
+            <p style={{ color:T.amber,fontWeight:700,fontSize:13,marginBottom:8 }}>{"\u26A0"} Your main blind spot</p>
             <p style={{ color:"#E2EAF6",fontSize:14,lineHeight:1.65 }}>{arch.blind_spot}</p>
           </div>
           <div style={{ background:`${arch.color}12`,border:`1.5px solid ${arch.color}30`,borderRadius:16,padding:"18px" }}>
-            <p style={{ color:arch.color,fontWeight:700,fontSize:13,marginBottom:8 }}>→ Your next move</p>
+            <p style={{ color:arch.color,fontWeight:700,fontSize:13,marginBottom:8 }}>{"\u2192"} Your next move</p>
             <p style={{ color:"#E2EAF6",fontSize:14,lineHeight:1.65 }}>{arch.next_step}</p>
           </div>
         </div>
@@ -4962,51 +4627,45 @@ function PersonalityResult({ result, onClose }) {
   )
 }
 
+
 function MoneyPersonalityCard({ state, save, onOpenQuiz }) {
-  // Prefer quiz result; fallback to behavioural inference
   const quizResult = state.profile?.personalityResult
   const p = quizResult || calcPersonality(state)
   const arch = p.archetype
   const [showMode, setShowMode] = useState(false)
   const mode = PRIORITY_MODES.find(m=>m.id===(state.profile?.mode||"grow"))||PRIORITY_MODES[0]
 
-  const DIM_LABELS = {
-    mindset:   { security:"Security-focused", growth:"Growth-focused",   freedom:"Freedom-focused" },
-    behaviour: { starter:"Starter",           saver:"Saver",             builder:"Builder",         investor:"Investor" },
-    risk:      { cautious:"Cautious",          balanced:"Balanced",       adventurous:"Adventurous" },
-  }
+  // Show quiz dimensions if quiz taken, otherwise show behavioral dimensions
+  const dimCards = quizResult ? [
+    { label:"Risk", val:p.scores?.security_growth>55?"Growth-seeking":p.scores?.security_growth<45?"Security-first":"Balanced", color:T.teal },
+    { label:"Style", val:p.scores?.planned_spontaneous>55?"Spontaneous":p.scores?.planned_spontaneous<45?"Methodical":"Balanced", color:T.purple },
+    { label:"Mindset", val:p.scores?.abundance_scarcity>55?"Abundance":p.scores?.abundance_scarcity<45?"Scarcity-aware":"Balanced", color:T.amber },
+  ] : [
+    { label:"Mindset", val:p.mindset==="security"?"Security":p.mindset==="growth"?"Growth":"Freedom", color:T.teal },
+    { label:"Behaviour", val:p.behaviour==="starter"?"Starter":p.behaviour==="saver"?"Saver":p.behaviour==="builder"?"Builder":"Investor", color:T.purple },
+    { label:"Risk", val:p.risk==="cautious"?"Cautious":p.risk==="adventurous"?"Adventurous":"Balanced", color:T.amber },
+  ]
 
   return (
     <div style={{ marginBottom:16 }}>
       <div style={{ background:T.card,border:`1.5px solid ${arch.color}35`,borderRadius:20,padding:"22px",position:"relative",overflow:"hidden" }}>
         <div style={{ position:"absolute",top:0,right:0,width:120,height:120,background:`radial-gradient(circle at 100% 0%,${arch.color}15,transparent 70%)`,pointerEvents:"none" }}/>
-
         <div style={{ display:"flex",alignItems:"flex-start",gap:14,marginBottom:16,position:"relative" }}>
-          <div style={{ width:56,height:56,borderRadius:16,background:`${arch.color}20`,border:`2px solid ${arch.color}40`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,flexShrink:0 }}>
-            {arch.emoji}
-          </div>
+          <div style={{ width:56,height:56,borderRadius:16,background:`${arch.color}20`,border:`2px solid ${arch.color}40`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,flexShrink:0 }}>{arch.emoji}</div>
           <div style={{ flex:1 }}>
             <p style={{ color:"#8FA3BE",fontSize:11,fontWeight:700,letterSpacing:1.2,textTransform:"uppercase",marginBottom:4 }}>Your money personality</p>
             <p style={{ color:T.white,fontWeight:900,fontSize:20,marginBottom:4 }}>{arch.name}</p>
-            <p style={{ color:"#E2EAF6",fontSize:13,lineHeight:1.55 }}>{arch.summary}</p>
+            <p style={{ color:"#E2EAF6",fontSize:13,lineHeight:1.55 }}>{arch.summary?.slice(0,120)}...</p>
           </div>
         </div>
-
-        {/* 3 dimensions */}
         <div style={{ display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:16 }}>
-          {[
-            { label:"Mindset",  val:DIM_LABELS.mindset[p.mindset],   color:T.teal },
-            { label:"Behaviour",val:DIM_LABELS.behaviour[p.behaviour],color:T.purple },
-            { label:"Risk",     val:DIM_LABELS.risk[p.risk],          color:T.amber },
-          ].map(d=>(
-            <div key={d.label} style={{ background:T.surface,borderRadius:12,padding:"10px 10px" }}>
+          {dimCards.map(d=>(
+            <div key={d.label} style={{ background:T.surface,borderRadius:12,padding:"10px" }}>
               <p style={{ color:"#8FA3BE",fontSize:10,fontWeight:700,letterSpacing:.8,textTransform:"uppercase",marginBottom:3 }}>{d.label}</p>
               <p style={{ color:d.color,fontWeight:800,fontSize:12 }}>{d.val}</p>
             </div>
           ))}
         </div>
-
-        {/* Locked insights */}
         <div style={{ borderTop:`1px solid ${T.border}`,paddingTop:14 }}>
           <p style={{ color:"#8FA3BE",fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:10 }}>Deeper insights</p>
           <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
@@ -5016,29 +4675,23 @@ function MoneyPersonalityCard({ state, save, onOpenQuiz }) {
                 <div key={l.id} style={{ display:"flex",alignItems:"center",gap:10,background:done?`${arch.color}10`:T.faint,borderRadius:10,padding:"10px 12px",border:`1px solid ${done?arch.color+"30":T.border}` }}>
                   <span style={{ fontSize:16,flexShrink:0 }}>{l.icon}</span>
                   <p style={{ color:done?T.white:"#8FA3BE",fontWeight:done?700:500,fontSize:13,flex:1 }}>{l.label}</p>
-                  {done
-                    ? <span style={{ color:arch.color,fontSize:11,fontWeight:700 }}>Unlocked ✓</span>
-                    : <span style={{ color:"#8FA3BE",fontSize:11 }}>{l.unlock}</span>
-                  }
+                  {done ? <span style={{ color:arch.color,fontSize:11,fontWeight:700 }}>Unlocked ✓</span> : <span style={{ color:"#8FA3BE",fontSize:11 }}>{l.unlock}</span>}
                 </div>
               )
             })}
           </div>
         </div>
       </div>
-
-      {/* Mode selector */}
-      {/* Retake / view result buttons */}
-      <div style={{ display:"flex",gap:8,marginBottom:8 }}>
-        {quizResult
-          ? <button onClick={onOpenQuiz} style={{ flex:1,background:`${arch.color}15`,border:`1px solid ${arch.color}35`,borderRadius:10,padding:"9px 14px",cursor:"pointer",fontFamily:"inherit",color:arch.color,fontWeight:700,fontSize:12 }}>View full result →</button>
-          : <button onClick={onOpenQuiz} style={{ flex:1,background:T.purpleDim,border:`1px solid ${T.purpleBorder}`,borderRadius:10,padding:"9px 14px",cursor:"pointer",fontFamily:"inherit",color:T.purple,fontWeight:700,fontSize:12 }}>Take the quiz →</button>
-        }
+      <div style={{ display:"flex",gap:8,marginTop:8 }}>
+        <button onClick={onOpenQuiz} style={{ flex:1,background:`${arch.color}15`,border:`1px solid ${arch.color}35`,borderRadius:10,padding:"9px 14px",cursor:"pointer",fontFamily:"inherit",color:arch.color,fontWeight:700,fontSize:12 }}>
+          {quizResult ? "View full result →" : "Take the quiz →"}
+        </button>
+        {quizResult && <button onClick={()=>{save({...state,profile:{...state.profile,personalityResult:null}})}} style={{ background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,padding:"9px 14px",cursor:"pointer",fontFamily:"inherit",color:T.muted,fontWeight:700,fontSize:12 }}>
+          Retake quiz
+        </button>}
       </div>
-
       <div style={{ marginTop:4 }}>
-        <button onClick={()=>setShowMode(v=>!v)}
-          style={{ width:"100%",background:T.card,border:`1px solid ${mode.border}`,borderRadius:14,padding:"13px 18px",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:12,justifyContent:"space-between" }}>
+        <button onClick={()=>setShowMode(v=>!v)} style={{ width:"100%",background:T.card,border:`1px solid ${mode.border}`,borderRadius:14,padding:"13px 18px",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:12,justifyContent:"space-between" }}>
           <div style={{ display:"flex",alignItems:"center",gap:10 }}>
             <span style={{ fontSize:18 }}>{mode.icon}</span>
             <div style={{ textAlign:"left" }}>
@@ -5048,7 +4701,6 @@ function MoneyPersonalityCard({ state, save, onOpenQuiz }) {
           </div>
           <p style={{ color:mode.color,fontSize:12,fontWeight:700 }}>Change</p>
         </button>
-
         {showMode && (
           <div className="ls-fadein" style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:"14px",marginTop:8 }}>
             <p style={{ color:"#E2EAF6",fontSize:13,marginBottom:12,fontWeight:500 }}>What do you want LifeSmart to focus on?</p>
@@ -5056,8 +4708,7 @@ function MoneyPersonalityCard({ state, save, onOpenQuiz }) {
               {PRIORITY_MODES.map(m=>{
                 const sel = m.id===(state.profile?.mode||"grow")
                 return (
-                  <button key={m.id} onClick={()=>{ save({...state,profile:{...state.profile,mode:m.id}}); setShowMode(false) }}
-                    style={{ background:sel?m.dim:T.faint,border:`1.5px solid ${sel?m.color:T.border}`,borderRadius:12,padding:"12px 14px",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:12,textAlign:"left" }}>
+                  <button key={m.id} onClick={()=>{save({...state,profile:{...state.profile,mode:m.id}});setShowMode(false)}} style={{ background:sel?m.dim:T.faint,border:`1.5px solid ${sel?m.color:T.border}`,borderRadius:12,padding:"12px 14px",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:12,textAlign:"left" }}>
                     <span style={{ fontSize:20 }}>{m.icon}</span>
                     <div style={{ flex:1 }}>
                       <p style={{ color:sel?T.white:"#E2EAF6",fontWeight:700,fontSize:14 }}>{m.label}</p>
@@ -5285,7 +4936,7 @@ function AppShell() {
   const CONTENT = [<HomeTab/>, <LearnTab/>, <AnalyticsTab/>, <MeTab/>]
 
   return (
-    <div style={{ height:"100dvh",display:"flex",flexDirection:"column",background:T.bg }}>
+    <div style={{ height:"100dvh",display:"flex",flexDirection:"column",background:T.bg,overflow:"hidden" }}>
       {/* Top bar */}
       <header style={{ background:"rgba(11,20,36,.95)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderBottom:"1px solid rgba(255,255,255,.05)",padding:"0 20px",height:50,display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0,position:"relative",zIndex:10,boxShadow:"0 4px 24px rgba(0,0,0,.25)" }}>
         <div style={{ display:"flex",alignItems:"center",gap:8 }}>
@@ -5303,52 +4954,8 @@ function AppShell() {
       </div>
 
       <BottomNav/>
-      <GlobalSheetPortal/>
     </div>
   )
-}
-
-function GlobalSheetPortal() {
-  const { state, save, toast, globalSheet, setGlobalSheet } = useApp()
-  if(!globalSheet) return null
-  const close = () => setGlobalSheet(null)
-
-  function saveAsset(data) {
-    const { cat, name, val, monthlyIncome, annualReturn, existingId, existingLinkedDebtId, hasLoan, loanBal } = data
-    let nA = [...state.assets], nD = [...state.debts]
-    const assetId = existingId || `a_${Date.now()}`
-    const assetObj = { id:assetId, category:cat, name, value:val, monthlyIncome:monthlyIncome||0, linkedDebtId:existingLinkedDebtId||null, annualReturn:annualReturn||null }
-    if(existingId) nA = nA.map(a=>a.id===existingId?assetObj:a); else nA.push(assetObj)
-    if(hasLoan && loanBal>0) {
-      const t = DEBT_TYPES.find(x=>["mortgage","car_loan"].includes(x.cat)&&x.cat===cat)||DEBT_TYPES[0]
-      const debtId = existingLinkedDebtId||`d_linked_${Date.now()}`
-      const debtObj = { id:debtId, category:cat==="primary_residence"?"mortgage":cat, name:`${name} loan`, balance:loanBal, interestRate:t.assumedRate, linkedAssetId:assetId, isAutoCreated:true }
-      nA = nA.map(a=>a.id===assetId?{...a,linkedDebtId:debtId}:a)
-      if(existingLinkedDebtId) nD = nD.map(d=>d.id===existingLinkedDebtId?debtObj:d); else nD.push(debtObj)
-    }
-    save({...state,assets:nA,debts:nD}); toast(existingId?"✓ Asset updated":"✓ Asset added"); close()
-  }
-
-  function saveDebt(data) {
-    const { cat, name, bal, rate, minPayment, existingId } = data
-    const t = DEBT_TYPES.find(x=>x.cat===cat)
-    const debtId = existingId||`d_${Date.now()}`
-    const debtObj = { id:debtId, category:cat, name, balance:bal, interestRate:rate||t?.assumedRate||10, minPayment:minPayment||0 }
-    const nD = existingId ? state.debts.map(d=>d.id===existingId?debtObj:d) : [...state.debts, debtObj]
-    save({...state,debts:nD}); toast(existingId?"✓ Debt updated":"✓ Debt added"); close()
-  }
-
-  if(globalSheet.type==="asset") return (
-    <Sheet title={globalSheet.item?"Edit asset":"Add an asset"} onClose={close}>
-      <AssetSheet item={globalSheet.item} onClose={close} onSave={saveAsset}/>
-    </Sheet>
-  )
-  if(globalSheet.type==="debt") return (
-    <Sheet title={globalSheet.item?"Edit debt":"Add a debt"} onClose={close}>
-      <DebtSheet item={globalSheet.item} onClose={close} onSave={saveDebt}/>
-    </Sheet>
-  )
-  return null
 }
 
 function XPBadge() {
