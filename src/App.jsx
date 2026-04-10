@@ -1818,6 +1818,38 @@ function HomeTab() {
           </button>
         )}
 
+        {/* TRACKING STREAK / UPDATE REMINDER */}
+        {hasNumbers && (() => {
+          const history = state.history || []
+          const monthsTracked = history.length
+          const currentMonth = new Date().toISOString().slice(0,7)
+          const hasThisMonth = history.some(h => h.month === currentMonth)
+          const lastUpdate = monthsTracked > 0 ? history[history.length-1].month : null
+          const daysSinceLast = lastUpdate ? Math.floor((Date.now() - new Date(lastUpdate+"-01").getTime()) / (1000*60*60*24)) : null
+          const needsUpdate = !hasThisMonth && daysSinceLast > 25
+          if (needsUpdate) {
+            return (
+              <div onClick={() => setTab(2)} style={{ background:`${T.amber}10`,border:`1.5px solid ${T.amberBorder}`,borderRadius:14,padding:"12px 16px",marginBottom:12,cursor:"pointer",display:"flex",alignItems:"center",gap:12 }}>
+                <span style={{ fontSize:22 }}>📸</span>
+                <div style={{ flex:1 }}>
+                  <p style={{ color:T.white,fontWeight:800,fontSize:13 }}>Time for your monthly update</p>
+                  <p style={{ color:"#C8D8EC",fontSize:11 }}>Takes 30 seconds. Keeps your progress chart accurate and your streak alive.</p>
+                </div>
+                <span style={{ color:T.amber,fontWeight:800,fontSize:16 }}>›</span>
+              </div>
+            )
+          }
+          if (monthsTracked >= 2) {
+            return (
+              <div style={{ background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"10px 14px",marginBottom:12,display:"flex",alignItems:"center",gap:10 }}>
+                <span style={{ fontSize:18 }}>🔥</span>
+                <p style={{ color:"#C8D8EC",fontSize:12,flex:1 }}>You are on a <strong style={{ color:T.teal }}>{monthsTracked} month tracking streak</strong>. Consistency is what builds wealth.</p>
+              </div>
+            )
+          }
+          return null
+        })()}
+
         {/* ══ SECTION 1: TWO TAPPABLE TILES ══ */}
         <div style={{ marginTop:18, marginBottom:12 }}>
 
@@ -3129,6 +3161,7 @@ function AnalyticsTab() {
   const [sheet, setSheet] = useState(null)
   const [editItem, setEditItem] = useState(null)
   const [showHealthQ, setShowHealthQ] = useState(false)
+  const [showRefineSheet, setShowRefineSheet] = useState(false)
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [assetsConfirmed, setAssetsConfirmed] = useState(false)
   const [spendingPhase, setSpendingPhase] = useState(state.spending?.breakdown && Object.keys(state.spending.breakdown).length > 0 ? "chart" : "locked")
@@ -3234,10 +3267,11 @@ function AnalyticsTab() {
 
             {/* Comparison section embedded */}
             {bench && <div style={{padding:"0 20px 16px",borderTop:`1px solid ${T.border}`}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",margin:"12px 0 10px"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",margin:"12px 0 4px"}}>
                 <p style={{color:"#6B8CB8",fontSize:9,fontWeight:700,letterSpacing:1,textTransform:"uppercase"}}>How You Compare · Age {age}</p>
                 <div style={{background:`${percentile>=50?T.teal:T.amber}12`,borderRadius:99,padding:"2px 8px",border:`1px solid ${percentile>=50?T.tealBorder:T.amberBorder}`}}><p style={{color:percentile>=50?T.teal:T.amber,fontWeight:900,fontSize:11}}>{percentile}th percentile</p></div>
               </div>
+              <p style={{color:"#8FA3BE",fontSize:11,lineHeight:1.5,marginBottom:10}}>You are being compared to people your age across the UK using ONS wealth data. <button onClick={()=>setShowRefineSheet(true)} style={{background:"none",border:"none",color:T.teal,fontWeight:700,cursor:"pointer",fontFamily:"inherit",fontSize:11,padding:0}}>Refine for accuracy →</button></p>
               <div style={{display:"flex",alignItems:"flex-end",height:32,gap:1,marginBottom:4}}>
                 {Array.from({length:25},(_,i)=>{const bp=i/25*100,h=Math.exp(-0.5*Math.pow((i-12.5)/4,2))*100,isY=Math.abs(bp-percentile)<5;return <div key={i} style={{flex:1,height:`${h}%`,background:isY?T.teal:bp<percentile?`${T.teal}25`:`${T.muted}15`,borderRadius:"2px 2px 0 0",position:"relative"}}>{isY&&<div style={{position:"absolute",top:-6,left:"50%",transform:"translateX(-50%)",width:0,height:0,borderLeft:"3px solid transparent",borderRight:"3px solid transparent",borderTop:`5px solid ${T.teal}`}}/>}</div>})}
               </div>
@@ -3310,7 +3344,7 @@ function AnalyticsTab() {
                 </div>
                 <div style={{background:T.surface,borderRadius:10,padding:"10px 12px",marginTop:10}}>
                   <p style={{color:T.teal,fontWeight:800,fontSize:12,marginBottom:3}}>{productivePct}% productive assets</p>
-                  <p style={{color:"#C8D8EC",fontSize:11,lineHeight:1.5}}>{productivePct<30?"Productive assets (savings, investments, pensions) compound over time. Focus on building this portion to accelerate growth.":productivePct<60?"Decent foundation. Shifting more toward investments and pensions accelerates compounding.":"Strong productive allocation — your wealth is actively compounding."}</p>
+                  <p style={{color:"#C8D8EC",fontSize:11,lineHeight:1.5}}>Productive assets (savings, investments, pensions) earn returns over time and compound. They are what build financial freedom. {productivePct<30?"Most of your wealth is currently in things that don't grow on their own. Shifting more into productive assets is the single biggest accelerator for your future net worth.":productivePct<60?"You have a decent foundation. Increasing this percentage means more money working for you while you sleep.":"Strong productive allocation. Your wealth is actively compounding toward financial freedom."}</p>
                 </div>
               </div>)
             })()}
@@ -3337,7 +3371,8 @@ function AnalyticsTab() {
           {/* ═══ 3. INCOME & SPENDING ═══ */}
           <div style={{background:T.card,border:`1.5px solid ${spendingPhase==="chart"?T.purpleBorder:T.border}`,borderRadius:20,marginBottom:14,overflow:"hidden"}}>
             <div style={{padding:"16px 18px"}}>
-              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}><span style={{fontSize:18}}>💰</span><div><p style={{color:T.white,fontWeight:800,fontSize:15}}>Income & Spending</p><p style={{color:T.muted,fontSize:10}}>Your monthly cash flow</p></div></div>
+              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}><span style={{fontSize:18}}>💰</span><div><p style={{color:T.white,fontWeight:800,fontSize:15}}>Income & Spending</p><p style={{color:T.muted,fontSize:10}}>Your monthly cash flow</p></div></div>
+              <p style={{color:"#C8D8EC",fontSize:11,lineHeight:1.5,marginBottom:12}}>The goal is to land roughly around <strong style={{color:T.teal}}>50% needs, 30% wants, 20% savings</strong>. Most people spend too much on wants and not enough on their future without realising.</p>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginBottom:8}}>
                 <div><p style={{color:T.teal,fontWeight:900,fontSize:18}}>{fmtK(totalIncome)}</p><p style={{color:"#4A6080",fontSize:8}}>income/mo</p></div>
                 <div style={{textAlign:"center"}}><p style={{color:surplus>=0?T.teal:T.red,fontWeight:900,fontSize:14}}>{surplus>=0?"+":""}{fmt(surplus)}</p><p style={{color:"#4A6080",fontSize:8}}>surplus</p></div>
@@ -3360,10 +3395,11 @@ function AnalyticsTab() {
           {/* ═══ 4. WHAT-IF GRAPH ═══ */}
           <div style={{background:T.card,border:`1.5px solid ${T.tealBorder}`,borderRadius:20,marginBottom:14,overflow:"hidden"}}>
             <div style={{padding:"14px 16px 10px"}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-                <div style={{display:"flex",alignItems:"center",gap:8}}><span style={{fontSize:18}}>🔮</span><div><p style={{color:T.white,fontWeight:800,fontSize:14}}>What If I Saved More?</p><p style={{color:T.muted,fontSize:10}}>See how extra savings compound</p></div></div>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                <div style={{display:"flex",alignItems:"center",gap:8}}><span style={{fontSize:18}}>🔮</span><div><p style={{color:T.white,fontWeight:800,fontSize:14}}>What If I Saved More?</p><p style={{color:T.muted,fontSize:10}}>Compound growth over time</p></div></div>
                 <div style={{textAlign:"right"}}><p style={{color:T.teal,fontWeight:900,fontSize:16}}>+£{whatIfExtra}</p><p style={{color:"#4A6080",fontSize:8}}>per month</p></div>
               </div>
+              <p style={{color:"#C8D8EC",fontSize:11,lineHeight:1.5,marginBottom:10}}>The grey line shows your current trajectory. The teal line shows where you'd land by saving an extra <strong style={{color:T.teal}}>£{whatIfExtra}</strong> per month. Drag the slider to see the impact.</p>
               <input type="range" min="0" max="1000" step="25" value={whatIfExtra} onChange={e=>setWhatIfExtra(Number(e.target.value))} style={{width:"100%",accentColor:T.teal,height:4,marginBottom:4}}/>
             </div>
             <div style={{height:160,padding:"0 4px"}}>
@@ -3408,6 +3444,7 @@ function AnalyticsTab() {
       {sheet==="asset"&&<AssetSheet item={editItem} onClose={()=>{setSheet(null);setEditItem(null)}} onSave={saveAsset} onDelete={editItem?()=>{deleteAsset(editItem);setSheet(null);setEditItem(null)}:null}/>}
       {sheet==="debt"&&<DebtSheet item={editItem} onClose={()=>{setSheet(null);setEditItem(null)}} onSave={saveDebt} onDelete={editItem?()=>{deleteDebt(editItem);setSheet(null);setEditItem(null)}:null}/>}
       {showHealthQ&&<HQSheet/>}
+      {showRefineSheet&&<RefineSheet state={state} save={save} toast={toast} onClose={()=>setShowRefineSheet(false)}/>}
       {showConfirmModal&&<div style={{position:"fixed",inset:0,background:"rgba(7,13,26,.88)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
         <div className="ls-fadein" style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:20,padding:"24px 20px",width:"100%",maxWidth:440,maxHeight:"80vh",overflowY:"auto"}}>
           <p style={{color:T.white,fontWeight:900,fontSize:17,marginBottom:6}}>Confirm your figures</p>
@@ -3508,7 +3545,7 @@ function AnalyticsMomentum({state}){
   const demo=[{month:"Jan",nw:18000},{month:"Feb",nw:19200},{month:"Mar",nw:20100},{month:"Apr",nw:21800},{month:"May",nw:22400},{month:"Jun",nw:24000}]
   if(!has3)return(<div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:20,marginBottom:12,padding:"14px 16px"}}>
     <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}><span style={{fontSize:18}}>📈</span><p style={{color:T.white,fontWeight:800,fontSize:14}}>Net Worth Over Time</p><span style={{marginLeft:"auto",color:T.muted,fontSize:10,fontWeight:700,background:T.surface,padding:"2px 8px",borderRadius:99}}>🔒 {history.length}/3</span></div>
-    <div style={{position:"relative"}}><div style={{filter:"blur(5px)",opacity:.25,pointerEvents:"none",height:70}}><ResponsiveContainer width="100%" height={70}><AreaChart data={demo}><defs><linearGradient id="gMD" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={T.blue} stopOpacity={.3}/><stop offset="95%" stopColor={T.blue} stopOpacity={0}/></linearGradient></defs><Area type="monotone" dataKey="nw" stroke={T.blue} strokeWidth={2} fill="url(#gMD)" dot={false}/></AreaChart></ResponsiveContainer></div><div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:4}}><p style={{color:T.white,fontWeight:700,fontSize:11}}>Unlocks after 3 monthly updates</p><div style={{display:"flex",gap:5}}>{[0,1,2].map(i=><div key={i} style={{width:8,height:8,borderRadius:"50%",background:i<history.length?T.teal:T.border}}/>)}</div><button onClick={()=>{const m=prompt("Past month (e.g. 2025-01):");const v=prompt("Rough net worth that month:");if(m&&v){const h=[...(state.history||[])];h.push({month:m,netWorth:parseFloat(v)});h.sort((a,b)=>a.month.localeCompare(b.month));save({...state,history:h})}}} style={{background:T.tealDim,border:`1px solid ${T.tealBorder}`,borderRadius:8,padding:"4px 12px",color:T.teal,fontWeight:700,fontSize:10,cursor:"pointer",fontFamily:"inherit",marginTop:6}}>Add a past month</button></div></div>
+    <div style={{position:"relative"}}><div style={{filter:"blur(5px)",opacity:.25,pointerEvents:"none",height:70}}><ResponsiveContainer width="100%" height={70}><AreaChart data={demo}><defs><linearGradient id="gMD" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={T.blue} stopOpacity={.3}/><stop offset="95%" stopColor={T.blue} stopOpacity={0}/></linearGradient></defs><Area type="monotone" dataKey="nw" stroke={T.blue} strokeWidth={2} fill="url(#gMD)" dot={false}/></AreaChart></ResponsiveContainer></div><div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:6}}><p style={{color:T.white,fontWeight:700,fontSize:11}}>Unlocks after 3 monthly updates</p><div style={{display:"flex",gap:5}}>{[0,1,2].map(i=><div key={i} style={{width:8,height:8,borderRadius:"50%",background:i<history.length?T.teal:T.border}}/>)}</div></div></div>
   </div>)
   const cd=history.slice(-12).map(h=>({month:h.month?new Date(h.month+"-01").toLocaleDateString("en-GB",{month:"short"}):"?",nw:h.netWorth}))
   const change=(cd[cd.length-1]?.nw||0)-(cd[0]?.nw||0);const pct=cd[0]?.nw?Math.round((change/Math.abs(cd[0].nw))*100):0
@@ -3517,6 +3554,52 @@ function AnalyticsMomentum({state}){
     <div style={{padding:"14px 16px 0"}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}><div style={{display:"flex",alignItems:"center",gap:8}}><span style={{fontSize:18}}>📈</span><div><p style={{color:T.white,fontWeight:800,fontSize:14}}>Net Worth Over Time</p><p style={{color:change>=0?T.teal:T.red,fontSize:11,fontWeight:700}}>{change>=0?"↑":"↓"} {fmt(Math.abs(change))} ({pct>0?"+":""}{pct}%)</p></div></div></div></div>
     <div style={{height:120,padding:"0 4px 12px"}}><ResponsiveContainer width="100%" height={120}><AreaChart data={cd} margin={{top:5,right:8,bottom:0,left:0}}><defs><linearGradient id="gMR" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={change>=0?T.blue:T.red} stopOpacity={.3}/><stop offset="95%" stopColor={change>=0?T.blue:T.red} stopOpacity={0}/></linearGradient></defs><XAxis dataKey="month" tick={{fontSize:9,fill:"#8FA3BE"}} axisLine={false} tickLine={false}/><YAxis tick={{fontSize:8,fill:"#6B8CB8"}} axisLine={false} tickLine={false} tickFormatter={fmtAx} width={48}/><Tooltip formatter={v=>[fmt(v),"Net worth"]} contentStyle={{background:T.card,border:`1px solid ${T.border}`,borderRadius:10,fontSize:11,color:T.white}}/><Area type="monotone" dataKey="nw" stroke={change>=0?T.blue:T.red} strokeWidth={2.5} fill="url(#gMR)" dot={{r:2.5,fill:change>=0?T.blue:T.red,strokeWidth:0}}/></AreaChart></ResponsiveContainer></div>
   </div>)
+}
+
+/* ════════ REFINE COMPARISON SHEET ════════ */
+function RefineSheet({ state, save, toast, onClose }) {
+  const r = state.refineProfile || {}
+  const [education, setEducation] = useState(r.education || "")
+  const [region, setRegion] = useState(r.region || "")
+  const [industry, setIndustry] = useState(r.industry || "")
+  const [housing, setHousing] = useState(r.housing || "")
+
+  const EDUCATION = ["GCSE / no formal","A-levels","Undergraduate degree","Postgraduate degree"]
+  const REGIONS = ["London","South East","South West","East","Midlands","North","Wales","Scotland","Northern Ireland"]
+  const INDUSTRIES = ["Tech / IT","Finance / law","Healthcare","Education","Public sector","Retail / hospitality","Creative / media","Construction / trades","Self-employed","Other"]
+  const HOUSING = ["Living with parents","Renting","Mortgage / own home","Own home outright"]
+
+  function saveAndClose() {
+    save({ ...state, refineProfile: { education, region, industry, housing } })
+    toast("Comparison refined")
+    onClose()
+  }
+
+  function Section({ label, options, value, onChange }) {
+    return (
+      <div style={{ marginBottom:18 }}>
+        <p style={{ color:T.muted,fontSize:11,fontWeight:700,letterSpacing:.8,textTransform:"uppercase",marginBottom:8 }}>{label}</p>
+        <div style={{ display:"flex",flexWrap:"wrap",gap:6 }}>
+          {options.map(o => {
+            const sel = value === o
+            return <button key={o} onClick={()=>onChange(sel?"":o)}
+              style={{ background:sel?T.tealDim:T.card,border:`1.5px solid ${sel?T.teal:T.border}`,borderRadius:99,padding:"7px 12px",cursor:"pointer",fontFamily:"inherit",color:sel?T.teal:"#C8D8EC",fontWeight:600,fontSize:12 }}>{o}</button>
+          })}
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <Sheet title="Refine your comparison" onClose={onClose}>
+      <p style={{ color:"#C8D8EC",fontSize:13,lineHeight:1.6,marginBottom:18 }}>The more we know about your situation, the more accurate your comparison becomes. All optional, all stays on your device.</p>
+      <Section label="Highest education" options={EDUCATION} value={education} onChange={setEducation}/>
+      <Section label="Where you live" options={REGIONS} value={region} onChange={setRegion}/>
+      <Section label="Industry" options={INDUSTRIES} value={industry} onChange={setIndustry}/>
+      <Section label="Housing" options={HOUSING} value={housing} onChange={setHousing}/>
+      <Btn onClick={saveAndClose}>Save and refine</Btn>
+    </Sheet>
+  )
 }
 
 /* ── Asset Sheet detailed ───────────────────────────────────── */
