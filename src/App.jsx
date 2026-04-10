@@ -580,8 +580,25 @@ const load = () => { try { const s=localStorage.getItem("ls_v1"); return s?{...D
 /* ════════════════════════════════════════════════════════════════════
    UTILITIES
    ════════════════════════════════════════════════════════════════════ */
-const fmt  = v => { if(v==null||isNaN(v)) return "£0"; const a=Math.abs(Math.round(v)).toLocaleString("en-GB"); return v<0?`-£${a}`:`£${a}` }
-const fmtK = v => { if(v==null||isNaN(v)) return "£0"; const a=Math.abs(v); return a>=1000000?`£${(a/1e6).toFixed(1)}M`:a>=1000?`£${(a/1000).toFixed(0)}k`:`£${Math.round(a)}` }
+let CURRENCY_SYMBOL = "£"
+const CURRENCY_OPTIONS = [
+  { code:"GBP", symbol:"£", country:"United Kingdom", flag:"🇬🇧" },
+  { code:"USD", symbol:"$", country:"United States",  flag:"🇺🇸" },
+  { code:"EUR", symbol:"€", country:"Europe",         flag:"🇪🇺" },
+  { code:"AUD", symbol:"A$",country:"Australia",      flag:"🇦🇺" },
+  { code:"CHF", symbol:"CHF", country:"Switzerland",  flag:"🇨🇭" },
+  { code:"AED", symbol:"د.إ", country:"UAE",          flag:"🇦🇪" },
+  { code:"PKR", symbol:"₨", country:"Pakistan",       flag:"🇵🇰" },
+  { code:"ZAR", symbol:"R", country:"South Africa",   flag:"🇿🇦" },
+  { code:"SGD", symbol:"S$",country:"Singapore",      flag:"🇸🇬" },
+  { code:"KES", symbol:"KSh", country:"Kenya",        flag:"🇰🇪" },
+  { code:"VND", symbol:"₫", country:"Vietnam",        flag:"🇻🇳" },
+  { code:"CAD", symbol:"C$",country:"Canada",         flag:"🇨🇦" },
+  { code:"INR", symbol:"₹", country:"India",          flag:"🇮🇳" },
+]
+function setCurrencySymbol(s) { if(s) CURRENCY_SYMBOL = s }
+const fmt  = v => { if(v==null||isNaN(v)) return `${CURRENCY_SYMBOL}0`; const a=Math.abs(Math.round(v)).toLocaleString("en-GB"); return v<0?`-${CURRENCY_SYMBOL}${a}`:`${CURRENCY_SYMBOL}${a}` }
+const fmtK = v => { if(v==null||isNaN(v)) return `${CURRENCY_SYMBOL}0`; const a=Math.abs(v); return a>=1000000?`${CURRENCY_SYMBOL}${(a/1e6).toFixed(1)}M`:a>=1000?`${CURRENCY_SYMBOL}${(a/1000).toFixed(0)}k`:`${CURRENCY_SYMBOL}${Math.round(a)}` }
 
 const calcTotals  = (assets,debts) => {
   const ta=assets.reduce((s,a)=>s+(a.value||0),0)
@@ -671,6 +688,15 @@ function AppProvider({ children }) {
   const [state, setState] = useState(load)
   const [tab, setTab] = useState(0)
   const [toastMsg, setToastMsg] = useState(null)
+
+  // Keep currency symbol in sync with profile setting
+  useEffect(() => {
+    const code = state.profile?.currency
+    if (code) {
+      const opt = CURRENCY_OPTIONS.find(c => c.code === code)
+      if (opt) setCurrencySymbol(opt.symbol)
+    }
+  }, [state.profile?.currency])
 
   function save(ns) {
     const merged = { ...DEFAULTS, ...ns }
@@ -881,7 +907,7 @@ function Onboarding() {
     })
   }
 
-  if(screen==="welcome")   return <WelcomeScreen  onNext={({mode,name:n,age:a})=>{ save({...state,profile:{...state.profile,mode:mode||"grow"}}); if(n) setName(n); if(a) setAge(a); setScreen("assets") }} />
+  if(screen==="welcome")   return <WelcomeScreen  onNext={({mode,name:n,age:a,currency})=>{ save({...state,profile:{...state.profile,mode:mode||"grow",currency:currency||"GBP"}}); if(n) setName(n); if(a) setAge(a); setScreen("assets") }} />
   if(screen==="assets")    return <AssetChecklistScreen values={assets} setValues={setAssets} onNext={()=>setScreen("debts")} onBack={()=>setScreen("welcome")} />
   if(screen==="debts")     return <DebtChecklistScreen values={debts} setValues={setDebts} assets={assets} age={age} onNext={()=>setScreen("income")} onBack={()=>setScreen("assets")} />
   if(screen==="income")    return <IncomeOnboardScreen income={income} setIncome={setIncome} onNext={()=>setScreen("spending")} onBack={()=>setScreen("debts")} />
@@ -900,6 +926,8 @@ function WelcomeScreen({ onNext }) {
   const [age, setAgeLocal] = useState("")
   const [mode, setMode] = useState(null)
   const [aboutTags, setAboutTags] = useState([])
+  const [currency, setCurrencyLocal] = useState("GBP")
+  const [showCurrency, setShowCurrency] = useState(false)
 
   const MODES = [
     { id:"grow",   icon:"📈", label:"Grow my money",               sub:"Build wealth over time",                    color:T.teal   },
@@ -1075,6 +1103,40 @@ function WelcomeScreen({ onNext }) {
     <div style={{ minHeight:"100dvh", background:T.bg, display:"flex", flexDirection:"column",
       position:"relative", overflow:"hidden" }}>
       <StarField count={16}/>
+
+      {/* Currency picker (top-right) */}
+      <div style={{ position:"absolute", top:18, right:18, zIndex:5 }}>
+        <button onClick={()=>setShowCurrency(true)} style={{ background:"rgba(255,255,255,.06)", border:"1px solid rgba(255,255,255,.12)", borderRadius:99, padding:"7px 12px", color:"#FFFFFF", fontWeight:700, fontSize:12, cursor:"pointer", fontFamily:"inherit", display:"flex", alignItems:"center", gap:6 }}>
+          {(CURRENCY_OPTIONS.find(c=>c.code===currency)||CURRENCY_OPTIONS[0]).flag} {currency}
+          <span style={{ opacity:.6, fontSize:10 }}>▾</span>
+        </button>
+      </div>
+
+      {showCurrency && (
+        <div onClick={()=>setShowCurrency(false)} style={{ position:"fixed", inset:0, background:"rgba(7,13,26,.85)", backdropFilter:"blur(6px)", zIndex:100, display:"flex", alignItems:"center", justifyContent:"center", padding:"20px" }}>
+          <div onClick={e=>e.stopPropagation()} style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:20, padding:"22px 18px", maxWidth:380, width:"100%", maxHeight:"80vh", overflowY:"auto" }}>
+            <p style={{ color:T.white, fontWeight:900, fontSize:17, marginBottom:6 }}>Choose your currency</p>
+            <p style={{ color:"#8FA3BE", fontSize:12, marginBottom:14, lineHeight:1.5 }}>This sets the symbol used for your figures. Lessons and benchmarks remain UK-based.</p>
+            <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+              {CURRENCY_OPTIONS.map(c => {
+                const sel = currency === c.code
+                return (
+                  <button key={c.code} onClick={()=>{ setCurrencyLocal(c.code); setShowCurrency(false) }}
+                    style={{ background:sel?T.tealDim:T.surface, border:`1.5px solid ${sel?T.teal:T.border}`, borderRadius:12, padding:"12px 14px", cursor:"pointer", fontFamily:"inherit", display:"flex", alignItems:"center", gap:12, textAlign:"left" }}>
+                    <span style={{ fontSize:20 }}>{c.flag}</span>
+                    <div style={{ flex:1 }}>
+                      <p style={{ color:sel?T.teal:T.white, fontWeight:800, fontSize:13 }}>{c.country}</p>
+                      <p style={{ color:"#8FA3BE", fontSize:11 }}>{c.code} · {c.symbol}</p>
+                    </div>
+                    {sel && <Check size={14} color={T.teal}/>}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="ls-fadein" style={{ position:"relative", zIndex:1, flex:1, display:"flex", flexDirection:"column", justifyContent:"center",
         padding:"50px 28px 20px", maxWidth:460, margin:"0 auto", width:"100%" }}>
         <h1 style={{ color:"#FFFFFF", fontWeight:900, fontSize:"clamp(26px,6vw,34px)",
@@ -1103,7 +1165,7 @@ function WelcomeScreen({ onNext }) {
         </div>
       </div>
       <div style={{ position:"relative", zIndex:1, padding:"0 28px 48px", maxWidth:460, margin:"0 auto", width:"100%" }}>
-        <button onClick={()=>{ if(name && age) onNext({ mode:mode||"grow", name, age }) }}
+        <button onClick={()=>{ if(name && age) onNext({ mode:mode||"grow", name, age, currency }) }}
           disabled={!name || !age}
           style={{ width:"100%", padding:"17px",
             background: (name && age) ? `linear-gradient(135deg,${T.teal},${T.purple})` : "rgba(255,255,255,.05)",
@@ -1725,10 +1787,22 @@ function ProjectionInfoModal({ onClose, nw, surplus, age }) {
           <p>For you: starting with {fmtK(nw)} today, saving roughly {fmtK(annualSavings)} per year, compounded over {yearsLeft} years until age 70.</p>
         </Section>
 
-        <Section icon="💡" color={T.teal} title="But the real story is not the maths">
-          <p style={{ marginBottom:8 }}>Your salary alone will never make you wealthy. The number you reach by 70 is decided by something almost no one talks about: <strong style={{ color:T.teal }}>how much of your money is actually working for you</strong>.</p>
-          <p>Two people on the same income end up in completely different financial positions over a lifetime. The difference is rarely talent or luck. It is a small set of decisions, repeated over decades.</p>
-        </Section>
+        <div style={{ background:`linear-gradient(135deg,${T.teal}18,${T.purple}10)`, border:`1.5px solid ${T.tealBorder}`, borderRadius:16, padding:"18px 20px", marginBottom:14 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
+            <div style={{ width:32, height:32, borderRadius:9, background:`${T.teal}22`, border:`1px solid ${T.tealBorder}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:16 }}>💡</div>
+            <p style={{ color:T.white, fontWeight:900, fontSize:15, lineHeight:1.2 }}>This number is yours to change</p>
+          </div>
+          <p style={{ color:"#C8D8EC", fontSize:13, lineHeight:1.65, marginBottom:12 }}>Your salary alone will never make you wealthy. The number you reach by 70 is decided by how much of your money is actually working for you, and that comes down to a small set of decisions repeated over decades.</p>
+          <p style={{ color:T.teal, fontSize:11, fontWeight:800, letterSpacing:1.2, textTransform:"uppercase", marginBottom:8 }}>Two habits will get you there</p>
+          <div style={{ display:"flex", gap:10, marginBottom:8 }}>
+            <div style={{ width:24, height:24, borderRadius:99, background:`${T.teal}25`, border:`1px solid ${T.tealBorder}`, color:T.teal, fontWeight:900, fontSize:11, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>1</div>
+            <p style={{ color:"#E2EAF6", fontSize:13, lineHeight:1.55, flex:1 }}><strong style={{ color:T.white }}>Update your numbers in Analytics every month.</strong> One minute keeps the picture honest and your trajectory accurate.</p>
+          </div>
+          <div style={{ display:"flex", gap:10 }}>
+            <div style={{ width:24, height:24, borderRadius:99, background:`${T.purple}25`, border:`1px solid ${T.purple}40`, color:T.purple, fontWeight:900, fontSize:11, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>2</div>
+            <p style={{ color:"#E2EAF6", fontSize:13, lineHeight:1.55, flex:1 }}><strong style={{ color:T.white }}>Work through the Learn tab one lesson at a time.</strong> Each one is short and ends with one small action. Within weeks you have the systems in place.</p>
+          </div>
+        </div>
 
         <div style={{ marginBottom:16 }}>
           <p style={{ color:"#6B8CB8", fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", marginBottom:10, paddingLeft:4 }}>The five levers that change your number</p>
@@ -1741,22 +1815,11 @@ function ProjectionInfoModal({ onClose, nw, surplus, age }) {
 
         <Section icon="🌟" color={T.purple} title="The honest part">
           <p style={{ marginBottom:8 }}>The higher numbers in your projection do not happen by accident. They happen because someone, at some point, decided to take charge of their money instead of letting it drift.</p>
-          <p style={{ marginBottom:8 }}>No one else is going to fix this for you. Not the government. Not your employer. Not a future windfall. The only person who can change your number is you, and the best time to start is now.</p>
           <p><strong style={{ color:T.purple }}>The good news:</strong> it is not about earning more, working harder, or being smarter than anyone else. It is about small simple consistent steps, taken over years.</p>
         </Section>
 
-        <div style={{ background:`linear-gradient(135deg,${T.teal}15,${T.purple}10)`, border:`1.5px solid ${T.tealBorder}`, borderRadius:16, padding:"18px 20px", marginTop:8 }}>
-          <p style={{ color:T.teal, fontSize:10, fontWeight:800, letterSpacing:1.5, textTransform:"uppercase", marginBottom:8 }}>What to do from here</p>
-          <p style={{ color:T.white, fontWeight:800, fontSize:15, lineHeight:1.4, marginBottom:10 }}>Two habits will get you there</p>
-          <ol style={{ color:"#C8D8EC", fontSize:13, lineHeight:1.7, paddingLeft:18, marginBottom:12 }}>
-            <li style={{ marginBottom:6 }}><strong style={{ color:T.white }}>Update your numbers in Analytics every month.</strong> One minute. Keeps the picture honest.</li>
-            <li><strong style={{ color:T.white }}>Work through the lessons in the Learn tab one at a time.</strong> Each one is short and ends with one small action. Within a few weeks you will have the systems in place to actually reach the higher number.</li>
-          </ol>
-          <p style={{ color:"#8FA3BE", fontSize:11, fontStyle:"italic", lineHeight:1.5 }}>That's it. No tricks, no products to sell, no fees. Just the knowledge and the habits.</p>
-        </div>
-
-        <button onClick={onClose} style={{ width:"100%", background:`linear-gradient(135deg,${T.teal},${T.tealMid})`, border:"none", borderRadius:14, padding:"15px", color:T.bg, fontWeight:900, fontSize:15, cursor:"pointer", fontFamily:"inherit", marginTop:18 }}>
-          Got it
+        <button onClick={onClose} style={{ width:"100%", background:`linear-gradient(135deg,${T.teal},${T.tealMid})`, border:"none", borderRadius:14, padding:"15px", color:T.bg, fontWeight:900, fontSize:15, cursor:"pointer", fontFamily:"inherit", marginTop:8 }}>
+          Got it, let's go
         </button>
       </div>
     </div>
@@ -1877,9 +1940,13 @@ function HomeTab() {
       <div style={{ maxWidth:600, margin:"0 auto", padding:"18px 16px 0" }}>
 
         {profile?.name && (
-          <p style={{ color:"#C8D8EC", fontSize:15, fontWeight:600, marginBottom:14 }}>
-            Hi {profile.name} 👋
-          </p>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, marginBottom:14 }}>
+            <div>
+              <p style={{ color:"#6B8CB8", fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", marginBottom:2 }}>Welcome back</p>
+              <p style={{ color:T.white, fontWeight:900, fontSize:20, lineHeight:1.2, letterSpacing:-.3 }}>{profile.name}'s financial dashboard</p>
+            </div>
+            <XPBadge/>
+          </div>
         )}
 
         {/* ══ NORTH STAR ══ */}
@@ -1927,165 +1994,81 @@ function HomeTab() {
           return null
         })()}
 
-        {/* ══ SECTION 1: TWO TAPPABLE TILES ══ */}
-        <div style={{ marginTop:18, marginBottom:12 }}>
+        {/* ══ SECTION 1: NW NOW + NW PROJECTION (side by side, chart below) ══ */}
+        {(() => {
+          const projData = (netWorth!==0 && hasIncome) ? calcProjection(netWorth, surplus, profile?.age) : null
+          const at70 = projData?.find(d => Math.round(d.age) === 70)
+          return (
+            <div style={{ marginTop:18, marginBottom:18 }}>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
 
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-
-            {/* NET WORTH */}
-            <div>
-              <button onClick={() => setExpandNW(!expandNW)} className="ls-pulse"
-                style={{ width:"100%",
-                  background:`linear-gradient(145deg,${netWorth>=0?"rgba(15,191,184,.18)":"rgba(248,113,113,.18)"},${T.card})`,
-                  border:`2px solid ${netWorth>=0 ? T.teal : T.red}`,
-                  borderRadius: expandNW ? "20px 20px 0 0" : 20,
-                  padding:"18px 16px", cursor:"pointer", fontFamily:"inherit",
-                  textAlign:"left", transition:"all .2s", minHeight:148,
-                  boxShadow:`0 0 20px ${netWorth>=0?T.teal:T.red}25` }}>
-                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
-                  <p style={{ color:netWorth>=0?T.teal:T.red, fontSize:11, fontWeight:800,
-                    letterSpacing:1.2, textTransform:"uppercase" }}>Net Worth Now</p>
-  
-                </div>
-                <p style={{ color:netWorth>=0?T.teal:T.red, fontWeight:900,
-                  fontSize:"clamp(24px,6vw,36px)", lineHeight:1, marginBottom:10,
-                  textShadow:netWorth>=0?`0 0 30px ${T.teal}60`:`0 0 30px ${T.red}50` }}>
-                  {fmtK(netWorth)}
-                </p>
-                <div style={{ display:"flex", gap:14 }}>
-                  <div>
-                    <p style={{ color:T.green, fontWeight:800, fontSize:14 }}>{fmtK(totalAssets)}</p>
-                    <p style={{ color:"#8FA3BE", fontSize:11 }}>you own</p>
-                  </div>
-                  <div style={{ width:1, background:T.border }}/>
-                  <div>
-                    <p style={{ color:totalDebts>0?T.red:"#8FA3BE", fontWeight:800, fontSize:14 }}>{fmtK(totalDebts)}</p>
-                    <p style={{ color:"#8FA3BE", fontSize:11 }}>you owe</p>
-                  </div>
-                </div>
-                <div style={{ borderTop:`1px solid ${netWorth>=0?T.teal:T.red}30`, marginTop:12, paddingTop:10,
-                  display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
-                  <span style={{ color:netWorth>=0?T.teal:T.red, fontSize:13 }}>{expandNW ? "▴" : "▾"}</span>
-                  <p style={{ color:netWorth>=0?T.teal:T.red, fontSize:12, fontWeight:700 }}>
-                    {expandNW ? "Close" : "Tap to see breakdown"}
+                {/* NET WORTH NOW */}
+                <div style={{ background:`linear-gradient(145deg,${netWorth>=0?"rgba(15,191,184,.18)":"rgba(248,113,113,.18)"},${T.card})`, border:`2px solid ${netWorth>=0?T.teal:T.red}`, borderRadius:20, padding:"18px 16px", boxShadow:`0 0 20px ${netWorth>=0?T.teal:T.red}25`, display:"flex", flexDirection:"column" }}>
+                  <p style={{ color:netWorth>=0?T.teal:T.red, fontSize:11, fontWeight:800, letterSpacing:1.2, textTransform:"uppercase", marginBottom:8 }}>Net Worth Now</p>
+                  <p style={{ color:netWorth>=0?T.teal:T.red, fontWeight:900, fontSize:"clamp(24px,6vw,36px)", lineHeight:1, marginBottom:12, textShadow:netWorth>=0?`0 0 30px ${T.teal}60`:`0 0 30px ${T.red}50` }}>
+                    {fmtK(netWorth)}
                   </p>
+                  <div style={{ display:"flex", gap:14, marginTop:"auto" }}>
+                    <div>
+                      <p style={{ color:T.green, fontWeight:800, fontSize:14 }}>{fmtK(totalAssets)}</p>
+                      <p style={{ color:"#8FA3BE", fontSize:11 }}>you own</p>
+                    </div>
+                    <div style={{ width:1, background:T.border }}/>
+                    <div>
+                      <p style={{ color:totalDebts>0?T.red:"#8FA3BE", fontWeight:800, fontSize:14 }}>{fmtK(totalDebts)}</p>
+                      <p style={{ color:"#8FA3BE", fontSize:11 }}>you owe</p>
+                    </div>
+                  </div>
                 </div>
-              </button>
-              {expandNW && (
-                <div className="ls-fadein" style={{ background:T.card,
-                  border:`2px solid ${netWorth>=0?T.teal:T.red}`, borderTop:"none",
-                  borderRadius:"0 0 20px 20px", padding:"16px" }}>
-                  {assetRows.length > 0 && (
-                    <p style={{ color:"#8FA3BE", fontSize:11, fontWeight:700, letterSpacing:1,
-                      textTransform:"uppercase", marginBottom:8 }}>Assets</p>
+
+                {/* NET WORTH PROJECTION */}
+                <div style={{ background:"linear-gradient(145deg,rgba(245,158,11,.18),rgba(15,13,26,.8))", border:`2px solid ${T.amber}`, borderRadius:20, padding:"18px 16px", boxShadow:`0 0 20px ${T.amber}25`, display:"flex", flexDirection:"column" }}>
+                  <p style={{ color:T.amber, fontSize:11, fontWeight:800, letterSpacing:1.2, textTransform:"uppercase", marginBottom:8 }}>Net Worth Projection</p>
+                  {at70 ? (
+                    <>
+                      <p style={{ color:T.amber, fontWeight:900, fontSize:"clamp(24px,6vw,36px)", lineHeight:1, marginBottom:4, textShadow:`0 0 30px ${T.amber}50` }}>
+                        {fmtK(at70.conservative)}
+                      </p>
+                      <p style={{ color:"#C8D8EC", fontSize:12, marginBottom:10 }}>at age 70</p>
+                      {at70.optimistic > at70.conservative && (
+                        <p style={{ color:T.amber, fontSize:12, fontWeight:700, marginTop:"auto", lineHeight:1.35 }}>
+                          ✨ Get up to {fmtK(at70.optimistic)} with the right moves
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <p style={{ color:"#8FA3BE", fontWeight:900, fontSize:28, lineHeight:1, marginBottom:8 }}>—</p>
+                      <p style={{ color:"#8FA3BE", fontSize:12 }}>Add your numbers to unlock</p>
+                    </>
                   )}
-                  {assetRows.map((r,i) => (
-                    <div key={i} style={{ display:"flex", justifyContent:"space-between",
-                      alignItems:"center", paddingBottom:8, marginBottom:8,
-                      borderBottom: i<assetRows.length-1 ? `1px solid ${T.border}` : "none" }}>
-                      <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                        <div style={{ width:8, height:8, borderRadius:"50%", background:r.color, flexShrink:0 }}/>
-                        <p style={{ color:"#E2EAF6", fontSize:14 }}>{r.label}</p>
-                      </div>
-                      <p style={{ color:T.white, fontWeight:700, fontSize:14 }}>{fmtK(r.value)}</p>
+                </div>
+              </div>
+
+              {/* Wide projection chart toggle */}
+              {at70 && (
+                <div style={{ marginTop:10 }}>
+                  <button onClick={() => setExpandProj(!expandProj)} style={{ width:"100%", background:`${T.amber}10`, border:`1px solid ${T.amber}30`, borderRadius:14, padding:"12px", color:T.amber, fontWeight:700, fontSize:13, cursor:"pointer", fontFamily:"inherit", display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
+                    <span>{expandProj ? "▴" : "▾"}</span>
+                    {expandProj ? "Hide projection chart" : "See projection chart"}
+                  </button>
+                  {expandProj && (
+                    <div className="ls-fadein" style={{ marginTop:10 }}>
+                      <ProjectionHeroCard nw={netWorth} surplus={surplus} age={profile?.age} onShowInfo={() => setShowProjectionInfo(true)}/>
                     </div>
-                  ))}
-                  {debtRows.length > 0 && (
-                    <p style={{ color:"#8FA3BE", fontSize:11, fontWeight:700, letterSpacing:1,
-                      textTransform:"uppercase", margin:"8px 0 8px" }}>Debts</p>
                   )}
-                  {debtRows.map((r,i) => (
-                    <div key={i} style={{ display:"flex", justifyContent:"space-between",
-                      alignItems:"center", paddingBottom:8, marginBottom:8,
-                      borderBottom: i<debtRows.length-1 ? `1px solid ${T.border}` : "none" }}>
-                      <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                        <div style={{ width:8, height:8, borderRadius:"50%", background:r.color, flexShrink:0 }}/>
-                        <p style={{ color:"#E2EAF6", fontSize:14 }}>{r.label}</p>
-                      </div>
-                      <p style={{ color:T.red, fontWeight:700, fontSize:14 }}>{fmtK(r.value)}</p>
-                    </div>
-                  ))}
-                  {assetRows.length===0 && debtRows.length===0 && (
-                    <p style={{ color:"#8FA3BE", fontSize:14, textAlign:"center", padding:"8px 0" }}>No numbers added yet</p>
-                  )}
-                  <button onClick={() => { setTab(2); setExpandNW(false) }}
-                    style={{ width:"100%", background:T.tealDim, border:`1px solid ${T.tealBorder}`,
-                      borderRadius:12, padding:"11px", color:T.teal, fontWeight:700,
-                      fontSize:14, cursor:"pointer", fontFamily:"inherit", marginTop:10 }}>
-                    Update in Analytics →
+                </div>
+              )}
+              {!at70 && (
+                <div style={{ marginTop:10 }}>
+                  <button onClick={() => setTab(2)} style={{ width:"100%", background:T.tealDim, border:`1px solid ${T.tealBorder}`, borderRadius:14, padding:"12px", color:T.teal, fontWeight:700, fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>
+                    Go to Analytics →
                   </button>
                 </div>
               )}
             </div>
-
-            {/* PROJECTION */}
-            {(() => {
-              const projData = (netWorth!==0 && hasIncome) ? calcProjection(netWorth, surplus, profile?.age) : null
-              const at70 = projData?.find(d => Math.round(d.age) === 70)
-              return (
-                <div>
-                  <button onClick={() => setExpandProj(!expandProj)}
-                    style={{ width:"100%",
-                      background:"linear-gradient(145deg,rgba(245,158,11,.18),rgba(15,13,26,.8))",
-                      border:`2px solid ${T.amber}`,
-                      borderRadius: expandProj ? "20px 20px 0 0" : 20,
-                      padding:"18px 16px", cursor:"pointer", fontFamily:"inherit",
-                      textAlign:"left", transition:"all .2s", minHeight:148,
-                      boxShadow:`0 0 20px ${T.amber}25` }}>
-                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
-                      <p style={{ color:T.amber, fontSize:11, fontWeight:800,
-                        letterSpacing:1.2, textTransform:"uppercase" }}>Net Worth at 70</p>
-
-                    </div>
-                    {at70 ? (
-                      <>
-                        <p style={{ color:T.amber, fontWeight:900,
-                          fontSize:"clamp(24px,6vw,36px)", lineHeight:1, marginBottom:10,
-                          textShadow:`0 0 30px ${T.amber}50` }}>{fmtK(at70.conservative)}</p>
-                        <p style={{ color:"#C8D8EC", fontSize:13, lineHeight:1.4 }}>conservative estimate</p>
-                        {at70.optimistic > at70.conservative && (
-                          <p style={{ color:T.amber, fontSize:13, fontWeight:700, marginTop:6 }}>
-                            ✨ Up to {fmtK(at70.optimistic)} with the right moves
-                          </p>
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        <p style={{ color:"#8FA3BE", fontWeight:900, fontSize:28, lineHeight:1, marginBottom:8 }}>—</p>
-                        <p style={{ color:"#8FA3BE", fontSize:13 }}>Add your numbers to unlock</p>
-                      </>
-                    )}
-                    <div style={{ borderTop:"1px solid rgba(245,158,11,.3)", marginTop:12, paddingTop:10,
-                      display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
-                      <span style={{ color:T.amber, fontSize:13 }}>{expandProj ? "▴" : "▾"}</span>
-                      <p style={{ color:T.amber, fontSize:12, fontWeight:700 }}>
-                        {expandProj ? "Close" : "Tap to see chart"}
-                      </p>
-                    </div>
-                  </button>
-                  {expandProj && (
-                    <div className="ls-fadein" style={{ background:T.card,
-                      border:`2px solid ${T.amber}`, borderTop:"none",
-                      borderRadius:"0 0 20px 20px", padding:"16px" }}>
-                      {projData
-                        ? <ProjectionHeroCard nw={netWorth} surplus={surplus} age={profile?.age}/>
-                        : <LockedCard icon="🔮" title="Wealth Projection"
-                            description="Add your assets and income to unlock your projection."
-                            unlock="Go to Analytics →" onUnlock={() => setTab(2)}/>
-                      }
-                      {projData && (
-                        <button onClick={() => setShowProjectionInfo(true)} style={{ width:"100%", background:`${T.amber}10`, border:`1px solid ${T.amberBorder}`, borderRadius:12, padding:"10px", color:T.amber, fontWeight:700, fontSize:12, cursor:"pointer", fontFamily:"inherit", marginTop:10 }}>
-                          Find out how we got this number →
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )
-            })()}
-          </div>
-        </div>
-        <div style={{ marginBottom:16 }}/>
+          )
+        })()}
 
         {/* ══ SECTION 2: THREE METRIC TILES ══ */}
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:22 }}>
@@ -2489,7 +2472,7 @@ function InsightCard({ icon, title, sub, iconBg, iconBorder, infoText, children 
 }
 
 /* ── Projection hero card big, jagged, exciting ─────────────── */
-function ProjectionHeroCard({ nw, surplus, age }) {
+function ProjectionHeroCard({ nw, surplus, age, onShowInfo }) {
   const data = useMemo(()=>calcProjection(nw,surplus,age),[nw,surplus,age])
   const targetAge = 70
   const atTarget  = data.find(d=>Math.round(d.age)===targetAge)
@@ -2497,22 +2480,24 @@ function ProjectionHeroCard({ nw, surplus, age }) {
 
   return (
     <div className="ls-card-glass ls-glow" style={{ border:`1.5px solid ${T.tealBorder}`,borderRadius:22,padding:"22px 24px",boxShadow:"0 0 40px rgba(15,191,184,.12), 0 8px 32px rgba(0,0,0,.3)" }}>
-      <p style={{ color:T.teal,fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:6 }}>LifeSmart Wealth Projection</p>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6 }}>
+        <p style={{ color:T.teal,fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase" }}>LifeSmart Projection</p>
+        {onShowInfo && (
+          <button onClick={onShowInfo} style={{ background:`${T.teal}15`, border:`1px solid ${T.tealBorder}`, borderRadius:99, padding:"5px 12px", color:T.teal, fontWeight:700, fontSize:11, cursor:"pointer", fontFamily:"inherit", whiteSpace:"nowrap" }}>
+            How this works →
+          </button>
+        )}
+      </div>
 
       {atTarget && (
-        <div style={{ marginBottom:16 }}>
-          <p style={{ fontSize:"clamp(28px,6vw,40px)",fontWeight:900,lineHeight:1,color:T.teal,textShadow:`0 0 30px ${T.teal}50`,marginBottom:8 }}>
+        <div style={{ marginBottom:10, display:"flex", alignItems:"flex-end", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
+          <p style={{ fontSize:"clamp(28px,6vw,40px)",fontWeight:900,lineHeight:1,color:T.teal,textShadow:`0 0 30px ${T.teal}50` }}>
             {fmtK(atTarget.conservative)}
           </p>
-          <p style={{ color:"#E2EAF6",fontSize:14,lineHeight:1.6,marginBottom:6 }}>
-            Based on your current assets, a conservative growth estimate and your financial profile. As you add more information, complete lessons and build your assets, this number will grow.
-          </p>
           {atTarget.optimistic > atTarget.conservative && (
-            <div style={{ background:"rgba(245,158,11,.12)",border:"1px solid rgba(245,158,11,.25)",borderRadius:10,padding:"10px 14px",marginTop:8 }}>
-              <p style={{ color:T.amber,fontSize:14,fontWeight:700 }}>
-                ✨ Or {fmtK(atTarget.optimistic)} with the right money decisions, optimising your investments and pension could get you there.
-              </p>
-            </div>
+            <p style={{ color:T.amber, fontSize:13, fontWeight:700, lineHeight:1.2 }}>
+              ✨ Get up to {fmtK(atTarget.optimistic)}
+            </p>
           )}
         </div>
       )}
@@ -2550,6 +2535,7 @@ function ProjectionHeroCard({ nw, surplus, age }) {
     </div>
   )
 }
+
 
 /* ── Wealth breakdown no bar, use visual blocks ─────────────── */
 function WealthBreakdownCard({ bk, totalAssets }) {
@@ -7255,6 +7241,30 @@ const ISLAMIC_LESSONS = [
 ]
 
 const LESSONS = [...LESSONS_FOUNDATIONS, ...PHASE2_LESSONS, ...PHASE3_LESSONS, ...PHASE4_LESSONS, ...ISLAMIC_LESSONS]
+
+const LESSON_HINTS = {
+  1:  "The number that actually shows how you're doing",
+  2:  "The simple pattern wealthy people follow",
+  3:  "Build a budget system that finally sticks",
+  4:  "Understand every line of your payslip",
+  5:  "How interest works and why it traps people",
+  6:  "A clear plan to wipe out bad debt",
+  7:  "The fund that stops a setback becoming a spiral",
+  8:  "Save with purpose for every future goal",
+  9:  "How tax actually works and how to pay less",
+  10: "The tax-free wrapper everyone should use",
+  11: "Set financial goals that actually happen",
+  12: "The free money your employer is offering",
+  13: "A private pension you fully own and control",
+  14: "What investing actually means in practice",
+  15: "The main asset classes explained simply",
+  16: "How to start investing the right way",
+  17: "Spread your money to reduce risk",
+  18: "Property, gold and crypto, the honest take",
+  19: "What Sharia compliant finance really means",
+  20: "Islamic mortgages, loans and insurance explained",
+  21: "How to invest the halal way",
+}
 /* ═══════════════════════════════════════════════════════════════════════
    LESSON LIST
    ═══════════════════════════════════════════════════════════════════════ */
@@ -7368,26 +7378,93 @@ function LessonList({ onOpen, completed }) {
           })}
         </div>
 
-        {activeTab === "freedom" && phases.map(phase => {
-          const phaseLessons = LESSONS.filter(l => l.phase === phase.key)
-          if (phaseLessons.length === 0) return null
+        {activeTab === "freedom" && (() => {
+          const CHAPTERS = [
+            { phase:"Foundations", num:"01", title:"Foundations", emoji:"🌱", color:"#34D399",
+              promise:"See your real financial picture and understand how wealth actually builds." },
+            { phase:"Stabilise",   num:"02", title:"Stabilise",   emoji:"🛡️", color:"#FBBF24",
+              promise:"Wipe out bad debt and build the safety net that protects everything you do next." },
+            { phase:"Optimise",    num:"03", title:"Optimise",    emoji:"⚡", color:"#60A5FA",
+              promise:"Stop overpaying tax, claim the free money you are owed, and set goals that actually happen." },
+            { phase:"Invest",      num:"04", title:"Invest",      emoji:"📈", color:"#A78BFA",
+              promise:"Put your money to work so it earns while you sleep and compounds for decades." },
+            { phase:"Islamic Finance", num:"05", title:"Islamic Finance", emoji:"☪️", color:"#2DD4BF",
+              promise:"An optional path covering Sharia compliant alternatives for every financial decision." },
+          ]
+          const totalLessons = LESSONS.length
+          const doneCount = LESSONS.filter(l => completed.has(l.n)).length
+          const overallPct = Math.round((doneCount / totalLessons) * 100)
           return (
-            <div key={phase.key} style={{ marginBottom: 24 }}>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 12 }}>
-                <div style={{ width: 6, height: 6, borderRadius: "50%", background: phase.color }} />
-                <p style={{ color: phase.color, fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2 }}>{phase.label}</p>
+            <div>
+              {/* Hero intro */}
+              <div style={{ marginBottom: 18 }}>
+                <p style={{ color: "#2DD4BF", fontSize: 11, fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>Your guide to financial freedom</p>
+                <p style={{ color: "#FFFFFF", fontWeight: 900, fontSize: 22, lineHeight: 1.2, marginBottom: 10, letterSpacing: -.3 }}>The complete path, taught one idea at a time</p>
+                <p style={{ color: "#C8D8EC", fontSize: 13, lineHeight: 1.65, marginBottom: 10 }}>Five chapters. Each one builds on the last. Each lesson is short, teaches a single idea, and ends with one small action you can take today.</p>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ flex: 1, background: "rgba(255,255,255,.08)", borderRadius: 99, height: 6, overflow: "hidden" }}>
+                    <div style={{ width: `${overallPct}%`, height: "100%", background: "linear-gradient(90deg,#2DD4BF,#A78BFA)", borderRadius: 99, transition: "width .5s ease" }}/>
+                  </div>
+                  <p style={{ color: "#C8D8EC", fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{doneCount} of {totalLessons} done</p>
+                </div>
               </div>
-              {phase.key === "Islamic Finance" && (
-                <p style={{ color: C.textFaint, fontSize: 11, fontWeight: 500, lineHeight: 1.4, marginBottom: 10 }}>
-                  Best explored after completing the investing lessons.
-                </p>
-              )}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                {phaseLessons.map((l, i) => renderTile(l, i, phase.key))}
+
+              {/* Chapters */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                {CHAPTERS.map(ch => {
+                  const chLessons = LESSONS.filter(l => l.phase === ch.phase)
+                  if (chLessons.length === 0) return null
+                  const chDone = chLessons.filter(l => completed.has(l.n)).length
+                  const chPct = Math.round((chDone / chLessons.length) * 100)
+                  const allDone = chDone === chLessons.length
+                  return (
+                    <div key={ch.phase} style={{ background: `linear-gradient(180deg,${ch.color}10 0%,${C.card} 100%)`, border: `1.5px solid ${ch.color}30`, borderRadius: 20, overflow: "hidden", boxShadow: `0 2px 24px ${ch.color}08` }}>
+                      <div style={{ padding: "16px 18px 14px", borderBottom: `1px solid ${ch.color}15`, position: "relative", overflow: "hidden" }}>
+                        <div style={{ position: "absolute", top: 0, right: 0, width: 120, height: 120, background: `radial-gradient(circle at 100% 0%,${ch.color}18,transparent 60%)`, pointerEvents: "none" }}/>
+                        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8, position: "relative" }}>
+                          <div style={{ width: 46, height: 46, borderRadius: 14, background: `${ch.color}22`, border: `1.5px solid ${ch.color}45`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, flexShrink: 0 }}>{ch.emoji}</div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <p style={{ color: ch.color, fontSize: 9, fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 2 }}>Chapter {ch.num}</p>
+                            <p style={{ color: "#FFFFFF", fontWeight: 900, fontSize: 18, lineHeight: 1.1 }}>{ch.title}</p>
+                          </div>
+                          {allDone && <div style={{ background: "#34D39920", border: `1px solid #34D39940`, borderRadius: 99, padding: "4px 10px", display: "flex", alignItems: "center", gap: 4 }}>
+                            <span style={{ fontSize: 10 }}>✓</span><span style={{ color: "#34D399", fontSize: 10, fontWeight: 800 }}>Done</span>
+                          </div>}
+                        </div>
+                        <p style={{ color: "#C8D8EC", fontSize: 12, lineHeight: 1.5, marginBottom: 10, position: "relative" }}>{ch.promise}</p>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, position: "relative" }}>
+                          <div style={{ flex: 1, background: "rgba(255,255,255,.06)", borderRadius: 99, height: 4, overflow: "hidden" }}>
+                            <div style={{ width: `${chPct}%`, height: "100%", background: ch.color, borderRadius: 99, transition: "width .5s ease" }}/>
+                          </div>
+                          <p style={{ color: ch.color, fontSize: 10, fontWeight: 800, flexShrink: 0 }}>{chDone}/{chLessons.length}</p>
+                        </div>
+                      </div>
+
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: "14px 14px 16px" }}>
+                        {chLessons.map(lesson => {
+                          const isDone = completed.has(lesson.n)
+                          return (
+                            <button key={lesson.n} onClick={() => onOpen(lesson)} style={{ width: "100%", background: isDone ? `linear-gradient(135deg,#34D39915,#34D39906)` : `${ch.color}06`, border: `1.5px solid ${isDone ? "#34D39945" : ch.color+"22"}`, borderRadius: 14, padding: "12px 14px", cursor: "pointer", fontFamily: "inherit", textAlign: "left", display: "flex", alignItems: "center", gap: 12, transition: "all .15s" }}>
+                              <div style={{ width: 38, height: 38, borderRadius: 11, background: isDone ? "#34D39925" : `${ch.color}18`, border: `1.5px solid ${isDone ? "#34D39955" : ch.color+"35"}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>{lesson.emoji}</div>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
+                                  <p style={{ color: isDone ? "#34D399" : "#FFFFFF", fontWeight: 800, fontSize: 13, lineHeight: 1.25 }}>Lesson {lesson.n}: {lesson.title}</p>
+                                  {isDone && <span style={{ background: "#34D39925", borderRadius: 99, padding: "1px 6px", color: "#34D399", fontSize: 9, fontWeight: 800 }}>✓ Done</span>}
+                                </div>
+                                <p style={{ color: "#8FA3BE", fontSize: 11, lineHeight: 1.4 }}>{LESSON_HINTS[lesson.n] || lesson.subtitle}</p>
+                              </div>
+                              <span style={{ color: isDone ? "#34D399" : ch.color, fontWeight: 800, fontSize: 16, flexShrink: 0, opacity: .7 }}>›</span>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             </div>
           )
-        })}
+        })()}
 
         {activeTab === "ibpe" && (
           <div className="slide-up">
@@ -7481,17 +7558,19 @@ function LearnTab() {
   }
 
   function closeLesson() {
-    setActive(null)
     const returnTab = state.lessonReturnTab
+    setActive(null)
     if (returnTab !== undefined && returnTab !== null && returnTab !== 1) {
       save({ ...state, lessonReturnTab: null })
       setTab(returnTab)
+    } else if (state.lessonReturnTab) {
+      save({ ...state, lessonReturnTab: null })
     }
   }
 
   function completeLesson() {
     if (!active) return
-    if (completed.has(active.n)) { closeLesson(); return }
+    if (completed.has(active.n)) return  // Already done — let the user close manually
     const newDone = [...completedLessons, active.n]
     const xpGain = active.xp || 20
     save({
@@ -7500,7 +7579,7 @@ function LearnTab() {
       profile: { ...state.profile, points: (state.profile?.points || 0) + xpGain }
     })
     toast(`+${xpGain} XP`)
-    closeLesson()
+    // Don't auto-close — user sees confetti and celebration screen, taps back manually
   }
 
   if (active) {
@@ -8230,14 +8309,10 @@ function AppShell() {
   return (
     <div style={{ height:"100dvh",display:"flex",flexDirection:"column",background:T.bg,overflow:"hidden" }}>
       {/* Top bar */}
-      <header style={{ background:"rgba(11,20,36,.95)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderBottom:"1px solid rgba(255,255,255,.05)",padding:"0 20px",height:50,display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0,position:"relative",zIndex:10,boxShadow:"0 4px 24px rgba(0,0,0,.25)" }}>
-        <div style={{ width:60 }}/>
-        <div style={{ display:"flex",alignItems:"center",gap:8,position:"absolute",left:"50%",transform:"translateX(-50%)" }}>
+      <header style={{ background:"rgba(11,20,36,.95)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderBottom:"1px solid rgba(255,255,255,.05)",padding:"0 20px",height:50,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,position:"relative",zIndex:10,boxShadow:"0 4px 24px rgba(0,0,0,.25)" }}>
+        <div style={{ display:"flex",alignItems:"center",gap:8 }}>
           <div style={{ width:28,height:28,borderRadius:8,background:"linear-gradient(135deg,rgba(15,191,184,.3),rgba(167,139,250,.3))",border:"1px solid rgba(15,191,184,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:15 }}>🚀</div>
           <span style={{ color:"#FFFFFF",fontSize:13,fontWeight:800,letterSpacing:2 }}>LIFESMART</span>
-        </div>
-        <div style={{ display:"flex",alignItems:"center",gap:8 }}>
-          <XPBadge/>
         </div>
       </header>
 
