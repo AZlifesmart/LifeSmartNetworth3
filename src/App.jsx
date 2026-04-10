@@ -764,7 +764,7 @@ function CurrencyInput({ label, value, onChange, placeholder, helper }) {
       {label && <p style={{ fontSize:12,color:T.muted,fontWeight:600,marginBottom:7 }}>{label}</p>}
       <div style={{ display:"flex",alignItems:"center",background:T.card,border:`1.5px solid ${T.border}`,borderRadius:12,overflow:"hidden",transition:"border-color .15s" }}
         onFocus={()=>{}} tabIndex={-1}>
-        <span style={{ padding:"0 12px",color:T.muted,fontSize:17,fontWeight:700,userSelect:"none",flexShrink:0 }}>£</span>
+        <span style={{ padding:"0 12px",color:T.muted,fontSize:17,fontWeight:700,userSelect:"none",flexShrink:0 }}>{CURRENCY_SYMBOL}</span>
         <input type="number" min="0" value={raw} placeholder={placeholder||"0"}
           onChange={e=>handle(e.target.value)}
           style={{ flex:1,background:"transparent",border:"none",outline:"none",color:T.white,fontSize:15,fontWeight:600,padding:"12px 12px 12px 0",fontFamily:"inherit",fontVariantNumeric:"tabular-nums" }}/>
@@ -1104,14 +1104,6 @@ function WelcomeScreen({ onNext }) {
       position:"relative", overflow:"hidden" }}>
       <StarField count={16}/>
 
-      {/* Currency picker (top-right) */}
-      <div style={{ position:"absolute", top:18, right:18, zIndex:5 }}>
-        <button onClick={()=>setShowCurrency(true)} style={{ background:"rgba(255,255,255,.06)", border:"1px solid rgba(255,255,255,.12)", borderRadius:99, padding:"7px 12px", color:"#FFFFFF", fontWeight:700, fontSize:12, cursor:"pointer", fontFamily:"inherit", display:"flex", alignItems:"center", gap:6 }}>
-          {(CURRENCY_OPTIONS.find(c=>c.code===currency)||CURRENCY_OPTIONS[0]).flag} {currency}
-          <span style={{ opacity:.6, fontSize:10 }}>▾</span>
-        </button>
-      </div>
-
       {showCurrency && (
         <div onClick={()=>setShowCurrency(false)} style={{ position:"fixed", inset:0, background:"rgba(7,13,26,.85)", backdropFilter:"blur(6px)", zIndex:100, display:"flex", alignItems:"center", justifyContent:"center", padding:"20px" }}>
           <div onClick={e=>e.stopPropagation()} style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:20, padding:"22px 18px", maxWidth:380, width:"100%", maxHeight:"80vh", overflowY:"auto" }}>
@@ -1162,6 +1154,22 @@ function WelcomeScreen({ onNext }) {
               fontSize:19, fontWeight:700, fontFamily:"inherit",
               outline:"none", transition:"border .15s" }}/>
           <p style={{ color:"#3A5575", fontSize:12, paddingLeft:4 }}>Used to compare you against your age group.</p>
+
+          {/* Currency picker — prominent, inline */}
+          <button type="button" onClick={()=>setShowCurrency(true)}
+            style={{ width:"100%", background:"rgba(255,255,255,.04)",
+              border:`2px solid rgba(255,255,255,.08)`, borderRadius:16,
+              padding:"15px 20px", cursor:"pointer", fontFamily:"inherit",
+              display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, marginTop:6 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+              <span style={{ fontSize:24 }}>{(CURRENCY_OPTIONS.find(c=>c.code===currency)||CURRENCY_OPTIONS[0]).flag}</span>
+              <div style={{ textAlign:"left" }}>
+                <p style={{ color:"#FFFFFF", fontSize:14, fontWeight:800 }}>Your currency: {currency}</p>
+                <p style={{ color:T.teal, fontSize:11, fontWeight:600, marginTop:1 }}>Tap to change →</p>
+              </div>
+            </div>
+            <span style={{ color:"#5A7A9A", fontSize:14 }}>▾</span>
+          </button>
         </div>
       </div>
       <div style={{ position:"relative", zIndex:1, padding:"0 28px 48px", maxWidth:460, margin:"0 auto", width:"100%" }}>
@@ -1261,7 +1269,7 @@ function AssetTypeCard({ type, value, selected, onChange }) {
       {open && (
         <>
           <div style={{ display:"flex",alignItems:"center",background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,overflow:"hidden" }}>
-            <span style={{ padding:"0 10px",color:"#E2EAF6",fontSize:15,fontWeight:700,userSelect:"none" }}>£</span>
+            <span style={{ padding:"0 10px",color:"#E2EAF6",fontSize:15,fontWeight:700,userSelect:"none" }}>{CURRENCY_SYMBOL}</span>
             <input type="number" min="0" value={rawVal} placeholder="0" autoFocus
               onChange={e=>handleChange(e.target.value)}
               onBlur={()=>{ if(!value) setOpen(false) }}
@@ -1367,7 +1375,7 @@ function DebtTypeCard({ type, value, selected, onChange }) {
       </div>
       {open && (
         <div style={{ display:"flex",alignItems:"center",background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,overflow:"hidden" }}>
-          <span style={{ padding:"0 10px",color:"#E2EAF6",fontSize:15,fontWeight:700,userSelect:"none" }}>£</span>
+          <span style={{ padding:"0 10px",color:"#E2EAF6",fontSize:15,fontWeight:700,userSelect:"none" }}>{CURRENCY_SYMBOL}</span>
           <input type="number" min="0" value={rawVal} placeholder="0" autoFocus
             onChange={e=>handleChange(e.target.value)}
             onBlur={()=>{ if(!value) setOpen(false) }}
@@ -1656,7 +1664,7 @@ function NorthStarSelector({ onSelect, onClose }) {
               <div>
                 <p style={{ color:T.muted,fontSize:12,fontWeight:600,marginBottom:6 }}>How much do you need? (optional)</p>
                 <div style={{ display:"flex",alignItems:"center",background:T.card,border:`1.5px solid ${T.border}`,borderRadius:12,overflow:"hidden" }}>
-                  <span style={{ padding:"0 12px",color:T.muted,fontSize:17,fontWeight:700 }}>£</span>
+                  <span style={{ padding:"0 12px",color:T.muted,fontSize:17,fontWeight:700 }}>{CURRENCY_SYMBOL}</span>
                   <input type="number" min="0" value={targetAmount} onChange={e => setTargetAmount(e.target.value)} placeholder={ns?.defaultTarget ? String(ns.defaultTarget) : "0"}
                     style={{ flex:1,background:"transparent",border:"none",outline:"none",color:T.white,fontSize:15,fontWeight:600,padding:"12px 12px 12px 0",fontFamily:"inherit" }}/>
                 </div>
@@ -1667,7 +1675,7 @@ function NorthStarSelector({ onSelect, onClose }) {
               <div style={{ marginTop:14 }}>
                 <p style={{ color:T.muted,fontSize:12,fontWeight:600,marginBottom:6 }}>How much have you already saved toward this? (optional)</p>
                 <div style={{ display:"flex",alignItems:"center",background:T.card,border:`1.5px solid ${T.border}`,borderRadius:12,overflow:"hidden" }}>
-                  <span style={{ padding:"0 12px",color:T.muted,fontSize:17,fontWeight:700 }}>£</span>
+                  <span style={{ padding:"0 12px",color:T.muted,fontSize:17,fontWeight:700 }}>{CURRENCY_SYMBOL}</span>
                   <input type="number" min="0" value={currentSaved} onChange={e => setCurrentSaved(e.target.value)} placeholder="0"
                     style={{ flex:1,background:"transparent",border:"none",outline:"none",color:T.white,fontSize:15,fontWeight:600,padding:"12px 12px 12px 0",fontFamily:"inherit" }}/>
                 </div>
@@ -3600,7 +3608,7 @@ function AnalyticsSpendingInner({state,save,toast,totalIncome,phase,setPhase}){
         <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:6}}><div style={{width:6,height:6,borderRadius:"50%",background:BUCKET_COLORS[bucket]}}/><p style={{color:BUCKET_COLORS[bucket],fontWeight:800,fontSize:10,textTransform:"uppercase",letterSpacing:0.8}}>{BUCKET_LABELS[bucket]}</p></div>
         {SPEND_CATS.filter(c=>c.bucket===bucket).map(cat=>(<div key={cat.id} style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
           <span style={{fontSize:13,width:20,textAlign:"center"}}>{cat.icon}</span><p style={{flex:1,color:"#E2EAF6",fontSize:11}}>{cat.label}</p>
-          <div style={{display:"flex",alignItems:"center",gap:2}}><span style={{color:T.muted,fontSize:12}}>£</span><input type="number" min="0" placeholder="0" value={amounts[cat.id]||""} onChange={e=>setAmounts(v=>({...v,[cat.id]:e.target.value}))} style={{width:60,background:T.surface,border:`1px solid ${T.border}`,borderRadius:6,padding:"5px 6px",color:T.white,fontSize:12,fontFamily:"inherit",textAlign:"right"}}/></div>
+          <div style={{display:"flex",alignItems:"center",gap:2}}><span style={{color:T.muted,fontSize:12}}>{CURRENCY_SYMBOL}</span><input type="number" min="0" placeholder="0" value={amounts[cat.id]||""} onChange={e=>setAmounts(v=>({...v,[cat.id]:e.target.value}))} style={{width:60,background:T.surface,border:`1px solid ${T.border}`,borderRadius:6,padding:"5px 6px",color:T.white,fontSize:12,fontFamily:"inherit",textAlign:"right"}}/></div>
         </div>))}
       </div>))}
       <div style={{display:"flex",gap:8}}>
@@ -7340,8 +7348,8 @@ function LessonList({ onOpen, completed }) {
 
   const tabs = [
     { id: "freedom", label: "Financial Freedom", emoji: "🚀", color: C.teal },
+    { id: "knowledge", label: "Money Foundations", emoji: "💡", color: C.gold },
     { id: "ibpe", label: "IBD and PE", emoji: "🏛️", color: C.purple },
-    { id: "knowledge", label: "Money Knowledge", emoji: "💡", color: C.gold },
   ]
 
   return (
