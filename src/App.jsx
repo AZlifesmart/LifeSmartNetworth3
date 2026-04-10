@@ -2185,70 +2185,139 @@ function HomeTab() {
           </button>
         )}
 
-        {/* ══ SECTION 4: LEARNING PATH (uses new LESSONS) ══ */}
+        {/* ══ SECTION 4: LEARNING PATH (chapter-based journey) ══ */}
         {(() => {
           const completedLessons = state.completedLessons || []
           const doneSetL = new Set(completedLessons)
           const totalLessons = LESSONS.length
           const doneCount = LESSONS.filter(l => doneSetL.has(l.n)).length
           const nextLesson = LESSONS.find(l => !doneSetL.has(l.n)) || LESSONS[0]
-          const pct = Math.round((doneCount / totalLessons) * 100)
-          const PHASE_COLORS = { Foundations:T.green, Stabilise:T.amber, Optimise:T.blue, Invest:T.purple, "Islamic Finance":T.teal, Grow:T.purple }
-          const PHASES = ["Foundations","Stabilise","Optimise","Invest","Islamic Finance"]
-          // Show first 6 lessons as preview, then a "see all" link
-          const previewLessons = LESSONS.slice(0, 6)
+          const overallPct = Math.round((doneCount / totalLessons) * 100)
+
+          // One-line description of what each lesson helps with
+          const LESSON_HINTS = {
+            1:  "The number that actually shows how you're doing",
+            2:  "The simple pattern wealthy people follow",
+            3:  "Build a budget system that finally sticks",
+            4:  "Understand every line of your payslip",
+            5:  "How interest works and why it traps people",
+            6:  "A clear plan to wipe out bad debt",
+            7:  "The fund that stops a setback becoming a spiral",
+            8:  "Save with purpose for every future goal",
+            9:  "How tax actually works and how to pay less",
+            10: "The tax-free wrapper everyone should use",
+            11: "Set financial goals that actually happen",
+            12: "The free money your employer is offering",
+            13: "A private pension you fully own and control",
+            14: "What investing actually means in practice",
+            15: "The main asset classes explained simply",
+            16: "How to start investing the right way",
+            17: "Spread your money to reduce risk",
+            18: "Property, gold and crypto, the honest take",
+            19: "What Sharia compliant finance really means",
+            20: "Islamic mortgages, loans and insurance explained",
+            21: "How to invest the halal way",
+          }
+
+          // Chapter definitions (frame phases as a journey)
+          const CHAPTERS = [
+            { phase:"Foundations", num:"01", title:"Foundations", emoji:"🌱", color:T.green,
+              promise:"See your real financial picture and understand how wealth actually builds." },
+            { phase:"Stabilise",   num:"02", title:"Stabilise",   emoji:"🛡️", color:T.amber,
+              promise:"Wipe out bad debt and build the safety net that protects everything you do next." },
+            { phase:"Optimise",    num:"03", title:"Optimise",    emoji:"⚡", color:T.blue,
+              promise:"Stop overpaying tax, claim the free money you are owed, and set goals that actually happen." },
+            { phase:"Invest",      num:"04", title:"Invest",      emoji:"📈", color:T.purple,
+              promise:"Put your money to work so it earns while you sleep and compounds for decades." },
+            { phase:"Islamic Finance", num:"05", title:"Islamic Finance", emoji:"☪️", color:T.teal,
+              promise:"An optional path covering Sharia compliant alternatives for every financial decision." },
+          ]
+
           return (
             <div style={{ marginBottom:24 }}>
+              {/* Hero intro */}
               <div style={{ marginBottom:18 }}>
-                <p style={{ color:T.teal, fontSize:11, fontWeight:800, letterSpacing:1.5, textTransform:"uppercase", marginBottom:10 }}>Your path to financial freedom</p>
-                <p style={{ color:"#FFFFFF", fontWeight:900, fontSize:22, lineHeight:1.2, marginBottom:8, letterSpacing:-.3 }}>Build the knowledge that compounds</p>
-                <p style={{ color:"#8FA3BE", fontSize:14, lineHeight:1.6, marginBottom:14 }}>{totalLessons} short lessons. Each one teaches a single idea, then asks you to take one small action. Work through them in order or jump to what you need.</p>
-                <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
-                  <div style={{ flex:1, background:"rgba(255,255,255,.08)", borderRadius:99, height:5, overflow:"hidden" }}>
-                    <div style={{ width:`${pct}%`, height:"100%", background:`linear-gradient(90deg,${T.teal},${T.purple})`, borderRadius:99, transition:"width .5s ease" }}/>
+                <p style={{ color:T.teal, fontSize:11, fontWeight:800, letterSpacing:1.5, textTransform:"uppercase", marginBottom:10 }}>Your guide to financial freedom</p>
+                <p style={{ color:"#FFFFFF", fontWeight:900, fontSize:22, lineHeight:1.2, marginBottom:10, letterSpacing:-.3 }}>The complete path, taught one idea at a time</p>
+                <p style={{ color:"#C8D8EC", fontSize:14, lineHeight:1.65, marginBottom:6 }}>This is everything you need to sort your financial life out for good. Five chapters. Each one builds on the last. Each lesson is short, teaches a single idea, and ends with one small action you can take today.</p>
+                <p style={{ color:"#8FA3BE", fontSize:13, lineHeight:1.6, marginBottom:14 }}>Work through it in order. By the end you will have the knowledge and the systems to reach the goals you set in this app.</p>
+                <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:4 }}>
+                  <div style={{ flex:1, background:"rgba(255,255,255,.08)", borderRadius:99, height:6, overflow:"hidden" }}>
+                    <div style={{ width:`${overallPct}%`, height:"100%", background:`linear-gradient(90deg,${T.teal},${T.purple})`, borderRadius:99, transition:"width .5s ease" }}/>
                   </div>
-                  <p style={{ color:"#8FA3BE", fontSize:12, fontWeight:700, flexShrink:0 }}>{doneCount}/{totalLessons} done</p>
+                  <p style={{ color:"#C8D8EC", fontSize:12, fontWeight:700, flexShrink:0 }}>{doneCount} of {totalLessons} done</p>
                 </div>
               </div>
 
-              {/* Continue card — next lesson */}
-              {nextLesson && (
-                <button onClick={() => { save({...state, pendingLessonN: nextLesson.n}); setTab(1) }} style={{ width:"100%", background:`linear-gradient(135deg,${T.teal}15,${T.purple}10)`, border:`1.5px solid ${T.tealBorder}`, borderRadius:18, padding:"16px 18px", cursor:"pointer", fontFamily:"inherit", textAlign:"left", marginBottom:14, display:"flex", alignItems:"center", gap:14 }}>
-                  <div style={{ width:50, height:50, borderRadius:14, background:`${PHASE_COLORS[nextLesson.phase]||T.teal}20`, border:`1.5px solid ${PHASE_COLORS[nextLesson.phase]||T.teal}40`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, flexShrink:0 }}>{nextLesson.emoji}</div>
+              {/* Continue card */}
+              {nextLesson && doneCount > 0 && (
+                <button onClick={() => { save({...state, pendingLessonN: nextLesson.n}); setTab(1) }} style={{ width:"100%", background:`linear-gradient(135deg,${T.teal}18,${T.purple}10)`, border:`1.5px solid ${T.tealBorder}`, borderRadius:18, padding:"16px 18px", cursor:"pointer", fontFamily:"inherit", textAlign:"left", marginBottom:18, display:"flex", alignItems:"center", gap:14 }}>
+                  <div style={{ width:50, height:50, borderRadius:14, background:`${T.teal}25`, border:`1.5px solid ${T.tealBorder}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, flexShrink:0 }}>{nextLesson.emoji}</div>
                   <div style={{ flex:1, minWidth:0 }}>
-                    <p style={{ color:"#6B8CB8", fontSize:9, fontWeight:700, letterSpacing:1.2, textTransform:"uppercase", marginBottom:3 }}>{doneCount === 0 ? "Start with lesson 1" : "Continue learning"}</p>
-                    <p style={{ color:T.white, fontWeight:900, fontSize:15, lineHeight:1.2 }}>{nextLesson.title}</p>
-                    <p style={{ color:"#8FA3BE", fontSize:11, marginTop:2 }}>{nextLesson.subtitle} · {nextLesson.time} min</p>
+                    <p style={{ color:T.teal, fontSize:9, fontWeight:800, letterSpacing:1.2, textTransform:"uppercase", marginBottom:3 }}>Continue your journey</p>
+                    <p style={{ color:T.white, fontWeight:900, fontSize:15, lineHeight:1.2 }}>Lesson {nextLesson.n}: {nextLesson.title}</p>
+                    <p style={{ color:"#C8D8EC", fontSize:11, marginTop:2 }}>{LESSON_HINTS[nextLesson.n] || nextLesson.subtitle} · {nextLesson.time} min</p>
                   </div>
                   <span style={{ color:T.teal, fontWeight:800, fontSize:18 }}>›</span>
                 </button>
               )}
 
-              {/* Lesson preview tiles - 2 column */}
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-                {previewLessons.map((lesson) => {
-                  const isDone = doneSetL.has(lesson.n)
-                  const phaseColor = PHASE_COLORS[lesson.phase] || T.teal
+              {/* Chapter cards */}
+              <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+                {CHAPTERS.map(ch => {
+                  const chLessons = LESSONS.filter(l => l.phase === ch.phase)
+                  if (chLessons.length === 0) return null
+                  const chDone = chLessons.filter(l => doneSetL.has(l.n)).length
+                  const chPct = Math.round((chDone / chLessons.length) * 100)
+                  const allDone = chDone === chLessons.length
                   return (
-                    <button key={lesson.n} onClick={() => { save({...state, pendingLessonN: lesson.n}); setTab(1) }} style={{ background:T.card, border:`1.5px solid ${isDone ? T.green+"40" : T.border}`, borderRadius:16, padding:"14px 12px", cursor:"pointer", fontFamily:"inherit", textAlign:"left" }}>
-                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8 }}>
-                        <div style={{ width:36, height:36, borderRadius:10, background:`${phaseColor}18`, border:`1px solid ${phaseColor}30`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:18 }}>{lesson.emoji}</div>
-                        {isDone && <span style={{ background:T.green+"20", borderRadius:99, padding:"2px 6px", color:T.green, fontSize:9, fontWeight:800 }}>✓</span>}
+                    <div key={ch.phase} style={{ background:`linear-gradient(180deg,${ch.color}10 0%,${T.card} 100%)`, border:`1.5px solid ${ch.color}30`, borderRadius:20, overflow:"hidden", boxShadow:`0 2px 24px ${ch.color}08` }}>
+                      {/* Chapter header */}
+                      <div style={{ padding:"16px 18px 14px", borderBottom:`1px solid ${ch.color}15`, position:"relative", overflow:"hidden" }}>
+                        <div style={{ position:"absolute", top:0, right:0, width:120, height:120, background:`radial-gradient(circle at 100% 0%,${ch.color}18,transparent 60%)`, pointerEvents:"none" }}/>
+                        <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:8, position:"relative" }}>
+                          <div style={{ width:46, height:46, borderRadius:14, background:`${ch.color}22`, border:`1.5px solid ${ch.color}45`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, flexShrink:0 }}>{ch.emoji}</div>
+                          <div style={{ flex:1, minWidth:0 }}>
+                            <p style={{ color:ch.color, fontSize:9, fontWeight:800, letterSpacing:1.5, textTransform:"uppercase", marginBottom:2 }}>Chapter {ch.num}</p>
+                            <p style={{ color:T.white, fontWeight:900, fontSize:18, lineHeight:1.1 }}>{ch.title}</p>
+                          </div>
+                          {allDone && <div style={{ background:T.green+"20", border:`1px solid ${T.green}40`, borderRadius:99, padding:"4px 10px", display:"flex", alignItems:"center", gap:4 }}>
+                            <span style={{ fontSize:10 }}>✓</span><span style={{ color:T.green, fontSize:10, fontWeight:800 }}>Done</span>
+                          </div>}
+                        </div>
+                        <p style={{ color:"#C8D8EC", fontSize:12, lineHeight:1.5, marginBottom:10, position:"relative" }}>{ch.promise}</p>
+                        <div style={{ display:"flex", alignItems:"center", gap:8, position:"relative" }}>
+                          <div style={{ flex:1, background:"rgba(255,255,255,.06)", borderRadius:99, height:4, overflow:"hidden" }}>
+                            <div style={{ width:`${chPct}%`, height:"100%", background:ch.color, borderRadius:99, transition:"width .5s ease" }}/>
+                          </div>
+                          <p style={{ color:ch.color, fontSize:10, fontWeight:800, flexShrink:0 }}>{chDone}/{chLessons.length}</p>
+                        </div>
                       </div>
-                      <p style={{ color:"#6B8CB8", fontSize:8, fontWeight:700, letterSpacing:.8, textTransform:"uppercase", marginBottom:3 }}>{lesson.phase}</p>
-                      <p style={{ color:T.white, fontWeight:800, fontSize:12, lineHeight:1.3 }}>{lesson.title}</p>
-                    </button>
+
+                      {/* Lesson rows */}
+                      <div>
+                        {chLessons.map((lesson, li) => {
+                          const isDone = doneSetL.has(lesson.n)
+                          return (
+                            <button key={lesson.n} onClick={() => { save({...state, pendingLessonN: lesson.n}); setTab(1) }} style={{ width:"100%", background:"none", border:"none", borderTop: li === 0 ? "none" : `1px solid ${ch.color}10`, padding:"13px 18px", cursor:"pointer", fontFamily:"inherit", textAlign:"left", display:"flex", alignItems:"center", gap:13 }}>
+                              <div style={{ width:34, height:34, borderRadius:10, background:isDone ? `${T.green}18` : `${ch.color}12`, border:`1px solid ${isDone ? T.green+"40" : ch.color+"25"}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:17, flexShrink:0 }}>{isDone ? "✓" : lesson.emoji}</div>
+                              <div style={{ flex:1, minWidth:0 }}>
+                                <p style={{ color:isDone ? "#8FA3BE" : T.white, fontWeight:800, fontSize:13, lineHeight:1.25, marginBottom:1, textDecoration:isDone ? "line-through" : "none" }}>Lesson {lesson.n}: {lesson.title}</p>
+                                <p style={{ color:"#8FA3BE", fontSize:11, lineHeight:1.4 }}>{LESSON_HINTS[lesson.n] || lesson.subtitle}</p>
+                              </div>
+                              <span style={{ color:ch.color, fontWeight:800, fontSize:16, flexShrink:0, opacity:.7 }}>›</span>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
                   )
                 })}
               </div>
-
-              {/* See all CTA */}
-              <button onClick={() => setTab(1)} style={{ width:"100%", background:"none", border:`1px solid ${T.border}`, borderRadius:14, padding:"12px", color:T.teal, fontWeight:700, fontSize:13, cursor:"pointer", fontFamily:"inherit", marginTop:12 }}>
-                See all {totalLessons} lessons →
-              </button>
             </div>
           )
         })()}
+
 
         {/* ══ SECTION 5: GOALS ══ */}
         <DashboardGoals goals={goals} surplus={surplus} save={save} state={state} toast={toast} setTab={setTab}/>
@@ -5471,7 +5540,7 @@ function LessonPlayer({ lesson, onBack, onComplete }) {
           </button>
         ))}
       </div>
-      <div style={{ maxWidth: 560, margin: "0 auto" }}>
+      <div style={{ maxWidth: 560, margin: "0 auto", paddingBottom: 140 }}>
         {view === "learn" && finished && (
           <div style={{ padding: "40px 20px", textAlign: "center" }}>
             <p style={{ fontSize: 48, marginBottom: 16 }}>🏆</p>
@@ -7334,9 +7403,17 @@ function LearnTab() {
   }
 
   if (active) {
-    return <LessonPlayer lesson={active} onBack={() => setActive(null)} onComplete={completeLesson}/>
+    return (
+      <div style={{ position:"fixed", inset:0, background:T.bg, zIndex:200, overflowY:"auto", WebkitOverflowScrolling:"touch" }}>
+        <LessonPlayer lesson={active} onBack={() => setActive(null)} onComplete={completeLesson}/>
+      </div>
+    )
   }
-  return <LessonList onOpen={setActive} completed={completed}/>
+  return (
+    <div style={{ flex:1, overflowY:"auto", paddingBottom:0 }}>
+      <LessonList onOpen={setActive} completed={completed}/>
+    </div>
+  )
 }
 
 
