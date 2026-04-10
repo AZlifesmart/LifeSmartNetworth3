@@ -3157,7 +3157,7 @@ function GoalsTab() {
 
 
 function AnalyticsTab() {
-  const { state, save, toast } = useApp()
+  const { state, save, toast, setTab } = useApp()
   const [sheet, setSheet] = useState(null)
   const [editItem, setEditItem] = useState(null)
   const [showHealthQ, setShowHealthQ] = useState(false)
@@ -3281,9 +3281,18 @@ function AnalyticsTab() {
                   <div key={m.l} style={{background:T.surface,borderRadius:10,padding:"8px",textAlign:"center"}}>
                     <p style={{color:"#6B8CB8",fontSize:8,fontWeight:700,textTransform:"uppercase",marginBottom:3}}>{m.l}</p>
                     <p style={{color:m.ok?T.teal:T.white,fontWeight:900,fontSize:14}}>{m.y}</p>
-                    <p style={{color:T.muted,fontSize:9}}>vs {m.b}</p>
+                    <p style={{color:T.muted,fontSize:9}}>average {m.b}</p>
                   </div>
                 ))}
+              </div>
+              {/* Plain-English narrative */}
+              <div style={{background:T.surface,borderRadius:10,padding:"10px 12px",marginTop:10}}>
+                <p style={{color:"#C8D8EC",fontSize:11,lineHeight:1.55}}>
+                  {percentile >= 75 ? <>You are <strong style={{color:T.teal}}>well ahead</strong> of most people your age. Your job now is to keep the momentum and avoid lifestyle creep eating into your progress.</> :
+                   percentile >= 50 ? <>You are <strong style={{color:T.teal}}>slightly above average</strong> for your age. A solid position to build from. Small consistent improvements compound into big results.</> :
+                   percentile >= 30 ? <>You are <strong style={{color:T.amber}}>slightly below average</strong> for your age. Do not worry, this is just one indicator. Most of the people ahead of you started exactly where you are now.</> :
+                   <>You are <strong style={{color:T.amber}}>behind the average</strong> right now. That is not a verdict, it is a starting point. The Learn tab will walk you through the highest-impact moves you can make from here.</>}
+                </p>
               </div>
             </div>}
           </div>
@@ -3345,6 +3354,7 @@ function AnalyticsTab() {
                 <div style={{background:T.surface,borderRadius:10,padding:"10px 12px",marginTop:10}}>
                   <p style={{color:T.teal,fontWeight:800,fontSize:12,marginBottom:3}}>{productivePct}% productive assets</p>
                   <p style={{color:"#C8D8EC",fontSize:11,lineHeight:1.5}}>Productive assets (savings, investments, pensions) earn returns over time and compound. They are what build financial freedom. {productivePct<30?"Most of your wealth is currently in things that don't grow on their own. Shifting more into productive assets is the single biggest accelerator for your future net worth.":productivePct<60?"You have a decent foundation. Increasing this percentage means more money working for you while you sleep.":"Strong productive allocation. Your wealth is actively compounding toward financial freedom."}</p>
+                  <button onClick={()=>setTab(1)} style={{background:"none",border:"none",color:T.teal,fontWeight:700,fontSize:11,cursor:"pointer",fontFamily:"inherit",padding:0,marginTop:8}}>Learn more about productive assets in the Learn tab →</button>
                 </div>
               </div>)
             })()}
@@ -3372,7 +3382,8 @@ function AnalyticsTab() {
           <div style={{background:T.card,border:`1.5px solid ${spendingPhase==="chart"?T.purpleBorder:T.border}`,borderRadius:20,marginBottom:14,overflow:"hidden"}}>
             <div style={{padding:"16px 18px"}}>
               <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}><span style={{fontSize:18}}>💰</span><div><p style={{color:T.white,fontWeight:800,fontSize:15}}>Income & Spending</p><p style={{color:T.muted,fontSize:10}}>Your monthly cash flow</p></div></div>
-              <p style={{color:"#C8D8EC",fontSize:11,lineHeight:1.5,marginBottom:12}}>The goal is to land roughly around <strong style={{color:T.teal}}>50% needs, 30% wants, 20% savings</strong>. Most people spend too much on wants and not enough on their future without realising.</p>
+              <p style={{color:"#C8D8EC",fontSize:11,lineHeight:1.5,marginBottom:6}}>The goal is to land roughly around <strong style={{color:T.teal}}>50% needs, 30% wants, 20% savings</strong>. Most people spend too much on wants and not enough on their future without realising.</p>
+              <button onClick={()=>setTab(1)} style={{background:"none",border:"none",color:T.teal,fontWeight:700,fontSize:11,cursor:"pointer",fontFamily:"inherit",padding:0,marginBottom:12}}>Learn more about budgeting in the Learn tab →</button>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginBottom:8}}>
                 <div><p style={{color:T.teal,fontWeight:900,fontSize:18}}>{fmtK(totalIncome)}</p><p style={{color:"#4A6080",fontSize:8}}>income/mo</p></div>
                 <div style={{textAlign:"center"}}><p style={{color:surplus>=0?T.teal:T.red,fontWeight:900,fontSize:14}}>{surplus>=0?"+":""}{fmt(surplus)}</p><p style={{color:"#4A6080",fontSize:8}}>surplus</p></div>
@@ -3399,7 +3410,8 @@ function AnalyticsTab() {
                 <div style={{display:"flex",alignItems:"center",gap:8}}><span style={{fontSize:18}}>🔮</span><div><p style={{color:T.white,fontWeight:800,fontSize:14}}>What If I Saved More?</p><p style={{color:T.muted,fontSize:10}}>Compound growth over time</p></div></div>
                 <div style={{textAlign:"right"}}><p style={{color:T.teal,fontWeight:900,fontSize:16}}>+£{whatIfExtra}</p><p style={{color:"#4A6080",fontSize:8}}>per month</p></div>
               </div>
-              <p style={{color:"#C8D8EC",fontSize:11,lineHeight:1.5,marginBottom:10}}>The grey line shows your current trajectory. The teal line shows where you'd land by saving an extra <strong style={{color:T.teal}}>£{whatIfExtra}</strong> per month. Drag the slider to see the impact.</p>
+              <p style={{color:"#C8D8EC",fontSize:11,lineHeight:1.5,marginBottom:6}}>The grey line shows your current trajectory. The teal line shows where you'd land by saving an extra <strong style={{color:T.teal}}>£{whatIfExtra}</strong> per month. Drag the slider to see the impact.</p>
+              <button onClick={()=>setTab(1)} style={{background:"none",border:"none",color:T.teal,fontWeight:700,fontSize:11,cursor:"pointer",fontFamily:"inherit",padding:0,marginBottom:10}}>Learn more about investing and compound interest in the Learn tab →</button>
               <input type="range" min="0" max="1000" step="25" value={whatIfExtra} onChange={e=>setWhatIfExtra(Number(e.target.value))} style={{width:"100%",accentColor:T.teal,height:4,marginBottom:4}}/>
             </div>
             <div style={{height:160,padding:"0 4px"}}>
